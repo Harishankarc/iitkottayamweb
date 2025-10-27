@@ -6,6 +6,8 @@ import { message, notification } from 'antd';
 import { Modal, Button } from "antd";
 import { Spin } from 'antd';
 import { Table } from "antd";
+// Import your theme hook - adjust the path as needed
+import { useTheme } from '../context/createContext';
 
 const { TextArea } = Input;
 
@@ -207,5 +209,57 @@ export const DataTable = ({
       pagination={pagination}
       {...rest}
     />
+  );
+};
+
+export const MyDiv = ({
+  children,
+  className = "",
+  variant = "default", // "default", "card", "section", "container", "transparent"
+  padding = true,
+  ...rest
+}) => {
+  // Directly use the theme hook
+  const { darkMode, fontSize } = useTheme();
+
+  // Font size mappings
+  const fontSizeClasses = {
+    small: "text-sm",
+    medium: "text-base",
+    large: "text-lg"
+  };
+
+  // Variant-based styling
+  const variantClasses = {
+    default: "",
+    card: "rounded-lg shadow-md",
+    section: "rounded-md border",
+    container: "max-w-7xl mx-auto",
+    transparent: "" // No background styling
+  };
+
+  // Dark mode classes - skip background for transparent variant
+  const darkModeClasses = variant === "transparent"
+    ? ""
+    : darkMode
+      ? "bg-gray-800 text-white border-gray-700"
+      : "bg-white text-gray-900 border-gray-200";
+
+  // Padding classes
+  const paddingClass = padding ? "p-4" : "";
+
+  // Combine all classes
+  const combinedClasses = `
+    ${variantClasses[variant]}
+    ${darkModeClasses}
+    ${fontSizeClasses[fontSize]}
+    ${paddingClass}
+    ${className}
+  `.trim().replace(/\s+/g, ' ');
+
+  return (
+    <div className={combinedClasses} {...rest}>
+      {children}
+    </div>
   );
 };

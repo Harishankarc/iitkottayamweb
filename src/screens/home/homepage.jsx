@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import NavBar from "../../components/navbar";
 
 
 const HomePage = () => {
@@ -7,6 +8,7 @@ const HomePage = () => {
 
   return (
     <>
+      <NavBar />
     </>
   );
 };
