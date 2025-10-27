@@ -4,7 +4,7 @@ const ThemeContext = createContext();
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);
-  if (!context) {        
+  if (!context) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
@@ -18,6 +18,7 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     if (darkMode) {
       document.body.classList.add('dark');
+      document.body.style.color = '#FFD700'; 
     } else {
       document.body.classList.remove('dark');
     }

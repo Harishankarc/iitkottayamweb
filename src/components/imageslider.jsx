@@ -15,7 +15,7 @@ const ImageSlider = ({ images }) => {
   return (
     <MyDiv
       variant="transparent"
-      className="relative w-100vw h-[500px] overflow-hidden px-10"
+      className="relative w-100vw md:h-[550px] h-[300px] overflow-hidden px-10"
       padding={false}
       >
       <MyDiv className="absolute inset-0">
@@ -30,8 +30,7 @@ const ImageSlider = ({ images }) => {
               }`}
           >
             <img
-              src={image.src}
-              alt={image.alt}
+              src={image}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-opacity-40" />

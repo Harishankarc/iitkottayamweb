@@ -4,7 +4,7 @@ import API from "../api/api";
 import { useTheme } from "../context/createContext";
 
 
-const Footer = () => {
+const AppFooter = () => {
   const {
     darkMode
   } = useTheme();
@@ -110,4 +110,4 @@ const Footer = () => {
   );
 };
 
-export default Footer;
+export default AppFooter;

@@ -22,6 +22,12 @@ body.dark {
   color: yellow;
 }
 
+@layer base {
+  .dark * {
+    color: #FFD700 !important;
+  }
+}
+
 .gradient-text {
   background: linear-gradient(90deg, #239244, #00aaf0);
   background-size: 200% 100%;

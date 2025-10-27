@@ -1,11 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from '../context/createContext';
-import ImageSlider from './imageslider';
-import img1 from '../assets/images/img1.jpg';
-import img2 from '../assets/images/img2.jpg';
-import img3 from '../assets/images/img3.jpg';
-import { MyDiv } from './input_output_utils';
 import { navigationConfig } from '../config/navigationConfig';
 
 const NestedMenuItem = ({ item, onClose, darkMode, fontSize }) => {
@@ -35,29 +30,43 @@ const NestedMenuItem = ({ item, onClose, darkMode, fontSize }) => {
         onMouseLeave={handleMouseLeave}
       >
         <div
-          className={`flex items-center justify-between px-4 py-2.5 cursor-pointer ${getFontSizeClass()} ${darkMode
+          className={`flex items-center justify-between px-4 py-2.5 cursor-pointer transition-all duration-200 ${getFontSizeClass()} ${darkMode
             ? 'text-gray-200 hover:bg-green-600 hover:text-white'
             : 'text-gray-700 hover:bg-green-600 hover:text-white'
             }`}
         >
           <span>{item.label}</span>
-          <ChevronRight size={16} />
+          <ChevronRight
+            size={16}
+            className={`transition-transform duration-300 ${showNested ? 'translate-x-1' : ''}`}
+          />
         </div>
 
         {showNested && (
           <div
             className={`absolute left-full top-0 min-w-[280px] shadow-xl z-50 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'
-              } border-l-2 border-green-500`}
-            style={{ animation: 'fadeIn 0.2s ease-out forwards', pointerEvents: 'auto' }}
+              } border-l-2 border-green-500 overflow-hidden`}
+            style={{
+              animation: 'slideExpandIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+              transformOrigin: 'left center'
+            }}
           >
-            {item.nested.map((nestedItem) => (
-              <NestedMenuItem
+            {item.nested.map((nestedItem, index) => (
+              <div
                 key={nestedItem.id}
-                item={nestedItem}
-                onClose={onClose}
-                darkMode={darkMode}
-                fontSize={fontSize}
-              />
+                style={{
+                  animation: `fadeInItem 0.3s ease-out forwards`,
+                  animationDelay: `${index * 0.05}s`,
+                  opacity: 0
+                }}
+              >
+                <NestedMenuItem
+                  item={nestedItem}
+                  onClose={onClose}
+                  darkMode={darkMode}
+                  fontSize={fontSize}
+                />
+              </div>
             ))}
           </div>
         )}
@@ -68,9 +77,9 @@ const NestedMenuItem = ({ item, onClose, darkMode, fontSize }) => {
   return (
     <a
       href={item.link}
-      className={`block px-4 py-2.5 transition-all duration-300 ${getFontSizeClass()} ${darkMode
-        ? 'text-gray-300 hover:bg-green-600 hover:text-white'
-        : 'text-gray-600 hover:bg-green-600 hover:text-white'
+      className={`block px-4 py-2.5 transition-all duration-200 ${getFontSizeClass()} ${darkMode
+        ? 'text-gray-300 hover:bg-green-600 hover:text-white hover:pl-5'
+        : 'text-gray-600 hover:bg-green-600 hover:text-white hover:pl-5'
         }`}
       onClick={onClose}
     >
@@ -96,27 +105,72 @@ const DropdownMenu = ({ items, isOpen, onClose }) => {
   return (
     <div
       className={`absolute left-0 mt-2 shadow-2xl z-50 min-w-[300px] ${darkMode ? 'bg-gray-800' : 'bg-white'
-        } overflow-hidden transition-all duration-300 ease-out opacity-0 animate-fadeIn`}
-      style={{ animation: 'fadeIn 0.3s ease-out forwards', pointerEvents: 'auto' }}
+        } overflow-hidden`}
+      style={{
+        animation: 'dropdownSlideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+        transformOrigin: 'top center'
+      }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
+      <style>{`
+        @keyframes slideExpandIn {
+          from {
+            opacity: 0;
+            transform: scaleX(0) translateX(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: scaleX(1) translateX(0);
+          }
+        }
+
+        @keyframes dropdownSlideDown {
+          from {
+            opacity: 0;
+            transform: scaleY(0.95) translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: scaleY(1) translateY(0);
+          }
+        }
+
+        @keyframes fadeInItem {
+          from {
+            opacity: 0;
+            transform: translateX(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+      `}</style>
       <div className="py-2" role="menu">
-        {items.map((item) => (
-          <NestedMenuItem
+        {items.map((item, index) => (
+          <div
             key={item.id}
-            item={item}
-            onClose={onClose}
-            darkMode={darkMode}
-            fontSize={fontSize}
-          />
+            style={{
+              animation: `fadeInItem 0.3s ease-out forwards`,
+              animationDelay: `${index * 0.05}s`,
+              opacity: 0
+            }}
+          >
+            <NestedMenuItem
+              item={item}
+              onClose={onClose}
+              darkMode={darkMode}
+              fontSize={fontSize}
+            />
+          </div>
         ))}
       </div>
     </div>
   );
 };
 
-const Navigation = () => {
+export default function DesktopNavigation() {
   const [openDropdown, setOpenDropdown] = useState(null);
   const { darkMode, fontSize } = useTheme();
   const timeoutRef = useRef(null);
@@ -137,7 +191,7 @@ const Navigation = () => {
   };
 
   return (
-    <nav className={`flex gap-6 px-10 pb-2 ${darkMode ? 'bg-[#111827]' : 'bg-white'}`}>
+    <nav className={`hidden lg:flex w-full gap-6 px-10 pb-2 justify-center ${darkMode ? 'bg-[#111827]' : 'bg-white'}`}>
       {navigationConfig.map((navItem) => (
         <div
           key={navItem.id}
@@ -148,8 +202,8 @@ const Navigation = () => {
           <a
             href={navItem.link || '#'}
             className={`flex items-center gap-1 font-medium transition-colors duration-300 ${getNavFontSizeClass()} ${darkMode
-              ? 'text-white hover:text-blue-400'
-              : 'text-gray-900 hover:text-blue-600'
+              ? 'text-white hover:text-[#111827]'
+              : 'text-gray-900 hover:text-[#00aaf0]'
               }`}
           >
             {navItem.label}
@@ -171,22 +225,5 @@ const Navigation = () => {
         </div>
       ))}
     </nav>
-  );
-};
-
-export default function NavigationWithSlider() {
-  const sliderImages = [
-    { src: img1, alt: 'Campus View 1', title: 'THE BEST OF THE BEST', description: 'Excellence in Education and Research' },
-    { src: img2, alt: 'Campus View 2', title: 'Innovation Hub', description: 'Leading the Future of Technology' },
-    { src: img3, alt: 'Campus View 3', title: 'World-Class Facilities', description: 'State-of-the-art Infrastructure' }
-  ];
-
-  return (
-    <div className="relative">
-      <MyDiv className="relative z-30" padding={false}>
-        <Navigation />
-      </MyDiv>
-      <ImageSlider images={sliderImages} />
-    </div>
   );
 }
