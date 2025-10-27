@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import NavBar from "../../components/navbar";
-
+import Footer from "../../components/footer";
 
 const HomePage = () => {
   // const {fetchUserData} = useHomePageController();
@@ -9,6 +9,7 @@ const HomePage = () => {
   return (
     <>
       <NavBar />
+      <Footer />
     </>
   );
 };
