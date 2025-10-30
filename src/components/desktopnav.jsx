@@ -1,6 +1,11 @@
 import React, { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from '../context/createContext';
+<<<<<<< HEAD:src/components/desktopnav.jsx
+=======
+import { MyDiv } from './input_output_utils';
+>>>>>>> origin/footer:src/components/navigation.jsx
 import { navigationConfig } from '../config/navigationConfig';
 
 const NestedMenuItem = ({ item, onClose, darkMode, fontSize }) => {
@@ -20,7 +25,7 @@ const NestedMenuItem = ({ item, onClose, darkMode, fontSize }) => {
     if (fontSize === 'small') return 'text-xs';
     if (fontSize === 'large') return 'text-base';
     return 'text-sm';
-  };
+   };
 
   if (item.hasNested) {
     return (
@@ -75,16 +80,24 @@ const NestedMenuItem = ({ item, onClose, darkMode, fontSize }) => {
   }
 
   return (
+<<<<<<< HEAD:src/components/desktopnav.jsx
     <a
       href={item.link}
       className={`block px-4 py-2.5 transition-all duration-200 ${getFontSizeClass()} ${darkMode
         ? 'text-gray-300 hover:bg-green-600 hover:text-white hover:pl-5'
         : 'text-gray-600 hover:bg-green-600 hover:text-white hover:pl-5'
+=======
+    <Link
+      to={item.link}
+      className={`block px-4 py-2.5 transition-all duration-300 ${getFontSizeClass()} ${darkMode
+        ? 'text-gray-300 hover:bg-green-600 hover:text-white'
+        : 'text-gray-600 hover:bg-green-600 hover:text-white'
+>>>>>>> origin/footer:src/components/navigation.jsx
         }`}
       onClick={onClose}
     >
       {item.label}
-    </a>
+    </Link>
   );
 };
 
@@ -199,8 +212,8 @@ export default function DesktopNavigation() {
           onMouseEnter={() => navItem.hasDropdown && handleMouseEnter(navItem.id)}
           onMouseLeave={navItem.hasDropdown ? handleMouseLeave : undefined}
         >
-          <a
-            href={navItem.link || '#'}
+          <Link
+            to={navItem.link || '#'}
             className={`flex items-center gap-1 font-medium transition-colors duration-300 ${getNavFontSizeClass()} ${darkMode
               ? 'text-white hover:text-[#111827]'
               : 'text-gray-900 hover:text-[#00aaf0]'
@@ -213,7 +226,7 @@ export default function DesktopNavigation() {
                 className={`transition-transform duration-300 ${openDropdown === navItem.id ? 'rotate-180' : ''}`}
               />
             )}
-          </a>
+          </Link>
 
           {navItem.hasDropdown && (
             <DropdownMenu
@@ -226,4 +239,20 @@ export default function DesktopNavigation() {
       ))}
     </nav>
   );
+<<<<<<< HEAD:src/components/desktopnav.jsx
 }
+=======
+};
+
+export default function NavigationWithSlider() {
+ 
+
+  return (
+    <div className="relative">
+      <MyDiv className="relative z-30" padding={false}>
+        <Navigation />
+      </MyDiv>
+    </div>
+  );
+}
+>>>>>>> origin/footer:src/components/navigation.jsx
