@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { MyDiv } from './input_output_utils';
 
+
 const ImageSlider = ({ images }) => {
+  
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {

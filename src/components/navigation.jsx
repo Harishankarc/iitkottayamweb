@@ -1,10 +1,7 @@
 import React, { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from '../context/createContext';
-import ImageSlider from './imageslider';
-import img1 from '../assets/images/img1.jpg';
-import img2 from '../assets/images/img2.jpg';
-import img3 from '../assets/images/img3.jpg';
 import { MyDiv } from './input_output_utils';
 import { navigationConfig } from '../config/navigationConfig';
 
@@ -25,7 +22,7 @@ const NestedMenuItem = ({ item, onClose, darkMode, fontSize }) => {
     if (fontSize === 'small') return 'text-xs';
     if (fontSize === 'large') return 'text-base';
     return 'text-sm';
-  };
+   };
 
   if (item.hasNested) {
     return (
@@ -66,8 +63,8 @@ const NestedMenuItem = ({ item, onClose, darkMode, fontSize }) => {
   }
 
   return (
-    <a
-      href={item.link}
+    <Link
+      to={item.link}
       className={`block px-4 py-2.5 transition-all duration-300 ${getFontSizeClass()} ${darkMode
         ? 'text-gray-300 hover:bg-green-600 hover:text-white'
         : 'text-gray-600 hover:bg-green-600 hover:text-white'
@@ -75,7 +72,7 @@ const NestedMenuItem = ({ item, onClose, darkMode, fontSize }) => {
       onClick={onClose}
     >
       {item.label}
-    </a>
+    </Link>
   );
 };
 
@@ -145,8 +142,8 @@ const Navigation = () => {
           onMouseEnter={() => navItem.hasDropdown && handleMouseEnter(navItem.id)}
           onMouseLeave={navItem.hasDropdown ? handleMouseLeave : undefined}
         >
-          <a
-            href={navItem.link || '#'}
+          <Link
+            to={navItem.link || '#'}
             className={`flex items-center gap-1 font-medium transition-colors duration-300 ${getNavFontSizeClass()} ${darkMode
               ? 'text-white hover:text-blue-400'
               : 'text-gray-900 hover:text-blue-600'
@@ -159,7 +156,7 @@ const Navigation = () => {
                 className={`transition-transform duration-300 ${openDropdown === navItem.id ? 'rotate-180' : ''}`}
               />
             )}
-          </a>
+          </Link>
 
           {navItem.hasDropdown && (
             <DropdownMenu
@@ -175,18 +172,13 @@ const Navigation = () => {
 };
 
 export default function NavigationWithSlider() {
-  const sliderImages = [
-    { src: img1, alt: 'Campus View 1', title: 'THE BEST OF THE BEST', description: 'Excellence in Education and Research' },
-    { src: img2, alt: 'Campus View 2', title: 'Innovation Hub', description: 'Leading the Future of Technology' },
-    { src: img3, alt: 'Campus View 3', title: 'World-Class Facilities', description: 'State-of-the-art Infrastructure' }
-  ];
+ 
 
   return (
     <div className="relative">
       <MyDiv className="relative z-30" padding={false}>
         <Navigation />
       </MyDiv>
-      <ImageSlider images={sliderImages} />
     </div>
   );
 }
