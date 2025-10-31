@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import NavBar from '../../components/navbar.jsx';
-import Footer from '../../components/footer.jsx';
+
 import {
   Sparkles,
   GraduationCap,
@@ -95,7 +94,6 @@ export default function WhyIIIT() {
   return (
     <>
       <div className="min-h-screen bg-white">
-        <NavBar />
 
         {/* Hero Section - Removed expensive animations */}
         <div className="relative bg-white overflow-hidden">
@@ -615,7 +613,6 @@ export default function WhyIIIT() {
           </section>
 
         </div> {/* End of main content container */}
-        <Footer />
       </div>
     </>
   );
