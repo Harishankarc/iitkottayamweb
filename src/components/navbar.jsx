@@ -130,12 +130,9 @@ export default function NavBar() {
         darkMode={darkMode}
         fontSize={fontSize}
       />
-      <AnnouncementBanner />
 
 
-      <ImageSlider
-      images={[img1,img2,img3]}
-      />
+
     </div>
   );
 }

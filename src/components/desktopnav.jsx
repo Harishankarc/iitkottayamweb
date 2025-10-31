@@ -2,10 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from '../context/createContext';
-<<<<<<< HEAD:src/components/desktopnav.jsx
-=======
 import { MyDiv } from './input_output_utils';
->>>>>>> origin/footer:src/components/navigation.jsx
 import { navigationConfig } from '../config/navigationConfig';
 
 const NestedMenuItem = ({ item, onClose, darkMode, fontSize }) => {
@@ -80,19 +77,11 @@ const NestedMenuItem = ({ item, onClose, darkMode, fontSize }) => {
   }
 
   return (
-<<<<<<< HEAD:src/components/desktopnav.jsx
-    <a
-      href={item.link}
-      className={`block px-4 py-2.5 transition-all duration-200 ${getFontSizeClass()} ${darkMode
-        ? 'text-gray-300 hover:bg-green-600 hover:text-white hover:pl-5'
-        : 'text-gray-600 hover:bg-green-600 hover:text-white hover:pl-5'
-=======
     <Link
       to={item.link}
       className={`block px-4 py-2.5 transition-all duration-300 ${getFontSizeClass()} ${darkMode
         ? 'text-gray-300 hover:bg-green-600 hover:text-white'
         : 'text-gray-600 hover:bg-green-600 hover:text-white'
->>>>>>> origin/footer:src/components/navigation.jsx
         }`}
       onClick={onClose}
     >
@@ -239,20 +228,6 @@ export default function DesktopNavigation() {
       ))}
     </nav>
   );
-<<<<<<< HEAD:src/components/desktopnav.jsx
-}
-=======
 };
 
-export default function NavigationWithSlider() {
- 
 
-  return (
-    <div className="relative">
-      <MyDiv className="relative z-30" padding={false}>
-        <Navigation />
-      </MyDiv>
-    </div>
-  );
-}
->>>>>>> origin/footer:src/components/navigation.jsx

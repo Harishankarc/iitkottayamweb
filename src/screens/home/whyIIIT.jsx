@@ -2,13 +2,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import NavBar from '../../components/navbar.jsx';
 import Footer from '../../components/footer.jsx';
-import { 
-  Sparkles, 
-  GraduationCap, 
-  ArrowRight, 
-  ShieldCheck, 
-  BookOpenText, 
-  Lightbulb, 
+import {
+  Sparkles,
+  GraduationCap,
+  ArrowRight,
+  ShieldCheck,
+  BookOpenText,
+  Lightbulb,
   CheckCircle2,
   BarChart3,
   BrainCircuit,
@@ -39,8 +39,7 @@ import {
 } from 'lucide-react';
 
 export default function WhyIIIT() {
-  
-  // Data for Research Groups
+
   const researchGroups = [
     { name: 'Data Science Research Group', desc: 'Advanced data analytics and modelling', icon: <BarChart3 />, color: 'text-green-600' },
     { name: 'Big data & ML Research Group', desc: 'Machine learning algorithms and big data', icon: <BrainCircuit />, color: 'text-emerald-600' },
@@ -57,7 +56,6 @@ export default function WhyIIIT() {
     { name: 'ASPIRE Group', desc: 'AI-powered signal and image processing', icon: <Camera />, color: 'text-teal-600' }
   ];
 
-  // Data for Incubation Centers
   const incubationCenters = [
     {
       title: 'Atal Incubation Centre (AIC)',
@@ -82,7 +80,6 @@ export default function WhyIIIT() {
     }
   ];
 
-  // Data for Holistic Development
   const activities = [
     { label: 'Yoga', icon: <PersonStanding className="w-4 h-4" /> },
     { label: 'Gymnasium', icon: <Dumbbell className="w-4 h-4" /> },
@@ -95,19 +92,16 @@ export default function WhyIIIT() {
   return (
     <>
       <div className="min-h-screen bg-white">
-        <NavBar />
-        
-        {/* Hero Section - Removed expensive animations */}
+
         <div className="relative bg-white overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-green-50/90 via-emerald-50/85 to-teal-50/90"></div>
-          
-          {/* Static background blobs - NO ANIMATION = NO LAG */}
+
           <div className="absolute inset-0 opacity-30">
             <div className="absolute top-20 left-10 w-96 h-96 bg-green-200 rounded-full mix-blend-multiply filter blur-3xl"></div>
             <div className="absolute top-40 right-10 w-96 h-96 bg-emerald-200 rounded-full mix-blend-multiply filter blur-3xl"></div>
             <div className="absolute -bottom-8 left-1/3 w-96 h-96 bg-teal-200 rounded-full mix-blend-multiply filter blur-3xl"></div>
           </div>
-          
+
           <div className="relative container mx-auto px-4 py-28 md:py-36">
             <div className="max-w-5xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-6 py-3 bg-green-600/10 backdrop-blur-md rounded-full text-green-800 text-sm font-bold mb-8 border border-green-300 hover:bg-green-600/20 hover:border-green-400 transition-all duration-500 hover:scale-105 shadow-lg cursor-pointer">
@@ -122,7 +116,7 @@ export default function WhyIIIT() {
               </p>
             </div>
           </div>
-          
+
           {/* Decorative wave */}
           <div className="absolute bottom-0 left-0 right-0">
             <svg className="w-full h-20 fill-white" viewBox="0 0 1200 120" preserveAspectRatio="none">
@@ -133,7 +127,7 @@ export default function WhyIIIT() {
 
         {/* Main Content */}
         <div className="container mx-auto px-4 py-16">
-          
+
           {/* Introduction Card */}
           <section className="mb-24">
             <div className="max-w-7xl mx-auto">
@@ -143,14 +137,14 @@ export default function WhyIIIT() {
                     <GraduationCap className="w-5 h-5" /> {/* Lucide Icon */}
                     About Our Institute
                   </div>
-                  
+
                   <p className="text-lg md:text-xl text-gray-700 leading-relaxed mb-6">
                     The Indian Institute of Information Technology (IIIT) Kottayam is an <span className="font-bold text-green-700">"Institution of National Importance"</span> established in 2015. It operates under a Public-Private Partnership (PPP) model and is located at Valavoor, Pala, in the Kottayam district of Kerala.
                   </p>
                   <p className="text-lg md:text-xl text-gray-700 leading-relaxed mb-6">
                     The institute is situated on a 53-acre campus and focuses on education, research, and development in the field of Information Technology. It also has an Atal Incubation Centre (AIC) to support startups and innovation.
                   </p>
-                  
+
                   {/* Photo/Video Placeholder */}
                   <div className="my-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 border-2 border-dashed border-green-300">
                     <div className="text-center">
@@ -159,10 +153,10 @@ export default function WhyIIIT() {
                       <p className="text-sm text-gray-500 mt-2">IIIT Kottayam Campus Visual Content</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-wrap gap-4 mt-8">
                     {['🤝 PPP Model', '🌳 53 Acre Campus', '🚀 AIC Certified', '🏆 National Importance'].map((tag, i) => (
-                      <span 
+                      <span
                         key={i}
                         className="px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 text-green-800 rounded-xl text-sm font-semibold border-2 border-green-300 hover:border-green-500 hover:shadow-lg hover:scale-105 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
                       >
@@ -208,7 +202,7 @@ export default function WhyIIIT() {
               </h2>
               <div className="w-24 h-1.5 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full"></div>
             </div>
-            
+
             <div className="grid lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
               {/* Card 1 */}
               <div className="group relative bg-white rounded-3xl p-8 md:p-10 shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-200 hover:border-green-300 hover:-translate-y-2 overflow-hidden">
@@ -253,7 +247,7 @@ export default function WhyIIIT() {
                   <div className="absolute top-10 right-10 w-72 h-72 bg-green-200 rounded-full blur-3xl"></div>
                   <div className="absolute bottom-10 left-10 w-72 h-72 bg-emerald-200 rounded-full blur-3xl"></div>
                 </div>
-                
+
                 <div className="relative">
                   <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600/10 backdrop-blur-md rounded-full text-green-800 text-sm font-bold mb-6 border-2 border-green-300 shadow-md">
                     <Lightbulb className="w-5 h-5" /> {/* Lucide Icon, removed spin */}
@@ -265,7 +259,7 @@ export default function WhyIIIT() {
                   <p className="text-lg md:text-xl text-gray-800 leading-relaxed mb-8">
                     <span className="font-semibold text-green-700">IIIT Kottayam</span> fosters a strong research culture, securing numerous funded projects in fields like IoT, 6G communications, AI, and cybersecurity. Collaborations with agencies like the British Council, Volkswagen Foundation, MeitY, and DST, along with participation in National Missions (NMICPS), highlight our commitment to converting research into practical, innovative solutions.
                   </p>
-                  
+
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {['British Council', 'UKIERI', 'Volkswagen Foundation', 'Toyota Foundation', 'Mozilla Foundation', 'MeitY', 'DST', 'DAAD & IGSTC'].map((org, i) => (
                       <div key={i} className="flex items-center gap-3 bg-white backdrop-blur-sm px-4 py-3 rounded-xl border border-green-200 hover:bg-green-50 hover:scale-105 transition-all duration-300 cursor-pointer shadow-sm">
@@ -290,10 +284,10 @@ export default function WhyIIIT() {
               </p>
               <div className="w-24 h-1.5 bg-gradient-to-r from-green-500 to-emerald-500 mx-auto rounded-full"></div>
             </div>
-            
+
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
               {researchGroups.map((group, index) => (
-                <div 
+                <div
                   key={index}
                   className="group relative bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-green-300 hover:shadow-xl transition-all duration-500 hover:-translate-y-2 cursor-pointer overflow-hidden"
                 >
@@ -314,7 +308,7 @@ export default function WhyIIIT() {
                 </div>
               ))}
             </div>
-            
+
             <p className="text-base md:text-lg text-gray-700 mt-12 text-center max-w-5xl mx-auto leading-relaxed">
               These groups are at the forefront of technological research, providing students with unparalleled opportunities to engage in high-impact projects.
             </p>
@@ -382,7 +376,7 @@ export default function WhyIIIT() {
                       </p>
                       <div className="flex flex-wrap gap-3">
                         {['GeeksForGeeks', 'CodeChef', 'Google DSC', 'ACM Chapter', 'IEEE Student Branch'].map((club, i) => (
-                          <span 
+                          <span
                             key={i}
                             className="px-5 py-2.5 bg-green-50 border-2 border-green-300 text-green-800 rounded-xl text-sm font-semibold hover:bg-green-100 hover:border-green-500 hover:text-green-900 hover:scale-105 transition-all duration-300 cursor-pointer shadow-sm"
                           >
@@ -392,7 +386,7 @@ export default function WhyIIIT() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Right Panel - Achievements */}
                   <div className="p-10 md:p-12 bg-gradient-to-br from-green-600 to-emerald-700 relative overflow-hidden">
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
@@ -444,7 +438,7 @@ export default function WhyIIIT() {
                   <p className="text-lg text-gray-700 leading-relaxed">
                     IIIT Kottayam regularly hosts events on AI, ML, blockchain, and cybersecurity through forums like the IEEE Student Branch and ACM Chapter. These provide students with hands-on experience and insights into emerging trends beyond the standard curriculum.
                   </p>
-                  
+
                   {/* Photo/Video Placeholder */}
                   <div className="mt-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 border-2 border-dashed border-green-300">
                     <div className="text-center">
@@ -473,7 +467,7 @@ export default function WhyIIIT() {
                   <p className="text-lg text-gray-700 leading-relaxed">
                     A key initiative includes providing cybersecurity training for Kerala Police officers of Cyberdome, equipping them to combat cybercrime. This not only enhances stakeholder capabilities but also gives students a unique opportunity to contribute to societal safety.
                   </p>
-                  
+
                   {/* Photo/Video Placeholder */}
                   <div className="mt-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 border-2 border-dashed border-green-300">
                     <div className="text-center">
@@ -499,7 +493,7 @@ export default function WhyIIIT() {
                   <p className="text-lg text-gray-700 leading-relaxed mb-8">
                     IIIT Kottayam collaborates with international universities for global conferences, exchange programs, and joint research. Partnerships include the <span className="font-semibold text-green-700">University of Agder (Norway), TU Munich (Germany), University of North Dakota (USA), University of Glasgow (UK),</span> and many others worldwide, reinforcing our commitment to a global education.
                   </p>
-                  
+
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {['U. of Agder', 'TU Munich', 'U. North Dakota', 'Offenburg Univ.', 'U. Glasgow', 'U. Klagenfurt', 'Nat. Chung Cheng', 'Many More'].map((univ, i) => (
                       <div key={i} className="bg-white rounded-xl px-4 py-3 text-center border-2 border-green-200 hover:border-green-400 hover:shadow-md transition-all duration-300 cursor-pointer">
@@ -526,7 +520,7 @@ export default function WhyIIIT() {
                   <p className="text-lg text-gray-700 leading-relaxed mb-8">
                     Strong industry connections bridge the gap between academics and industry requirements. Partnerships with giants like <span className="font-semibold text-green-700">IBM, TCS, Unisys, HP, Palo Alto Networks, Nvidia, and NeST digital</span> provide students with opportunities for internships, industry-relevant projects, and exposure to cutting-edge technologies.
                   </p>
-                  
+
                   {/* Photo/Video Placeholder */}
                   <div className="mt-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 border-2 border-dashed border-green-300">
                     <div className="text-center">
@@ -555,7 +549,7 @@ export default function WhyIIIT() {
                   <p className="text-lg text-gray-700 leading-relaxed mb-8">
                     Despite a challenging environment, the 2024 batch has achieved an 85% placement rate, with four international placements and numerous foreign internships. <span className="font-bold text-green-700">The highest domestic CTC is 45 LPA, and the highest international CTC is 23 LPA</span>. Efforts continue to achieve 100% placement.
                   </p>
-                  
+
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                     <div className="bg-white rounded-2xl p-6 text-center border-2 border-green-300 shadow-md">
                       <div className="text-4xl font-bold text-green-600 mb-2">45 LPA</div>
@@ -587,7 +581,7 @@ export default function WhyIIIT() {
                   <p className="text-lg text-gray-700 leading-relaxed mb-8">
                     The institute promotes a balanced student life with a wide range of extracurricular activities, clubs, and societies. Facilities for yoga, a fully equipped gymnasium, and various sports encourage physical and mental well-being, with students actively winning prizes in inter-IIIT competitions.
                   </p>
-                  
+
                   {/* Photo/Video Placeholder */}
                   <div className="mt-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 border-2 border-dashed border-green-300">
                     <div className="text-center">
@@ -596,10 +590,10 @@ export default function WhyIIIT() {
                       <p className="text-sm text-gray-500 mt-2">Holistic Development Visual Content</p>
                     </div>
                   </div>
-                  
+
                   <div className="mt-8 flex flex-wrap gap-4 justify-center">
                     {activities.map((activity, i) => (
-                      <span 
+                      <span
                         key={i}
                         className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-50 border-2 border-green-300 text-green-800 rounded-xl text-sm font-semibold hover:bg-green-100 hover:border-green-500 hover:text-green-900 hover:scale-105 transition-all duration-300 cursor-pointer shadow-sm"
                       >
@@ -608,15 +602,14 @@ export default function WhyIIIT() {
                       </span>
                     ))}
                   </div>
-                  
+
                 </div>
               </div>
             </div>
           </section>
 
-        </div> {/* End of main content container */}
-        <Footer />
+        </div>
       </div>
     </>
   );
-} 
+}
