@@ -40,6 +40,7 @@ import {
 
 export default function WhyIIIT() {
 
+  // Data for Research Groups
   const researchGroups = [
     { name: 'Data Science Research Group', desc: 'Advanced data analytics and modelling', icon: <BarChart3 />, color: 'text-green-600' },
     { name: 'Big data & ML Research Group', desc: 'Machine learning algorithms and big data', icon: <BrainCircuit />, color: 'text-emerald-600' },
@@ -56,6 +57,7 @@ export default function WhyIIIT() {
     { name: 'ASPIRE Group', desc: 'AI-powered signal and image processing', icon: <Camera />, color: 'text-teal-600' }
   ];
 
+  // Data for Incubation Centers
   const incubationCenters = [
     {
       title: 'Atal Incubation Centre (AIC)',
@@ -80,6 +82,7 @@ export default function WhyIIIT() {
     }
   ];
 
+  // Data for Holistic Development
   const activities = [
     { label: 'Yoga', icon: <PersonStanding className="w-4 h-4" /> },
     { label: 'Gymnasium', icon: <Dumbbell className="w-4 h-4" /> },
@@ -92,10 +95,13 @@ export default function WhyIIIT() {
   return (
     <>
       <div className="min-h-screen bg-white">
+        <NavBar />
 
+        {/* Hero Section - Removed expensive animations */}
         <div className="relative bg-white overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-green-50/90 via-emerald-50/85 to-teal-50/90"></div>
 
+          {/* Static background blobs - NO ANIMATION = NO LAG */}
           <div className="absolute inset-0 opacity-30">
             <div className="absolute top-20 left-10 w-96 h-96 bg-green-200 rounded-full mix-blend-multiply filter blur-3xl"></div>
             <div className="absolute top-40 right-10 w-96 h-96 bg-emerald-200 rounded-full mix-blend-multiply filter blur-3xl"></div>
@@ -608,7 +614,8 @@ export default function WhyIIIT() {
             </div>
           </section>
 
-        </div>
+        </div> {/* End of main content container */}
+        <Footer />
       </div>
     </>
   );
