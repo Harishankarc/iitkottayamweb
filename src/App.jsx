@@ -5,6 +5,7 @@ import WhyIIIT from './screens/home/whyIIIT';
 import { ThemeProvider } from './context/createContext';
 import HomePage from './screens/home/homepage'
 import React, { useState, useEffect } from "react";
+import Nirf from './screens/home/nirf';
 import NavBar from './components/navbar';
 import AppFooter from './components/footer';
 
@@ -17,6 +18,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/why-iiitk" element={<WhyIIIT />} />
+          <Route path="/nirf/2025" element={<Nirf />} />
         </Routes>
         <AppFooter />
       </BrowserRouter>
