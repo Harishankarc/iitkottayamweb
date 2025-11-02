@@ -8,6 +8,9 @@ import React, { useState, useEffect } from "react";
 import Nirf from './screens/home/nirf';
 import NavBar from './components/navbar';
 import AppFooter from './components/footer';
+import Admission from './screens/home/admission';
+import Governance from './screens/home/Governance';
+import Academics from './screens/home/academics';
 
 
 function App() {
@@ -19,6 +22,9 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/why-iiitk" element={<WhyIIIT />} />
           <Route path="/nirf/2025" element={<Nirf />} />
+          <Route path="/institute/governance" element={<Governance />} />
+          <Route path="/institute/admission" element={<Admission />} />
+          <Route path="/institute/academics" element={<Academics />} />
         </Routes>
         <AppFooter />
       </BrowserRouter>
