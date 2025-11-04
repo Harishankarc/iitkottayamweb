@@ -38,7 +38,9 @@ import {
   Palette
 } from 'lucide-react';
 
+
 export default function WhyIIIT() {
+
 
   const { darkMode } = useTheme();
 
