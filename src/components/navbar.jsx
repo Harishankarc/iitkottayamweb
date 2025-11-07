@@ -34,6 +34,7 @@ export default function NavBar() {
   };
 
   return (
+    // <div className="sticky top-0 z-50 w-full" For adding sticky navbar>
     <div>
       <div className="w-100vw h-8 flex justify-end items-center px-1 md:px-50 gap-1" style={{
         backgroundColor: API.color1
@@ -121,7 +122,7 @@ export default function NavBar() {
       </div>
 
       <div className="hidden lg:block">
-        <DesktopNavigation />
+        <DesktopNavigation  />
       </div>
 
       <MobileNavigation

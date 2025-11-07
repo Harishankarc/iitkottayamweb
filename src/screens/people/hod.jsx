@@ -1,0 +1,325 @@
+import React, { useState } from 'react';
+import { useTheme } from '../../context/createContext.jsx';
+import api from '../../api/api.jsx';
+import { Mail, Phone, MapPin, Search, GraduationCap, Building2 } from 'lucide-react';
+
+// HOD Card Component - Vertical Layout Only
+const HODCard = ({ hod, color1, darkMode }) => {
+  const [isHovered, setIsHovered] = React.useState(false);
+  
+  return (
+    <div
+      className={`group relative rounded-2xl overflow-hidden transition-all duration-300 ${
+        isHovered ? 'shadow-2xl' : 'shadow-lg'
+      } ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Colored Top Bar */}
+      <div 
+        className="h-2 w-full"
+        style={{
+          background: `linear-gradient(90deg, ${color1}, ${color1}cc)`
+        }}
+      />
+
+      {/* Content Container */}
+      <div className="p-8">
+        {/* Profile Image with Border */}
+        <div className="flex justify-center mb-6">
+          <div className="relative">
+            <div 
+              className="absolute inset-0 rounded-2xl blur-xl opacity-30 transition-opacity duration-300"
+              style={{ 
+                backgroundColor: color1,
+                opacity: isHovered ? 0.4 : 0.2
+              }}
+            />
+            <div 
+              className="relative rounded-2xl overflow-hidden border-4 transition-all duration-300"
+              style={{
+                borderColor: isHovered ? color1 : (darkMode ? '#374151' : '#E5E7EB')
+              }}
+            >
+              <img
+                src={hod.image}
+                alt={hod.name}
+                className="w-36 h-36 object-cover"
+                onError={(e) => e.currentTarget.src = `https://placehold.co/144x144/e8f5f0/239244?text=${hod.name.charAt(0)}`}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Name and Title */}
+        <div className="text-center mb-6">
+          <h3 
+            className={`text-2xl font-bold mb-2 ${
+              darkMode ? 'text-gray-100' : 'text-gray-900'
+            }`}
+          >
+            {hod.name}
+          </h3>
+          <div 
+            className="inline-block px-4 py-1.5 rounded-full text-xs font-bold mb-3"
+            style={{
+              backgroundColor: `${color1}15`,
+              color: color1
+            }}
+          >
+            Head of Department
+          </div>
+          <p className={`text-sm font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            {hod.department}
+          </p>
+        </div>
+
+        {/* Divider */}
+        <div className={`h-px w-full mb-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} />
+
+        {/* Contact Information - Stacked */}
+        <div className="space-y-4">
+          {/* Phone Numbers */}
+          {hod.phones.map((phone, index) => (
+            <div 
+              key={index}
+              className={`flex items-center gap-3 p-3 rounded-lg ${
+                darkMode ? 'bg-gray-700/50' : 'bg-gray-50'
+              }`}
+            >
+              <div 
+                className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: `${color1}15` }}
+              >
+                <Phone className="w-4 h-4" style={{ color: color1 }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Phone {hod.phones.length > 1 ? index + 1 : ''}
+                </p>
+                <a 
+                  href={`tel:${phone.replace(/[^0-9+]/g, '')}`}
+                  className={`text-sm hover:underline ${
+                    darkMode ? 'text-gray-200' : 'text-gray-800'
+                  }`}
+                >
+                  {phone}
+                </a>
+              </div>
+            </div>
+          ))}
+
+          {/* Email */}
+          <div 
+            className={`flex items-center gap-3 p-3 rounded-lg ${
+              darkMode ? 'bg-gray-700/50' : 'bg-gray-50'
+            }`}
+          >
+            <div 
+              className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: `${color1}15` }}
+            >
+              <Mail className="w-4 h-4" style={{ color: color1 }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                Email
+              </p>
+              <a 
+                href={`mailto:${hod.email}`}
+                className={`text-sm hover:underline break-all ${
+                  darkMode ? 'text-gray-200' : 'text-gray-800'
+                }`}
+              >
+                {hod.email}
+              </a>
+            </div>
+          </div>
+
+          {/* Room Location */}
+          <div 
+            className={`flex items-center gap-3 p-3 rounded-lg ${
+              darkMode ? 'bg-gray-700/50' : 'bg-gray-50'
+            }`}
+          >
+            <div 
+              className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: `${color1}15` }}
+            >
+              <MapPin className="w-4 h-4" style={{ color: color1 }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                Office
+              </p>
+              <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                {hod.room}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function HeadofDepartment() {
+  const { darkMode } = useTheme();
+  const color1 = api.color1;
+  const color2 = api.color2;
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // HOD Data based on the image
+  const hodData = [
+    {
+      id: 1,
+      name: 'Dr. Ananth A',
+      department: 'HOD (Electronics & Communication Eng.)',
+      departmentLink: '#',
+      phones: ['0482-2202176'],
+      email: 'ananth at iiitkottayam dot ac.in',
+      room: 'Room No: AB 208 / AC 313',
+      image: 'https://placehold.co/128x128/e8f5f0/239244?text=AA'
+    },
+    {
+      id: 2,
+      name: 'Dr. Jayakrushna Sahoo',
+      department: 'HOD(Computer Science & Engineering-I)',
+      departmentLink: '#',
+      phones: ['0482-2202190', '0482-2202164'],
+      email: 'jsahoo at iiitkottayam dot ac.in',
+      room: 'Room No: AA 108 / AA 123',
+      image: 'https://placehold.co/128x128/e8f5f0/239244?text=JS'
+    },
+    {
+      id: 3,
+      name: 'Dr. Rubell Marion Lincy G',
+      department: 'HOD(Computer Science & Engineering-2)',
+      departmentLink: '#',
+      phones: ['0482-2202152'],
+      email: 'lincy at iiitkottayam dot ac.in',
+      room: 'Room No: BC 317 / AB 219',
+      image: 'https://placehold.co/128x128/e8f5f0/239244?text=RL'
+    },
+    {
+      id: 4,
+      name: 'Dr. Dhanyamol M V',
+      department: 'HOD (Computational Science & Humanities)',
+      departmentLink: '#',
+      phones: ['0482-2202162'],
+      email: 'dhanya at iiitkottayam dot ac.in',
+      room: 'Room No: BC 316 / AA 119',
+      image: 'https://placehold.co/128x128/e8f5f0/239244?text=DM'
+    },
+    {
+      id: 5,
+      name: 'Dr. Panchami',
+      department: 'HOD (CSE- Cyber Security)',
+      departmentLink: '#',
+      phones: ['0482-2202151'],
+      email: 'panchami036 at iiitkottayam dot ac.in',
+      room: 'Room No: AB 213 / AB 218',
+      image: 'https://placehold.co/128x128/e8f5f0/239244?text=P'
+    },
+  ];
+
+  // Filtered results based on search term
+  const filteredHODs = hodData.filter((hod) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      hod.name.toLowerCase().includes(term) ||
+      hod.department.toLowerCase().includes(term) ||
+      hod.email.toLowerCase().includes(term) ||
+      hod.room.toLowerCase().includes(term)
+    );
+  });
+
+  return (
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
+      {/* Hero Section - Full Width, 70% Height */}
+      <div className={`relative overflow-hidden w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`} style={{ height: '70vh' }}>
+        <div className="absolute inset-0" style={{ backgroundColor: darkMode ? '#1f293780' : `${color2}E6` }}></div>
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-20 left-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
+          <div className="absolute top-40 right-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
+          <div className="absolute -bottom-8 left-1/3 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
+        </div>
+        
+        {/* Centered Content */}
+        <div className="relative h-full flex items-center justify-center">
+          <div className="max-w-5xl mx-auto text-center px-4">
+            <div className="inline-flex items-center gap-2 px-6 py-3 backdrop-blur-md rounded-full text-sm font-bold mb-8 border hover:scale-105 transition-all duration-500 shadow-lg cursor-pointer" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
+              <GraduationCap className="w-4 h-4" style={{ color: color1 }} />
+              Leadership & Faculty
+            </div>
+            <h1 className={`text-5xl md:text-7xl lg:text-8xl font-extrabold mb-8 leading-tight tracking-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+              Head of Department
+            </h1>
+            <p className={`text-xl md:text-2xl lg:text-3xl leading-relaxed font-light max-w-4xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Meet the leaders driving excellence in education and research.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-12">
+        {/* Search Bar Section */}
+        <div className="mb-12">
+          <div className={`max-w-2xl mx-auto p-6 rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
+            <h2 
+              className="text-2xl font-bold mb-4 text-center"
+              style={{ color: color1 }}
+            >
+              Search Head of Department
+            </h2>
+            <div className="relative">
+              <input
+                type="search"
+                placeholder="Search by name, department, email, or location..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={`w-full p-4 pl-12 rounded-xl border-2 shadow-sm transition-all duration-300 ${
+                  darkMode
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-green-500'
+                    : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:border-green-500'
+                } focus:ring-0 focus:outline-none`}
+                style={{
+                  borderColor: searchTerm ? color1 : undefined
+                }}
+              />
+              <Search
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-300"
+                style={{ color: searchTerm ? color1 : (darkMode ? '#9CA3AF' : '#6B7280') }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* HOD Cards Grid - Vertical Layout Only */}
+        {filteredHODs.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredHODs.map((hod) => (
+              <HODCard key={hod.id} hod={hod} color1={color1} darkMode={darkMode} />
+            ))}
+          </div>
+        ) : (
+          <div className={`text-center p-16 rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
+            <GraduationCap className="w-20 h-20 mx-auto mb-6 opacity-50" style={{ color: color1 }} />
+            <h3 className="text-3xl font-bold mb-3">No Results Found</h3>
+            <p className={`text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              No department heads match your search for "{searchTerm}"
+            </p>
+            <button
+              onClick={() => setSearchTerm('')}
+              className="mt-6 px-6 py-3 rounded-lg text-white font-semibold hover:shadow-lg transition-all duration-300"
+              style={{ backgroundColor: color1 }}
+            >
+              Clear Search
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
