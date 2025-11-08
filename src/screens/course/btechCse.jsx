@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useTheme } from '../../context/createContext.jsx'; // Fixed import path
-import api from '../../api/api.jsx'; // Fixed import path
+import { useTheme } from '../../context/createContext.jsx';
+import api from '../../api/api.jsx';
 import {
   Cpu,
   Image,
@@ -11,14 +11,6 @@ import {
   BookOpenText,
   Scale
 } from 'lucide-react';
-
-// Mock theme hook and api object to resolve imports - REMOVED
-// const useTheme = () => ({ darkMode: false });
-// const api = {
-//   color1: '#239244', // (Dark Green)
-//   color2: '#e8f5f0', // (Light Mint)
-//   color3: '#F1F3F3', // (Light Gray)
-// };
 
 export default function BTechCSE() {
   const { darkMode } = useTheme();
@@ -118,6 +110,8 @@ export default function BTechCSE() {
         color: color1,
         borderColor: darkMode ? `${color1}99` : `${color1}66`
       }}
+      onMouseEnter={(e) => e.currentTarget.style.borderColor = color1}
+      onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? `${color1}99` : `${color1}66`}
     >
       {Icon && <Icon className="w-4 h-4" />}
       {text}
@@ -169,14 +163,14 @@ export default function BTechCSE() {
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
       {/* Hero Section */}
-      <div className={`relative overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+      <div className={`relative overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`} style={{ height: '70vh' }}>
         <div className="absolute inset-0" style={{ backgroundColor: darkMode ? '#1f2937E6' : `${color2}E6` }}></div>
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-20 left-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
           <div className="absolute top-40 right-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
           <div className="absolute -bottom-8 left-1/3 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
         </div>
-        <div className="relative container mx-auto px-4 py-28 md:py-36">
+        <div className="relative container mx-auto px-4 h-full flex items-center">
           <div className="max-w-5xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-6 py-3 backdrop-blur-md rounded-full text-sm font-bold mb-8 border hover:scale-105 transition-all duration-500 shadow-lg cursor-pointer" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
               <Cpu className="w-4 h-4" style={{ color: color1 }} />
@@ -190,15 +184,10 @@ export default function BTechCSE() {
             </p>
           </div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg className={`w-full h-20 ${darkMode ? 'fill-gray-900' : 'fill-white'}`} viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
-          </svg>
-        </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="container mx-auto px-4 py-16 -mt-24 md:-mt-32">
+      <div className="container mx-auto px-4 py-16">
         <div className="max-w-7xl mx-auto space-y-12">
 
           {/* Introduction Section */}
@@ -211,7 +200,6 @@ export default function BTechCSE() {
               <p className={`text-lg leading-relaxed mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 The programme is designed to build a strong foundation in Computer Science and Engineering that includes hardware, simulation and emulation. The programme has a blend of core courses, department electives, open electives, and management electives. The BTech CSE programme starts with computation oriented courses and the initial four semesters are focused on creating a strong Computer Science Foundation which enables the student to harness the required engineering skills for problem solving using computer science.
               </p>
-
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                 <ImagePlaceholder text="Campus / Lab Image 1" />
@@ -254,7 +242,6 @@ export default function BTechCSE() {
           >
             <div className="p-8 md:p-12">
               <div className="flex items-center gap-4 mb-8">
-
                 <h2 className={`text-3xl md:text-4xl font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
               Fee Structure for the B.Tech program (Admission 2025)
                 </h2>
@@ -334,6 +321,3 @@ export default function BTechCSE() {
     </div>
   );
 }
-
-
-

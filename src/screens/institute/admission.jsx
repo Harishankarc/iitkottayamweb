@@ -85,14 +85,14 @@ export default function Admission() {
     <>
       <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
         {/* Hero Section */}
-        <div className={`relative overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+        <div className={`relative overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`} style={{ height: '70vh' }}>
           <div className="absolute inset-0" style={{ backgroundColor: darkMode ? '#1f2937E6' : `${color2}E6` }}></div>
           <div className="absolute inset-0 opacity-30">
             <div className="absolute top-20 left-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
             <div className="absolute top-40 right-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
             <div className="absolute -bottom-8 left-1/3 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
           </div>
-          <div className="relative container mx-auto px-4 py-28 md:py-36">
+          <div className="relative container mx-auto px-4 h-full flex items-center">
             <div className="max-w-5xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-6 py-3 backdrop-blur-md rounded-full text-sm font-bold mb-8 border hover:scale-105 transition-all duration-500 shadow-lg cursor-pointer" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
                 <FileText className="w-4 h-4" style={{ color: color1 }} />
@@ -106,11 +106,6 @@ export default function Admission() {
               </p>
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 right-0">
-            <svg className={`w-full h-20 ${darkMode ? 'fill-gray-900' : 'fill-white'}`} viewBox="0 0 1200 120" preserveAspectRatio="none">
-              <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
-            </svg>
-          </div>
         </div>
 
         {/* Main Content Area */}
@@ -120,7 +115,7 @@ export default function Admission() {
           <section className="mb-24">
             <div className="max-w-7xl mx-auto">
               <div className={`rounded-3xl shadow-xl overflow-hidden border transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} style={{  borderColor: darkMode ? '#374151' : `${color1}33` }} onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`} onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : `${color1}33`}>
-                <div className="p-8 md:p-12 lg:p-16">
+                <div className="p-8 md:p-10 lg:p-12">
                   <div className="flex items-center gap-4 mb-6">
                     <div className="shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center shadow-md" style={{ backgroundColor: darkMode ? '#1f2937' : color2 }}>
                       <GraduationCap className="w-8 h-8" style={{ color: color1 }} />
@@ -160,7 +155,7 @@ export default function Admission() {
           {/* Fee Structure Section */}
           <section className="mb-24">
             <div className="max-w-7xl mx-auto">
-              <div className={`rounded-3xl p-8 md:p-12 lg:p-16 shadow-xl overflow-hidden relative border-2 transition-all duration-500 ${darkMode ? 'bg-gray-800' : ''}`} style={{  borderColor: darkMode ? '#374151' : `${color1}33`, backgroundColor: darkMode ? '' : '' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`} onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : `${color1}33`}>
+              <div className={`rounded-3xl p-8 md:p-10 lg:p-12 shadow-xl overflow-hidden relative border-2 transition-all duration-500 ${darkMode ? 'bg-gray-800' : ''}`} style={{  borderColor: darkMode ? '#374151' : `${color1}33`, backgroundColor: darkMode ? '' : '' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`} onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : `${color1}33`}>
                 <div className="absolute inset-0 opacity-20">
                   <div className="absolute top-10 right-10 w-72 h-72 rounded-full blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
                   <div className="absolute bottom-10 left-10 w-72 h-72 rounded-full blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
@@ -174,7 +169,7 @@ export default function Admission() {
                   </div>
 
                     <div className="mb-8 p-6 rounded-2xl border-2 border-dashed bg-white" style={{ borderColor: `${color1}66` , backgroundColor: darkMode ? '#1f2937' : 'white' }   }>
-                    <h4 className="text-xl font-semibold text-gray-800 mb-4" >
+                    <h4 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                       Initial First Semester Payment (Admission 2025)
                     </h4>
                     <div className="overflow-x-auto rounded-lg border" style={{ borderColor: `${color1}33` , backgroundColor: darkMode ? '#374151' : 'white' }}>
@@ -187,9 +182,9 @@ export default function Admission() {
                         </thead>
                         <tbody>
                           {initialSemesterFees.map((row, index) => (
-                            <tr key={index} className="border-b" style={{ borderColor: `${color1}33` }}>
-                              <td className="p-3 font-medium text-gray-800">{row.item}</td>
-                              <td className="p-3 text-gray-700 text-right font-mono">{row.amount}</td>
+                            <tr key={index} className={`border-b ${darkMode ? 'text-gray-300' : ''}`} style={{ borderColor: `${color1}33` }}>
+                              <td className={`p-3 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{row.item}</td>
+                              <td className={`p-3 text-right font-mono ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{row.amount}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -267,7 +262,7 @@ export default function Admission() {
           <section className="mb-24">
             <div className="max-w-7xl mx-auto">
               <div className={`rounded-3xl shadow-xl overflow-hidden border transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} style={{  borderColor: darkMode ? '#374151' : `${color1}33` }} onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`} onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : `${color1}33`}>
-                <div className="p-8 md:p-12 lg:p-16">
+                <div className="p-8 md:p-10 lg:p-12">
                   <div className="flex items-center gap-4 mb-6">
                     <div className={`shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center shadow-md ${darkMode ? 'bg-gray-700' : ''}`} style={{ backgroundColor: darkMode ? '' : color2 }}>
                       <BookOpenText className="w-8 h-8" style={{ color: color1 }} />
@@ -294,7 +289,7 @@ export default function Admission() {
           <section className="mb-24">
             <div className="max-w-7xl mx-auto">
               <div className={`rounded-3xl shadow-xl overflow-hidden border transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} style={{  borderColor: darkMode ? '#374151' : `${color1}33` }} onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`} onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : `${color1}33`}>
-                <div className="p-8 md:p-12 lg:p-16">
+                <div className="p-8 md:p-10 lg:p-12">
                   <div className="flex items-center gap-4 mb-6">
                     <div className={`shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center shadow-md ${darkMode ? 'bg-gray-700' : ''}`} style={{ backgroundColor: darkMode ? '' : color2 }}>
                       <Microscope className="w-8 h-8" style={{ color: color1 }} />
@@ -323,4 +318,3 @@ export default function Admission() {
     </>
   );
 }
-

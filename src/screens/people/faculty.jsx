@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
-import { useTheme } from '../../context/createContext.jsx';
-import api from '../../api/api.jsx';
-import { Mail, Phone, MapPin, Search, GraduationCap, ExternalLink, Globe, Award, BookOpen, Briefcase, ChevronRight } from 'lucide-react';
+import { Mail, Phone, MapPin, Search, GraduationCap, Globe, BookOpen, ChevronRight } from 'lucide-react';
+
+// Mock API and Theme
+const api = {
+  color1: '#239244',
+  color2: '#e8f5f0'
+};
+
+const useTheme = () => ({ darkMode: false });
 
 // Faculty Card Component - Compact Sleek Design
 const FacultyCard = ({ faculty, color1, darkMode }) => {
@@ -377,12 +383,33 @@ export default function Faculty() {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12">
-        {/* Search Bar */}
-        <div className={`mb-6 max-w-4xl mx-auto rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
+        {/* Combined Search and Filter Box */}
+        <div className={`mb-12 sticky top-4 z-40 max-w-4xl mx-auto rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
           <div className="p-4 md:p-6">
-            <h2 className="text-2xl font-bold mb-4 text-center" style={{ color: color1 }}>
-              Search Faculty
-            </h2>
+            {/* Filter Buttons */}
+            <div className="flex flex-wrap gap-2 justify-center mb-6">
+              {roles.map((role) => (
+                <button
+                  key={role}
+                  onClick={() => setFilterRole(role)}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                    filterRole === role 
+                      ? 'shadow-md' 
+                      : darkMode 
+                        ? 'text-gray-400 hover:bg-gray-700' 
+                        : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                  style={{
+                    backgroundColor: filterRole === role ? color1 : 'transparent',
+                    color: filterRole === role ? '#ffffff' : undefined
+                  }}
+                >
+                  {role}
+                </button>
+              ))}
+            </div>
+
+            {/* Search Bar */}
             <div className="relative">
               <input
                 type="search"
@@ -404,32 +431,6 @@ export default function Faculty() {
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
                 style={{ color: searchTerm ? color1 : (darkMode ? '#9CA3AF' : '#6B7280') }}
               />
-            </div>
-          </div>
-        </div>
-
-        {/* Filter Buttons */}
-        <div className={`mb-12 sticky top-20 z-40 max-w-4xl mx-auto rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
-          <div className="p-4">
-            <div className="flex flex-wrap gap-2 justify-center">
-              {roles.map((role) => (
-                <button
-                  key={role}
-                  onClick={() => setFilterRole(role)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                    filterRole === role 
-                      ? 'text-white shadow-md' 
-                      : darkMode 
-                        ? 'text-gray-400 hover:bg-gray-700' 
-                        : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                  style={{
-                    backgroundColor: filterRole === role ? color1 : 'transparent'
-                  }}
-                >
-                  {role}
-                </button>
-              ))}
             </div>
           </div>
         </div>

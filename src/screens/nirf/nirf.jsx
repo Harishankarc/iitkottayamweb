@@ -37,14 +37,14 @@ export default function Nirf() {
     <>
       <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
         {/* Hero Section */}
-        <div className={`relative overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+        <div className={`relative overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`} style={{ height: '60vh' }}>
           <div className="absolute inset-0" style={{ backgroundColor: darkMode ? '#1f2937E6' : `${color2}E6` }}></div>
           <div className="absolute inset-0 opacity-30">
             <div className="absolute top-20 left-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
             <div className="absolute top-40 right-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
             <div className="absolute -bottom-8 left-1/3 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
           </div>
-          <div className="relative container mx-auto px-4 py-28 md:py-36">
+          <div className="relative container mx-auto px-4 h-full flex items-center">
             <div className="max-w-5xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-6 py-3 backdrop-blur-md rounded-full text-sm font-bold mb-8 border hover:scale-105 transition-all duration-500 shadow-lg cursor-pointer" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
                 <Trophy className="w-4 h-4" style={{ color: color1 }} />
@@ -58,15 +58,10 @@ export default function Nirf() {
               </p>
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 right-0">
-            <svg className={`w-full h-20 ${darkMode ? 'fill-gray-900' : 'fill-white'}`} viewBox="0 0 1200 120" preserveAspectRatio="none">
-              <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
-            </svg>
-          </div>
         </div>
 
         {/* Main Content Area */}
-        <div className="container mx-auto px-4 py-16 -mt-24 md:-mt-32">
+        <div className="container mx-auto px-4 py-16">
           
           {/* Main Ranking Cards Section */}
           <section className="mb-24 relative">
@@ -117,7 +112,7 @@ export default function Nirf() {
               <div className={`rounded-3xl p-10 md:p-12 shadow-xl overflow-hidden relative border-2 transition-all duration-500 cursor-pointer ${darkMode ? 'bg-gray-800 border-gray-700' : ''}`} style={{ backgroundColor: darkMode ? '' : color2, borderColor: darkMode ? '#374151' : `${color1}33` }} onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`} onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : `${color1}33`}>
                 <Quote className="absolute top-8 left-8 w-20 h-20 opacity-10" style={{ color: color1 }} />
                 <div className="relative z-10 text-center">
-                  <p className={`text-2xl md:text-3xl font-medium leading-relaxed mb-8 ${darkMode ? 'text-gray-300' : 'text-gray-800'}`}>
+                  <p className={`text-lg md:text-xl font-medium leading-relaxed mb-8 ${darkMode ? 'text-gray-300' : 'text-gray-800'}`}>
                     "Our performance in the NIRF 2025 rankings is a direct result of the relentless dedication of our faculty, the innovative spirit of our students, and our collective commitment to academic and research excellence."
                   </p>
                   <div className="text-lg font-bold" style={{ color: color1 }}>
@@ -196,4 +191,3 @@ export default function Nirf() {
     </>
   );
 }
-

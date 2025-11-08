@@ -51,12 +51,14 @@ export default function Academics() {
   const StyledLink = ({ href, text, icon: Icon }) => (
     <a
       href={href}
-      className={`inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold border-2 hover:shadow-lg hover:scale-105 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100' : ''}`}
+      className={`inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold border-2 hover:shadow-lg hover:scale-105 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer ${darkMode ? 'bg-gray-700 text-gray-100' : ''}`}
       style={{ 
         backgroundColor: darkMode ? '' : color2, 
         color: darkMode ? '' : color1, 
         borderColor: darkMode ? '#4b5563' : `${color1}66` 
       }}
+      onMouseEnter={(e) => e.currentTarget.style.borderColor = color1}
+      onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#4b5563' : `${color1}66`}
     >
       {Icon && <Icon className="w-4 h-4" style={{ color: darkMode ? '#10b981' : color1 }} />}
       {text}
@@ -79,17 +81,17 @@ export default function Academics() {
     <>
       <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
         {/* Hero Section */}
-        <div className={`relative overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+        <div className={`relative overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} h-[60vh] flex items-center`}>
           <div className="absolute inset-0" style={{ backgroundColor: darkMode ? '#1f293780' : `${color2}E6` }}></div>
           <div className="absolute inset-0 opacity-30">
             <div className="absolute top-20 left-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
             <div className="absolute top-40 right-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
             <div className="absolute -bottom-8 left-1/3 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
-          </div>
-          <div className="relative container mx-auto px-4 py-28 md:py-36">
+       </div>
+          <div className="relative container mx-auto px-4">
             <div className="max-w-5xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-6 py-3 backdrop-blur-md rounded-full text-sm font-bold mb-8 border hover:scale-105 transition-all duration-500 shadow-lg cursor-pointer" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
-                <BookOpenText className="w-4 h-4" style={{ color: color1 }} />
+               <BookOpenText className="w-4 h-4" style={{ color: color1 }} />
                 Education at IIITK
               </div>
               <h1 className={`text-5xl md:text-7xl lg:text-8xl font-extrabold mb-8 leading-tight tracking-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -100,11 +102,6 @@ export default function Academics() {
               </p>
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 right-0">
-            <svg className={`w-full h-20 ${darkMode ? 'fill-gray-900' : 'fill-white'}`} viewBox="0 0 1200 120" preserveAspectRatio="none">
-              <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
-            </svg>
-          </div>
         </div>
 
         {/* Main Content Area */}
@@ -113,7 +110,12 @@ export default function Academics() {
             
             {/* Introduction Section */}
             <section>
-              <div className={`rounded-3xl shadow-xl overflow-hidden border transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-gray-200 hover:bg-[#e8f5f0]'}`}>
+              <div 
+                className={`rounded-3xl shadow-xl overflow-hidden border transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+                style={{ borderColor: darkMode ? '#374151' : `${color1}33` }}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : `${color1}33`}
+              >
                 <div className="p-8 md:p-12">
                   <p className={`text-lg leading-relaxed mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     The classes for the first batch of B.Tech in Computer Science & Engineering commenced in August 2015. Senior faculty members from other Institutions of National Importance like, IITs, IISERs, NITs etc. are mentoring the vibrant faculty team of IIIT Kottayam. Only people with a Ph.D degree from reputed National Institutions and having a flare for teaching and research are engaged by IIIT Kottayam as faculty. PhD programme started in the year 2019 & M.Tech for working professionals in 2020.
@@ -136,7 +138,12 @@ export default function Academics() {
                 </h2>
               </div>
 
-              <div className={`rounded-3xl shadow-xl overflow-hidden border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div 
+                className={`rounded-3xl shadow-xl overflow-hidden border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+                style={{ borderColor: darkMode ? '#374151' : `${color1}33` }}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : `${color1}33`}
+              >
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[800px]">
                     <thead>
@@ -159,7 +166,7 @@ export default function Academics() {
                             {row.regulations && <TableLink text={row.regulations} />}
                           </td>
                         </tr>
-                      ))}
+                    ))}
                     </tbody>
                   </table>
                 </div>
@@ -200,11 +207,11 @@ export default function Academics() {
               </div>
             </section>
 
-            {/* Request Section */}
+           {/* Request Section */}
             <section>
               <div className="flex items-center gap-4 mb-8">
                 <div className={`shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center shadow-md ${darkMode ? 'bg-gray-700' : ''}`} style={{ backgroundColor: darkMode ? '' : color2 }}>
-                  <FileText className="w-7 h-7" style={{ color: color1 }} />
+               <FileText className="w-7 h-7" style={{ color: color1 }} />
                 </div>
                 <h2 className={`text-3xl md:text-4xl font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
                   Request for Academic Transcript/Educational Verification
@@ -213,7 +220,7 @@ export default function Academics() {
               <div className="flex flex-wrap gap-4">
                 {requestLinks.map((link, i) => (
                   <StyledLink key={i} href={link.href} text={link.name} icon={LinkIcon} />
-                ))}
+              ))}
               </div>
             </section>
 
