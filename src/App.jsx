@@ -25,6 +25,8 @@ import ResearchScholars from './screens/people/researchScholars';
 import BTechStudents from './screens/people/btechStudents';
 import MTechStudents from './screens/people/mtechStudents';
 import GenderIndex from './screens/people/genderIndex';
+import Hostel from './screens/facilities/hostel';
+import Internet from './screens/facilities/internet';
 
 
 function App() {
@@ -53,6 +55,8 @@ function App() {
           <Route path="/people/btech-students" element={<BTechStudents />} />
           <Route path="/people/mtech-students" element={<MTechStudents />} />
           <Route path="/people/gender-index" element={<GenderIndex />} />
+          <Route path="/facilities/hostel" element={<Hostel />} />
+          <Route path="/facilities/campus-network" element={<Internet />} />
 
         </Routes>
         <AppFooter />
