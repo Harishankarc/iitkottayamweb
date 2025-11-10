@@ -27,6 +27,8 @@ import MTechStudents from './screens/people/mtechStudents';
 import GenderIndex from './screens/people/genderIndex';
 import Hostel from './screens/facilities/hostel';
 import Internet from './screens/facilities/internet';
+import InnovationCell from './screens/IIC&Clubs/innovationCell';
+import InnovationCell from './screens/IIC&Clubs/fdpWebinar';
 
 
 function App() {
@@ -57,6 +59,8 @@ function App() {
           <Route path="/people/gender-index" element={<GenderIndex />} />
           <Route path="/facilities/hostel" element={<Hostel />} />
           <Route path="/facilities/campus-network" element={<Internet />} />
+          <Route path="/iic-clubs/innovation-cell" element={<InnovationCell />} />
+          <Route path="/iic-clubs/fdp-webinars" element={<FDPWebinar />} />
 
         </Routes>
         <AppFooter />
