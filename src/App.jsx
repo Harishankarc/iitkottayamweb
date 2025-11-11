@@ -28,7 +28,7 @@ import GenderIndex from './screens/people/genderIndex';
 import Hostel from './screens/facilities/hostel';
 import Internet from './screens/facilities/internet';
 import InnovationCell from './screens/IIC&Clubs/innovationCell';
-import InnovationCell from './screens/IIC&Clubs/fdpWebinar';
+import FDPWebinar from './screens/IIC&Clubs/fdpWebinar';
 
 
 function App() {
