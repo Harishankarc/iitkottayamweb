@@ -34,106 +34,164 @@ export default function NavBar() {
   };
 
   return (
-    // <div className="sticky top-0 z-50 w-full" For adding sticky navbar>
-    <div>
-      <div className="w-100vw h-8 flex justify-end items-center px-1 md:px-50 gap-1" style={{
-        backgroundColor: API.color1
-      }}>
-        <button
-          onClick={toggleDarkMode}
-          className="flex items-center justify-center w-6 h-5 !text-white cursor-pointer hover:opacity-80 transition-opacity mr-2"
-          aria-label="Toggle dark mode"
-        >
-          {darkMode ? <Sun size={14} /> : <Moon size={14} />}
-        </button>
+    <div className="sticky top-0 z-50 w-full">
+      {/* Top Utility Bar - Green background with links and tools */}
+      <div className="w-full py-1.5 px-4 md:px-12" style={{ backgroundColor: API.color1 }}>
+        <div className="max-w-[1400px] mx-auto flex justify-between items-center">
+          {/* Left side - Utility Links */}
+          <div className="flex items-center gap-3 md:gap-4">
+            <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors">
+              HOME
+            </a>
+            <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors">
+              WEBMAIL
+            </a>
+            <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors">
+              INTRANET
+            </a>
+            <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden md:block">
+              TELEPHONE DIRECTORY
+            </a>
+            <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden lg:block">
+              NIWAHIKA
+            </a>
+            <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden lg:block">
+              RTI
+            </a>
+            <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden lg:block">
+              IMS
+            </a>
+            <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden xl:block">
+              LOGIN
+            </a>
+          </div>
 
-        <button
-          onClick={decreaseFontSize}
-          className="flex items-center justify-center w-6 h-5 !text-white !text-[12px] font-semibold cursor-pointer hover:opacity-80 transition-opacity"
-          aria-label="Decrease font size"
-        >
-          A-
-        </button>
+          {/* Right side - Accessibility Controls */}
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={decreaseFontSize}
+              className="flex items-center justify-center w-6 h-6 text-white text-[10px] font-semibold hover:bg-green-700 rounded transition-all"
+              aria-label="Decrease font size"
+            >
+              A-
+            </button>
 
-        <button
-          onClick={() => setFontSize('medium')}
-          className="flex items-center justify-center w-5 h-5 bg-white !text-black !text-[12px] font-semibold cursor-pointer hover:opacity-80 transition-opacity rounded-sm"
-          aria-label="Default font size"
-        >
-          A
-        </button>
+            <button
+              onClick={increaseFontSize}
+              className="flex items-center justify-center w-6 h-6 text-white text-xs font-semibold hover:bg-green-700 rounded transition-all"
+              aria-label="Increase font size"
+            >
+              A+
+            </button>
 
-        <button
-          onClick={increaseFontSize}
-          className="flex items-center justify-center w-6 h-5 !text-white !text-[12px] font-semibold cursor-pointer hover:opacity-80 transition-opacity"
-          aria-label="Increase font size"
-        >
-          A+
-        </button>
+            <button
+              onClick={() => setFontSize('medium')}
+              className="flex items-center justify-center w-6 h-6 bg-white text-gray-900 text-[10px] font-semibold rounded hover:bg-gray-100 transition-all"
+              aria-label="Default font size"
+            >
+              A
+            </button>
 
-        <div className="flex gap-0.5 ml-3 items-center">
-          {['മലയാളം', 'हिन्दी', 'ENG'].map((lang, index) => (
-            <React.Fragment key={lang}>
-              <button
-                onClick={() => setLanguage(lang)}
-                className={`px-1 py-0.5 font-medium cursor-pointer transition-colors !text-white !text-[12px] ${language === lang ? 'underline' : 'hover:underline'
-                  }`}
-              >
-                {lang}
-              </button>
-              {index < 2 && <span className="text-white text-[9px]">|</span>}
-            </React.Fragment>
-          ))}
+            <button
+              onClick={() => setFontSize('medium')}
+              className="flex items-center justify-center w-6 h-6 bg-white text-gray-900 text-xs font-bold rounded hover:bg-gray-100 transition-all"
+              aria-label="High contrast"
+            >
+              A
+            </button>
+
+            <button
+              onClick={toggleDarkMode}
+              className="flex items-center justify-center w-6 h-6 text-white hover:bg-green-700 rounded transition-all ml-1"
+              aria-label="Toggle dark mode"
+            >
+              {darkMode ? <Sun size={14} /> : <Moon size={14} />}
+            </button>
+
+            <div className="flex gap-1 ml-2 items-center">
+              {['മലയാളം', 'हिं', 'ENG'].map((lang, index) => (
+                <React.Fragment key={lang}>
+                  <button
+                    onClick={() => setLanguage(lang)}
+                    className={`px-1 py-0.5 text-[10px] font-medium cursor-pointer transition-colors text-white ${
+                      language === lang ? 'underline' : 'hover:underline'
+                    }`}
+                  >
+                    {lang}
+                  </button>
+                  {index < 2 && <span className="text-white text-[10px]">|</span>}
+                </React.Fragment>
+              ))}
+            </div>
+
+            <input
+              type="text"
+              placeholder="Search..."
+              className="hidden xl:block ml-2 px-2 py-0.5 text-[10px] rounded border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-white w-28"
+            />
+          </div>
         </div>
       </div>
 
-      <div className={`px-3 md:px-50 md:py-4 py-2 ${darkMode ? 'bg-gray-900' : 'bg-white'} relative`}>
-        <div className="flex justify-between md:gap-5 gap-3 mb-2 items-center">
+      {/* Main Header with Logo and Title - White Background */}
+      <div 
+        className={`w-full px-4 md:px-12 py-3 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}
+      >
+        <div className="max-w-[1400px] mx-auto flex items-center gap-4">
+          {/* Mobile Menu Button */}
           <button
             onClick={toggleMobileMenu}
-            className={`lg:hidden p-2 rounded transition-colors z-10 ${darkMode ? 'text-white hover:bg-gray-700' : 'text-gray-900 hover:bg-gray-100'
-              }`}
+            className={`lg:hidden p-2 rounded transition-colors ${
+              darkMode ? 'text-white hover:bg-gray-700' : 'text-gray-900 hover:bg-gray-100'
+            }`}
             aria-label="Toggle menu"
           >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} color={darkMode ? "yellow" : "black"}/>}
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
 
-          <img src={logo} alt="Logo" className="block h-[25px] md:h-[80px]" />
+          {/* Logo */}
+          <img src={logo} alt="IIIT Kottayam Logo" className="h-16 md:h-20" />
 
-          <div className="flex flex-col items-end flex-1">
-            <h1 className={`${fontSize === 'small' ? 'text-[6px] sm:text-[14px]' :
-              fontSize === 'large' ? 'text-[7px] sm:text-[18px]' : 'text-[6px] sm:text-[16px]'
-              } font-bold gradient-text leading-[1.2] dark:text-white`}>
+          {/* Institute Name - Right aligned */}
+          <div className="flex flex-col flex-1 items-end">
+            <h1 className={`${
+              fontSize === 'small' ? 'text-[8px] sm:text-xs' :
+              fontSize === 'large' ? 'text-[10px] sm:text-base' : 'text-[9px] sm:text-sm'
+            } font-semibold leading-tight text-right`}
+            style={{ color: API.color1 }}>
               ഇന്ത്യൻ ഇൻസ്റ്റിറ്റ്യൂട്ട് ഓഫ് ഇൻഫർമേഷൻ ടെക്നോളജി കോട്ടയം
             </h1>
-            <h1 className={`${fontSize === 'small' ? 'text-[6px] md:text-[24px]' :
-              fontSize === 'large' ? ' text-[7px] md:text-[32px]' : 'text-[8px] md:text-[28px]'
-              } font-bold gradient-text leading-[1.35] mb-0 dark:text-white`}>
+            <h1 className={`${
+              fontSize === 'small' ? 'text-xs sm:text-lg md:text-xl' :
+              fontSize === 'large' ? 'text-sm sm:text-2xl md:text-3xl' : 'text-xs sm:text-xl md:text-2xl'
+            } font-bold leading-tight text-right`}
+            style={{ color: API.color1 }}>
               भारतीय सूचना प्रौद्योगिकी संस्थान कोट्टायम
             </h1>
-            <h1 className={`${fontSize === 'small' ? 'text-[6px] sm:text-[16px] md:text-[18px]' :
-              fontSize === 'large' ? 'text-[7px] sm:text-[20px] md:text-[24px]' : 'text-[8px] sm:text-[18px] md:text-[21.5px]'
-              } font-bold gradient-text leading-none dark:text-white`}>
+            <h1 className={`${
+              fontSize === 'small' ? 'text-sm sm:text-base md:text-lg' :
+              fontSize === 'large' ? 'text-base sm:text-xl md:text-2xl' : 'text-sm sm:text-lg md:text-xl'
+            } font-bold leading-tight text-right`}
+            style={{ color: API.color1 }}>
               Indian Institute of Information Technology Kottayam
             </h1>
           </div>
         </div>
-        <hr className="border-green-700 dark:border-green-500" />
+        <hr className="mt-2" style={{ borderColor: API.color1 }} />
       </div>
 
+      {/* Desktop Navigation */}
       <div className="hidden lg:block">
-        <DesktopNavigation  />
+        <DesktopNavigation />
       </div>
 
+      {/* Mobile Navigation */}
       <MobileNavigation
         isOpen={isMobileMenuOpen}
         onClose={closeMobileMenu}
         darkMode={darkMode}
         fontSize={fontSize}
       />
-
-
-
     </div>
   );
 }

@@ -11,6 +11,8 @@ import {
   BookOpenText,
   Scale
 } from 'lucide-react';
+import cslab from '../../assets/images/cslab1.jpg';
+import cslab2 from '../../assets/images/cslab2.jpg';
 
 export default function BTechCSE() {
   const { darkMode } = useTheme();

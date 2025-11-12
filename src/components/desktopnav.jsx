@@ -180,7 +180,7 @@ export default function DesktopNavigation() {
   const getNavFontSizeClass = () => {
     if (fontSize === 'small') return 'text-sm';
     if (fontSize === 'large') return 'text-lg';
-    return 'text-base';
+    return 'text-[15px]';
   };
 
   const handleMouseEnter = (id) => {
@@ -193,7 +193,7 @@ export default function DesktopNavigation() {
   };
 
   return (
-    <nav className={`hidden lg:flex w-full gap-6 px-10 pb-2 justify-center ${darkMode ? 'bg-[#111827]' : 'bg-white'}`}>
+    <nav className={`hidden lg:flex w-full items-center justify-center gap-8 px-6 py-3 ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
       {navigationConfig.map((navItem) => (
         <div
           key={navItem.id}
@@ -203,10 +203,11 @@ export default function DesktopNavigation() {
         >
           <Link
             to={navItem.link || '#'}
-            className={`flex items-center gap-1 font-medium transition-colors duration-300 ${getNavFontSizeClass()} ${darkMode
-              ? 'text-white hover:text-[#111827]'
-              : 'text-gray-900 hover:text-[#00aaf0]'
-              }`}
+            className={`flex items-center gap-1 font-semibold transition-colors duration-200 ${getNavFontSizeClass()} ${
+              darkMode
+                ? 'text-gray-100 hover:text-green-400'
+                : 'text-gray-800 hover:text-green-600'
+            }`}
           >
             {navItem.label}
             {navItem.hasDropdown && (
