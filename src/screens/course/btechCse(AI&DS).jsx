@@ -10,6 +10,8 @@ import {
   BookOpenText,
   Scale
 } from 'lucide-react';
+import csAIlab1 from '../../assets/images/cs(AI)lab1(1).jpg';
+import csAIlab2 from '../../assets/images/cs(AI)lab2(1).jpg';
 
 export default function BTechCseAI_DS() {
   const { darkMode } = useTheme();
@@ -254,14 +256,25 @@ export default function BTechCseAI_DS() {
                 The programme is designed to build a strong foundation in Computer Science and Engineering specializing in Artificial Intelligence and Data Science which includes hardware, software, algorithms, and problem-solving skills with a blend of computer science, mathematics, AI & data science, electronics electives, mathematics electives, science electives, humanities electives, and management electives. The BTech Computer Science with specialization in AI and Data Science programme starts with computer science and engineering core and allied courses in the initial semesters. The BTech CSE with AI&DS specialization has a strong foundation blended with specialized courses in artificial intelligence and data science to provide a higher level understanding. The programme enhances the student’s knowledge of the latest breakthroughs in research, cutting-edge technologies, and best practices for building effective Artificial Intelligence systems. Furthermore, this program will provide a solid theoretical foundation of AI&DS that will help them, and the future generation to be data-driven decision makers for the future.
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                <ImagePlaceholder text="AI & DS Lab Image 1" />
-                <ImagePlaceholder text="AI & DS Lab Image 2" />
-              </div>
-            </div>
-          </section>
 
-          {/* Admission Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                <div className="rounded-2xl overflow-hidden shadow-lg">
+                  <img 
+                    src={csAIlab1} 
+                    alt="AI & Data Science Lab 1" 
+                    className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="rounded-2xl overflow-hidden shadow-lg">
+                  <img 
+                    src={csAIlab2} 
+                    alt="AI & Data Science Lab 2" 
+                    className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>          {/* Admission Section */}
           <section
             className={`relative rounded-3xl shadow-xl overflow-hidden border-2 transition-all duration-300 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
             onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`}

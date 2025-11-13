@@ -11,6 +11,8 @@ import {
   BookOpenText,
   Scale
 } from 'lucide-react';
+import csCyberLab1 from '../../assets/images/cs(cyber)lab1(1).jpg';
+import csCyberLab2 from '../../assets/images/cs(cyber)lab2(1).jpg';
 
 export default function BTechCyberSecurity() {
   const { darkMode } = useTheme();
@@ -261,8 +263,20 @@ export default function BTechCyberSecurity() {
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                <ImagePlaceholder text="Cyber Security Lab Image 1" />
-                <ImagePlaceholder text="Cyber Security Lab Image 2" />
+                <div className="rounded-2xl overflow-hidden shadow-lg">
+                  <img 
+                    src={csCyberLab1} 
+                    alt="Cyber Security Lab 1" 
+                    className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="rounded-2xl overflow-hidden shadow-lg">
+                  <img 
+                    src={csCyberLab2} 
+                    alt="Cyber Security Lab 2" 
+                    className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
               </div>
             </div>
           </section>

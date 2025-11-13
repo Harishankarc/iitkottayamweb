@@ -205,7 +205,7 @@ export default function DesktopNavigation() {
             to={navItem.link || '#'}
             className={`flex items-center gap-1 font-semibold transition-colors duration-200 ${getNavFontSizeClass()} ${
               darkMode
-                ? 'text-gray-100 hover:text-green-400'
+                ? 'text-yellow-400 hover:text-green-400'
                 : 'text-gray-800 hover:text-green-600'
             }`}
           >

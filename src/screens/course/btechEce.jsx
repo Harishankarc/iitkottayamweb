@@ -12,6 +12,10 @@ import {
   Scale
 } from 'lucide-react';
 
+// Import images
+import eceImage1 from '../../assets/images/eclab1.jpg';
+import eceImage2 from '../../assets/images/eclab2.jpg';
+
 export default function BTechECE() {
   const { darkMode } = useTheme();
   const color1 = api.color1; // #239244 (Dark Green)
@@ -208,8 +212,20 @@ export default function BTechECE() {
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                <ImagePlaceholder text="Campus / Lab Image 1" />
-                <ImagePlaceholder text="Campus / Lab Image 2" />
+                <div className="rounded-2xl overflow-hidden shadow-lg">
+                  <img 
+                    src={eceImage1} 
+                    alt="ECE Department Lab" 
+                    className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="rounded-2xl overflow-hidden shadow-lg">
+                  <img 
+                    src={eceImage2} 
+                    alt="ECE Campus View" 
+                    className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
               </div>
             </div>
           </section>

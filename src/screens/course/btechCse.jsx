@@ -203,10 +203,21 @@ export default function BTechCSE() {
                 The programme is designed to build a strong foundation in Computer Science and Engineering that includes hardware, simulation and emulation. The programme has a blend of core courses, department electives, open electives, and management electives. The BTech CSE programme starts with computation oriented courses and the initial four semesters are focused on creating a strong Computer Science Foundation which enables the student to harness the required engineering skills for problem solving using computer science.
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                <ImagePlaceholder text="Campus / Lab Image 1" />
-                <ImagePlaceholder text="Campus / Lab Image 2" />
-                <ImagePlaceholder text="Campus / Lab Image 3" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                <div className="rounded-2xl overflow-hidden shadow-lg">
+                  <img
+                    src={cslab}
+                    alt="CSE Lab 1"
+                    className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="rounded-2xl overflow-hidden shadow-lg">
+                  <img
+                    src={cslab2}
+                    alt="CSE Lab 2"
+                    className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
               </div>
             </div>
           </section>

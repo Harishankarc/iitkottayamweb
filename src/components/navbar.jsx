@@ -34,11 +34,11 @@ export default function NavBar() {
   };
 
   return (
-    <div className="sticky top-0 z-50 w-full">
-      {/* Top Utility Bar - Green background with links and tools */}
+    <div className="w-full">
+      {/* Top Utility Bar - Green background - Not sticky, all items aligned right */}
       <div className="w-full py-1.5 px-4 md:px-12" style={{ backgroundColor: API.color1 }}>
-        <div className="max-w-[1400px] mx-auto flex justify-between items-center">
-          {/* Left side - Utility Links */}
+        <div className="max-w-[1400px] mx-auto flex justify-end items-center">
+          {/* All items on right side */}
           <div className="flex items-center gap-3 md:gap-4">
             <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors">
               HOME
@@ -64,13 +64,17 @@ export default function NavBar() {
             <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden xl:block">
               LOGIN
             </a>
-          </div>
 
-          {/* Right side - Accessibility Controls */}
-          <div className="flex items-center gap-1.5">
+            {/* Separator */}
+            <span className="text-white text-xs hidden md:block">|</span>
+
+            {/* Font Size Controls */}
             <button
               onClick={decreaseFontSize}
               className="flex items-center justify-center w-6 h-6 text-white text-[10px] font-semibold hover:bg-green-700 rounded transition-all"
+                 style={{
+                color: darkMode ? '#facc15' : '#000000'
+              }}
               aria-label="Decrease font size"
             >
               A-
@@ -79,42 +83,37 @@ export default function NavBar() {
             <button
               onClick={increaseFontSize}
               className="flex items-center justify-center w-6 h-6 text-white text-xs font-semibold hover:bg-green-700 rounded transition-all"
+                            style={{
+                color: darkMode ? '#facc15' : '#000000'
+              }}
               aria-label="Increase font size"
             >
               A+
             </button>
 
             <button
-              onClick={() => setFontSize('medium')}
-              className="flex items-center justify-center w-6 h-6 bg-white text-gray-900 text-[10px] font-semibold rounded hover:bg-gray-100 transition-all"
-              aria-label="Default font size"
-            >
-              A
-            </button>
-
-            <button
-              onClick={() => setFontSize('medium')}
-              className="flex items-center justify-center w-6 h-6 bg-white text-gray-900 text-xs font-bold rounded hover:bg-gray-100 transition-all"
-              aria-label="High contrast"
-            >
-              A
-            </button>
-
-            <button
               onClick={toggleDarkMode}
-              className="flex items-center justify-center w-6 h-6 text-white hover:bg-green-700 rounded transition-all ml-1"
+              className="flex items-center justify-center w-6 h-6 text-white hover:bg-green-700 rounded transition-all"
+                  style={{
+                color: darkMode ? '#facc15' : '#000000'
+              }}
               aria-label="Toggle dark mode"
             >
               {darkMode ? <Sun size={14} /> : <Moon size={14} />}
             </button>
 
-            <div className="flex gap-1 ml-2 items-center">
+            <div className="flex gap-1 items-center">
               {['മലയാളം', 'हिं', 'ENG'].map((lang, index) => (
-                <React.Fragment key={lang}>
+                <React.Fragment key={`${lang}-${darkMode}`}>
                   <button
                     onClick={() => setLanguage(lang)}
-                    className={`px-1 py-0.5 text-[10px] font-medium cursor-pointer transition-colors text-white ${
-                      language === lang ? 'underline' : 'hover:underline'
+                    style={{
+                      color: darkMode 
+                        ? (language === lang ? '#facc15' : '#fef08a') 
+                        : '#ffffff'
+                    }}
+                    className={`px-1 py-0.5 text-[10px] font-medium cursor-pointer ${
+                      language === lang ? 'underline font-bold' : 'hover:underline'
                     }`}
                   >
                     {lang}
@@ -127,13 +126,16 @@ export default function NavBar() {
             <input
               type="text"
               placeholder="Search..."
-              className="hidden xl:block ml-2 px-2 py-0.5 text-[10px] rounded border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-white w-28"
+              className="hidden xl:block ml-2 px-2 py-0.5 text-[10px] rounded border border-gray-300 bg-white focus:outline-none focus:ring-1 focus:ring-white w-28"
+              style={{
+                color: darkMode ? '#facc15' : '#000000'
+              }}
             />
           </div>
         </div>
       </div>
 
-      {/* Main Header with Logo and Title - White Background */}
+      {/* Main Header with Logo and Title - White Background - Not sticky */}
       <div 
         className={`w-full px-4 md:px-12 py-3 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}
       >
@@ -152,27 +154,30 @@ export default function NavBar() {
           {/* Logo */}
           <img src={logo} alt="IIIT Kottayam Logo" className="h-16 md:h-20" />
 
-          {/* Institute Name - Right aligned */}
+          {/* Institute Name - Right aligned with blue-green gradient effect */}
           <div className="flex flex-col flex-1 items-end">
-            <h1 className={`${
-              fontSize === 'small' ? 'text-[8px] sm:text-xs' :
-              fontSize === 'large' ? 'text-[10px] sm:text-base' : 'text-[9px] sm:text-sm'
-            } font-semibold leading-tight text-right`}
-            style={{ color: API.color1 }}>
+            <h1 
+              className={`${
+                fontSize === 'small' ? 'text-[8px] sm:text-xs' :
+                fontSize === 'large' ? 'text-[10px] sm:text-base' : 'text-[9px] sm:text-sm'
+              } font-semibold leading-tight text-right bg-linear-to-r from-green-600 to-blue-600 bg-clip-text text-transparent`}
+            >
               ഇന്ത്യൻ ഇൻസ്റ്റിറ്റ്യൂട്ട് ഓഫ് ഇൻഫർമേഷൻ ടെക്നോളജി കോട്ടയം
             </h1>
-            <h1 className={`${
-              fontSize === 'small' ? 'text-xs sm:text-lg md:text-xl' :
-              fontSize === 'large' ? 'text-sm sm:text-2xl md:text-3xl' : 'text-xs sm:text-xl md:text-2xl'
-            } font-bold leading-tight text-right`}
-            style={{ color: API.color1 }}>
+            <h1 
+              className={`${
+                fontSize === 'small' ? 'text-xs sm:text-lg md:text-xl' :
+                fontSize === 'large' ? 'text-sm sm:text-2xl md:text-3xl' : 'text-xs sm:text-xl md:text-2xl'
+              } font-bold leading-tight text-right bg-linear-to-r from-green-600 to-blue-600 bg-clip-text text-transparent`}
+            >
               भारतीय सूचना प्रौद्योगिकी संस्थान कोट्टायम
             </h1>
-            <h1 className={`${
-              fontSize === 'small' ? 'text-sm sm:text-base md:text-lg' :
-              fontSize === 'large' ? 'text-base sm:text-xl md:text-2xl' : 'text-sm sm:text-lg md:text-xl'
-            } font-bold leading-tight text-right`}
-            style={{ color: API.color1 }}>
+            <h1 
+              className={`${
+                fontSize === 'small' ? 'text-sm sm:text-base md:text-lg' :
+                fontSize === 'large' ? 'text-base sm:text-xl md:text-2xl' : 'text-sm sm:text-lg md:text-xl'
+              } font-bold leading-tight text-right bg-linear-to-r from-green-600 to-blue-600 bg-clip-text text-transparent`}
+            >
               Indian Institute of Information Technology Kottayam
             </h1>
           </div>
@@ -180,8 +185,8 @@ export default function NavBar() {
         <hr className="mt-2" style={{ borderColor: API.color1 }} />
       </div>
 
-      {/* Desktop Navigation */}
-      <div className="hidden lg:block">
+      {/* Desktop Navigation - STICKY (only this section) */}
+      <div className="hidden lg:block sticky top-0 z-50">
         <DesktopNavigation />
       </div>
 
