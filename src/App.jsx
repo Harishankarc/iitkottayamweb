@@ -29,6 +29,7 @@ import Hostel from './screens/facilities/hostel';
 import Internet from './screens/facilities/internet';
 import InnovationCell from './screens/IIC&Clubs/innovationCell';
 import FDPWebinar from './screens/IIC&Clubs/fdpWebinar';
+import ResearchGroup from './screens/research/researchGroup';
 
 
 function App() {
@@ -61,6 +62,7 @@ function App() {
           <Route path="/facilities/campus-network" element={<Internet />} />
           <Route path="/iic-clubs/innovation-cell" element={<InnovationCell />} />
           <Route path="/iic-clubs/fdp-webinars" element={<FDPWebinar />} />
+          <Route path="/research/research-groups" element={<ResearchGroup />} />
 
         </Routes>
         <AppFooter />
