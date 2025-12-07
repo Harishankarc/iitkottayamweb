@@ -21,7 +21,6 @@ import HeadofDepartment from './screens/people/hod';
 import Faculty from './screens/people/faculty';
 import Technical from './screens/people/technical';
 import ProfessionalSupportStaff from './screens/people/ProfessionalSupportStaff';
-import ResearchScholars from './screens/people/researchScholars';
 import BTechStudents from './screens/people/btechStudents';
 import MTechStudents from './screens/people/mtechStudents';
 import GenderIndex from './screens/people/genderIndex';
@@ -45,6 +44,8 @@ import SecurityClub from './screens/IIC&Clubs/securityClub';
 import MindQuest from './screens/IIC&Clubs/mindQuest';
 import IEEEStudentBranch from './screens/IIC&Clubs/IeeeStudentBranch';
 import ACM from './screens/IIC&Clubs/acm';
+import FacultyResearchPaper from './screens/research/facultyResearchPaper';
+import ResearchScholars from './screens/people/researchScholars';
 
 function App() {
   return (
@@ -90,6 +91,7 @@ function App() {
           <Route path="/iic-clubs/mind-quest" element={<MindQuest />} />
           <Route path="/iic-clubs/ieee-student-branch" element={<IEEEStudentBranch />} />
           <Route path="/iic-clubs/acm-student-chapter" element={<ACM />} />
+          <Route path="/research/faculty-research-papers" element={<FacultyResearchPaper />} />
           <Route path="/research/research-groups" element={<ResearchGroup />} />
 
         </Routes>

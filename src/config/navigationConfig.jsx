@@ -108,7 +108,7 @@ export const navigationConfig = [
       { id: 'awards-recognition', label: 'Awards & Recognition', link: '/research/awards-recognition' },
       { id: 'international-collab', label: 'International Collaborations', link: '/research/international-collab' },
       { id: 'research-activities', label: 'Research Activities', link: '/research/research-activities' },
-      { id: 'innovations-startups', label: 'Innovations & Startups', link: '/research/innovations-startups' }
+      { id: 'innovations-startups', label: 'Innovations & Startups', link: 'https://icentre.iiitkottayam.ac.in/' }
     ]
   },
   {
