@@ -31,75 +31,66 @@ export default function ScholarshipLoan() {
   // Helper component for Bank Sections
   const BankSection = ({ title, linkText, linkHref = "#" }) => (
     <div 
-      className="pb-8 border-b" 
+      className="pb-6 border-b last:border-b-0" 
       style={{ borderColor: darkMode ? `${color1}66` : `${color1}33` }}
     >
-      <div className="flex items-center gap-3 mb-4">
-        <Landmark className="w-7 h-7" style={{ color: color1 }} />
-        <h3 className={`text-2xl md:text-3xl font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+      <div className="flex items-center gap-3 mb-3">
+        <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${darkMode ? 'bg-gray-700' : ''}`} style={{ backgroundColor: darkMode ? '' : color2 }}>
+          <Landmark className="w-4 h-4" style={{ color: color1 }} />
+        </div>
+        <h3 className={`text-lg md:text-xl font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
           {title}
         </h3>
       </div>
-      <a href={linkHref} className="font-semibold text-lg inline-block ml-10 hover:underline" style={{ color: color1 }}>
+      <a href={linkHref} className="text-sm font-semibold inline-block ml-11 hover:underline transition-colors duration-300" style={{ color: color1 }}>
         {linkText}
       </a>
     </div>
   );
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
-      {/* Hero Section */}
-      <div className={`relative overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`} style={{ height: '70vh' }}>
-        <div className="absolute inset-0" style={{ backgroundColor: darkMode ? '#1f2937E6' : `${color2}E6` }}></div>
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-20 left-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
-          <div className="absolute top-40 right-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
-          <div className="absolute -bottom-8 left-1/3 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
-        </div>
-        <div className="relative container mx-auto px-4 h-full flex items-center">
-          <div className="max-w-5xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-6 py-3 backdrop-blur-md rounded-full text-sm font-bold mb-8 border hover:scale-105 transition-all duration-500 shadow-lg cursor-pointer" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
-              <Scale className="w-4 h-4" style={{ color: color1 }} />
-              Financial Support
-            </div>
-            <h1 className={`text-3xl md:text-4xl lg:text-6xl font-extrabold mb-8 leading-tight tracking-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-              Scholarship & <span className="block md:inline text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(to right, ${color1}, ${color1}B3)` }}>Educational Loans</span>
-            </h1>
-            <p className={`text-l md:text-2xl leading-relaxed font-light max-w-4xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              Explore financial aid options, scholarships, and bank loan schemes available to students.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-7xl mx-auto space-y-16">
-
-          {/* Introduction Section */}
-          <section>
-            <div className={`rounded-3xl shadow-xl overflow-hidden border transition-all duration-300 ${
-              darkMode 
-                ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' 
-                : 'bg-white border-gray-200 hover:shadow-2xl '
-            }`}
-            onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`} onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : `${color1}33`}>
-              <div className="p-8 md:p-12">
-                <p className={`text-xl leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} >
-                  Students are free to approach any banks for the educational loan. Institute will issue the needed documents upon receipt of a written request from the students.
-                </p>
+    <>
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
+        {/* Hero Section */}
+        <header className={`relative overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} border-b`} style={{ borderColor: darkMode ? '#374151' : color1 + '30' }}>
+          <div className="mx-auto py-2">
+            <div className="w-full mx-auto text-center px-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 backdrop-blur-md rounded-full text-xs font-bold mb-3 border hover:scale-105 transition-all duration-500 shadow-lg cursor-pointer" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
+                <Scale className="w-4 h-4" style={{ color: color1 }} />
+                Financial Support
               </div>
+              <h1 className={`text-2xl md:text-3xl font-extrabold mb-3 leading-tight tracking-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                Scholarship & Educational Loans
+              </h1>
+              <p className={`text-xs md:text-sm leading-relaxed font-light max-w-4xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Explore financial aid options, scholarships, and bank loan schemes available to students.
+              </p>
             </div>
-          </section>
+          </div>
+        </header>
+
+        {/* Main Content Area */}
+        <main className="mx-auto py-8 px-6 max-w-full">
+          <div className="w-full mx-auto space-y-8">
+
 
           {/* Bank Loans Section */}
-          <section>
-            <div className={`rounded-3xl shadow-xl overflow-hidden border transition-all duration-300 ${
-              darkMode 
-                ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' 
-                : 'bg-white border-gray-200 hover:shadow-2xl'
-            }`} onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`} onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : `${color1}33`}>
-              <div className="p-8 md:p-12 space-y-10">
+          <section className="mb-8">
+            <div className="flex items-center gap-4 mb-6">
+              <div className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${darkMode ? 'bg-gray-700' : ''}`} style={{ backgroundColor: darkMode ? '' : color2 }}>
+                <Landmark className="w-6 h-6" style={{ color: color1 }} />
+              </div>
+              <h2 className={`text-2xl md:text-3xl font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                Bank Loan Schemes
+              </h2>
+            </div>
+            <div 
+              className={`rounded-lg shadow-xl overflow-hidden border transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+              style={{ borderColor: darkMode ? '#374151' : `${color1}33` }}
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : `${color1}33`}
+            >
+              <div className="p-8 md:p-12 space-y-6">
                 
                 <BankSection 
                   title="State Bank of India"
@@ -131,16 +122,22 @@ export default function ScholarshipLoan() {
           </section>
 
           {/* Other Resources Section */}
-          <section>
-            <div className={`rounded-3xl shadow-xl overflow-hidden border transition-all duration-300 ${
-              darkMode 
-                ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' 
-                : 'bg-white border-gray-200 hover:shadow-2xl '
-            }`}onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`} onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : `${color1}33`}>
+          <section className="mb-8">
+            <div className="flex items-center gap-4 mb-6">
+              <div className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${darkMode ? 'bg-gray-700' : ''}`} style={{ backgroundColor: darkMode ? '' : color2 }}>
+                <FileText className="w-6 h-6" style={{ color: color1 }} />
+              </div>
+              <h2 className={`text-2xl md:text-3xl font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                Other Resources
+              </h2>
+            </div>
+            <div 
+              className={`rounded-lg shadow-xl overflow-hidden border transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+              style={{ borderColor: darkMode ? '#374151' : `${color1}33` }}
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : `${color1}33`}
+            >
               <div className="p-8 md:p-12">
-                <h2 className={`text-3xl md:text-4xl font-bold mb-8 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                  Other Resources
-                </h2>
                 <div className="flex flex-wrap gap-4">
                   <StyledLink 
                     href="#" 
@@ -158,7 +155,8 @@ export default function ScholarshipLoan() {
           </section>
 
         </div>
-      </div>
+      </main>
     </div>
+    </>
   );
 }

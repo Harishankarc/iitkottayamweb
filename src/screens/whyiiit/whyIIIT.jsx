@@ -101,51 +101,45 @@ export default function WhyIIIT() {
     <>
       <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
         {/* Hero Section */}
-        <div className={`relative overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`} style={{ height: '60vh' }}>
-          <div className="absolute inset-0" style={{ backgroundColor: darkMode ? '#1f2937E6' : `${color2}E6` }}></div>
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-20 left-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
-            <div className="absolute top-40 right-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
-            <div className="absolute -bottom-8 left-1/3 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
-          </div>
-          <div className="relative container mx-auto px-4 h-full flex items-center">
-            <div className="max-w-5xl mx-auto text-center">
-              <div className="inline-flex items-center gap-2 px-6 py-3 backdrop-blur-md rounded-full text-sm font-bold mb-8 border hover:scale-105 transition-all duration-500 shadow-lg cursor-pointer" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
+        <header className={`relative overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} border-b`} style={{ borderColor: darkMode ? '#374151' : color1 + '30' }}>
+          <div className="mx-auto py-2">
+            <div className="max-w-5xl mx-auto text-center px-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 backdrop-blur-md rounded-full text-xs font-bold mb-3 border hover:scale-105 transition-all duration-500 shadow-lg cursor-pointer" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
                 <Sparkles className="w-4 h-4" style={{ color: color1 }} />
                 Established 2015 • Institution of National Importance
               </div>
-              <h1 className={`text-3xl md:text-4xl lg:text-6xl font-extrabold mb-8 leading-tight tracking-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+              <h1 className={`text-2xl md:text-3xl font-extrabold mb-3 leading-tight tracking-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
                 Why <span className="block md:inline text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(to right, ${color1}, ${color1}B3)` }}>IIIT Kottayam</span>
               </h1>
-              <p className={`text-l md:text-2xl leading-relaxed font-light max-w-4xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <p className={`text-xs md:text-sm leading-relaxed font-light max-w-4xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Pioneering excellence in Information Technology education and research
               </p>
             </div>
           </div>
-        </div>
+        </header>
 
         {/* Main Content */}
-        <div className="container mx-auto px-4 py-16">
+        <main className="mx-auto py-8 px-6 max-w-full">
           {/* Introduction Card */}
-          <section className="mb-24" >
-            <div className="max-w-7xl mx-auto">
-              <div className={`rounded-3xl shadow-xl overflow-hidden border transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`} onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : `${color1}33`}>
-                <div className="p-8 md:p-12 lg:p-16">
-                  <div className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold mb-6 border-2 shadow-md text-white rounded-lg" style={{ backgroundColor: color1, borderColor: color1 }} >
-                    <GraduationCap className="w-5 h-5" />
+          <section className="mb-8">
+            <div className="w-full mx-auto">
+              <div className={`rounded-lg shadow-xl overflow-hidden border transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`} onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : `${color1}33`}>
+                <div className="p-8 md:p-12">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold mb-4 border-2 shadow-md text-white rounded-lg" style={{ backgroundColor: color1, borderColor: color1 }} >
+                    <GraduationCap className="w-4 h-4" />
                     About Our Institute
                   </div>
-                  <p className={`text-lg md:text-xl leading-relaxed mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <p className={`text-sm md:text-base leading-relaxed mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     The Indian Institute of Information Technology (IIIT) Kottayam is an <span className="font-bold" style={{ color: color1 }}>"Institution of National Importance"</span> established in 2015. It operates under a Public-Private Partnership (PPP) model and is located at Valavoor, Pala, in the Kottayam district of Kerala.
                   </p>
-                  <p className={`text-lg md:text-xl leading-relaxed mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <p className={`text-sm md:text-base leading-relaxed mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     The institute is situated on a 53-acre campus and focuses on education, research, and development in the field of Information Technology. It also has an Atal Incubation Centre (AIC) to support startups and innovation.
                   </p>
-                  <div className="flex flex-wrap gap-4 mt-8">
+                  <div className="flex flex-wrap gap-3 mt-5">
                     {['🤝 PPP Model', '🌳 53 Acre Campus', '🚀 AIC Certified', '🏆 National Importance'].map((tag, i) => (
                       <span
                         key={i}
-                        className="px-6 py-3 rounded-xl text-sm font-semibold border-2 hover:shadow-lg hover:scale-105 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                        className="px-4 py-2 rounded-xl text-xs font-semibold border-2 hover:shadow-lg hover:scale-105 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
                         style={{ backgroundColor: darkMode ? '#1f2937' : color2, color: color1, borderColor: `${color1}66` }}
                       >
                         {tag}
@@ -158,30 +152,30 @@ export default function WhyIIIT() {
           </section>
 
           {/* Page Referral Banner */}
-          <section className="mb-24">
-            <div className="max-w-7xl mx-auto">
+          <section className="mb-8">
+            <div className="w-full mx-auto">
               <Link to="/admissions" className="block">
-                <div className="rounded-3xl p-10 shadow-xl border relative overflow-hidden group" style={{ backgroundColor: color1, borderColor: color1 }}>
+                <div className="rounded-lg p-8 md:p-10 shadow-xl border relative overflow-hidden group" style={{ backgroundColor: color1, borderColor: color1 }}>
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ backgroundImage: `linear-gradient(to right, ${color1}1A, ${color1}0D)` }}></div>
-                  <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="relative flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex-1">
-                      <h3 className="text-3xl md:text-4xl font-bold text-white mb-3 transition-colors duration-300">
+                      <h3 className="text-xl md:text-2xl font-bold text-white mb-2 transition-colors duration-300">
                         Interested in Joining IIIT Kottayam?
                       </h3>
-                      <p className="text-lg text-gray-50 transition-colors duration-300">
+                      <p className="text-sm md:text-base text-gray-50 transition-colors duration-300">
                         Explore our admission process, eligibility criteria, and application deadlines
                       </p>
                     </div>
-                    <div className="flex items-center gap-3 px-8 py-4 bg-white/20 backdrop-blur-sm rounded-2xl border-2 border-white/40 group-hover:bg-white group-hover:border-white transition-all duration-300 group-hover:scale-110">
-                      <span className="text-white group-hover:text-[#239244] font-bold text-lg transition-colors duration-300">Learn More</span>
-                      <ArrowRight className="w-6 h-6 text-white group-hover:text-[#239244] group-hover:translate-x-2 transition-all duration-300" />
+                    <div className="flex items-center gap-2 px-5 py-3 bg-white/20 backdrop-blur-sm rounded-2xl border-2 border-white/40 group-hover:bg-white group-hover:border-white transition-all duration-300 group-hover:scale-110">
+                      <span className="text-white group-hover:text-[#239244] font-bold text-sm transition-colors duration-300">Learn More</span>
+                      <ArrowRight className="w-5 h-5 text-white group-hover:text-[#239244] group-hover:translate-x-2 transition-all duration-300" />
                     </div>
                   </div>
                 </div>
               </Link>
             </div>
           </section>
-        </div>
+        </main>
       </div>
     </>
   );

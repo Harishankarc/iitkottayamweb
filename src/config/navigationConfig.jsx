@@ -71,7 +71,7 @@ export const navigationConfig = [
       { id: 'campus-network', label: 'IIIT Kottayam Campus Network', link: '/facilities/campus-network' },
       { id: 'gymnasium', label: 'Gymnasium', link: '/facilities/gymnasium' },
       { id: 'sports', label: 'Sports', link: '/facilities/sports' },
-      { id: 'library', label: 'Library', link: '/facilities/library' },
+      { id: 'library', label: 'Library', link: 'https://opac.iiitkottayam.ac.in/' },
       { id: 'bank-atm', label: 'Bank/ATM', link: '/facilities/bank-atm' },
       { id: 'medical-centre', label: 'Medical Centre', link: '/facilities/medical-centre' },
       { id: 'student-mess', label: 'Student Co-operative Mess', link: '/facilities/student-mess' }
@@ -91,7 +91,7 @@ export const navigationConfig = [
       { id: 'trendles-club', label: 'Trendles Club', link: '/iic-clubs/trendles-club' },
       { id: 'cyber-security-club', label: 'Cyber Security Club', link: '/iic-clubs/cyber-security-club' },
       { id: 'mind-quest', label: 'Mind Quest', link: '/iic-clubs/mind-quest' },
-      { id: 'magazine', label: 'Magazine', link: '/iic-clubs/magazine' },
+      { id: 'magazine', label: 'Magazine', link: 'https://iiitkottayam.ac.in/#!/magazine' },
       { id: 'ieee-student-branch', label: 'IEEE Student Branch', link: '/iic-clubs/ieee-student-branch' },
       { id: 'acm-student-chapter', label: 'ACM Student Chapter', link: '/iic-clubs/acm-student-chapter' }
     ]

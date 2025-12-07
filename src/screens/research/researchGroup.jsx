@@ -66,7 +66,7 @@ export default function ResearchGroup() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 pb-16">
+      <div className="max-w-6xl mx-auto py-8 px-6 pb-16">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left column: bullets + goals */}
           <div className="lg:col-span-1">

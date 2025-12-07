@@ -30,7 +30,21 @@ import Internet from './screens/facilities/internet';
 import InnovationCell from './screens/IIC&Clubs/innovationCell';
 import FDPWebinar from './screens/IIC&Clubs/fdpWebinar';
 import ResearchGroup from './screens/research/researchGroup';
-
+import Security from './screens/facilities/security';
+import Gym from './screens/facilities/gym';
+import Sports from './screens/facilities/sports';
+import MedicalCentre from './screens/facilities/medicalCentre';
+import StudentMess from './screens/facilities/studentMess';
+import clubCarnival from './screens/IIC&Clubs/culturalClub';
+import Gallery from './screens/IIC&Clubs/gallery';
+import ClubCarnival from './screens/IIC&Clubs/culturalClub';
+import TechnicalClub from './screens/IIC&Clubs/technicalClub';
+import TrendlesClub from './screens/IIC&Clubs/trendlesClub';
+import SportsClub from './screens/IIC&Clubs/sportsClub';
+import SecurityClub from './screens/IIC&Clubs/securityClub';
+import MindQuest from './screens/IIC&Clubs/mindQuest';
+import IEEEStudentBranch from './screens/IIC&Clubs/IeeeStudentBranch';
+import ACM from './screens/IIC&Clubs/acm';
 
 function App() {
   return (
@@ -59,9 +73,23 @@ function App() {
           <Route path="/people/mtech-students" element={<MTechStudents />} />
           <Route path="/people/gender-index" element={<GenderIndex />} />
           <Route path="/facilities/hostel" element={<Hostel />} />
+          <Route path="/facilities/security" element={<Security />} />
+          <Route path="/facilities/gymnasium" element={<Gym />} />
+          <Route path="/facilities/sports" element={<Sports />} />
           <Route path="/facilities/campus-network" element={<Internet />} />
+          <Route path="/facilities/medical-centre" element={<MedicalCentre />} />
+          <Route path="/facilities/student-mess" element={<StudentMess />} />
           <Route path="/iic-clubs/innovation-cell" element={<InnovationCell />} />
           <Route path="/iic-clubs/fdp-webinars" element={<FDPWebinar />} />
+          <Route path="/iic-clubs/gallery" element={<Gallery />} />
+          <Route path="/iic-clubs/cultural-club" element={<ClubCarnival />} />
+          <Route path="/iic-clubs/technical-club" element={<TechnicalClub />} />
+          <Route path="/iic-clubs/sports-club" element={<SportsClub />} />
+          <Route path="/iic-clubs/trendles-club" element={<TrendlesClub />} />
+          <Route path="/iic-clubs/cyber-security-club" element={<SecurityClub />} />
+          <Route path="/iic-clubs/mind-quest" element={<MindQuest />} />
+          <Route path="/iic-clubs/ieee-student-branch" element={<IEEEStudentBranch />} />
+          <Route path="/iic-clubs/acm-student-chapter" element={<ACM />} />
           <Route path="/research/research-groups" element={<ResearchGroup />} />
 
         </Routes>

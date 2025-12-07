@@ -356,33 +356,24 @@ export default function Faculty() {
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Hero Section */}
-      <div className={`relative overflow-hidden w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`} style={{ height: '60vh' }}>
-        <div className="absolute inset-0" style={{ backgroundColor: darkMode ? '#1f293780' : `${color2}E6` }}></div>
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-20 left-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
-          <div className="absolute top-40 right-10 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
-          <div className="absolute -bottom-8 left-1/3 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
-        </div>
-        
-        <div className="relative h-full flex items-center justify-center">
-          <div className="max-w-5xl mx-auto text-center px-4">
-            <div className="inline-flex items-center gap-2 px-6 py-3 backdrop-blur-md rounded-full text-sm font-bold mb-8 border hover:scale-105 transition-all duration-500 shadow-lg cursor-pointer" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
-              <GraduationCap className="w-4 h-4" style={{ color: color1 }} />
-              Our Educators
-            </div>
-            <h1 className={`text-3xl md:text-4xl lg:text-6xl font-extrabold mb-8 leading-tight tracking-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-              Faculty
-            </h1>
-            <p className={`text-l md:text-2xl leading-relaxed font-light max-w-4xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              Dedicated educators and researchers shaping the future of technology.
-            </p>
+      {/* Hero Section - Minimal Design */}
+      <div className={`py-2 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
+            <GraduationCap className="w-4 h-4" style={{ color: color1 }} />
+            Our Educators
           </div>
+          <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+            Faculty
+          </h1>
+          <p className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            Dedicated educators and researchers shaping the future of technology.
+          </p>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-12">
+      <div className="mx-auto py-8 px-6 max-w-full">
         {/* Combined Search and Filter Box */}
         <div className={`mb-12 sticky top-4 z-40 max-w-4xl mx-auto rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
           <div className="p-4 md:p-6">
