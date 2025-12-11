@@ -121,7 +121,7 @@ export const navigationConfig = [
     id: 'recruters-corner',
     label: 'Recruiters Corner',
     hasDropdown: false,
-    link: '/recruters_corner'
+    link: 'https://iiitkottayam.ac.in/data/pdf/recruiterscorner.pdf'
   },
   {
     id: 'media',

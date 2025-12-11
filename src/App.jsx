@@ -46,6 +46,14 @@ import IEEEStudentBranch from './screens/IIC&Clubs/IeeeStudentBranch';
 import ACM from './screens/IIC&Clubs/acm';
 import FacultyResearchPaper from './screens/research/facultyResearchPaper';
 import ResearchScholars from './screens/people/researchScholars';
+import UgResearchStudents from './screens/research/ugResearchStudents';
+import ResearchFunding from './screens/research/researchFunding';
+import AwardRecognition from './screens/research/awardRecognition';
+import InternationalCollab from './screens/research/internationalCollab';
+import ResearchActivities from './screens/research/researchActivities';
+import Placement from './screens/placement/placement';
+import Media from './screens/media/media';
+
 
 function App() {
   return (
@@ -93,6 +101,13 @@ function App() {
           <Route path="/iic-clubs/acm-student-chapter" element={<ACM />} />
           <Route path="/research/faculty-research-papers" element={<FacultyResearchPaper />} />
           <Route path="/research/research-groups" element={<ResearchGroup />} />
+          <Route path="/research/ug-student-research" element={<UgResearchStudents />} />
+          <Route path="/research/research-funding" element={<ResearchFunding />} />
+          <Route path="/research/awards-recognition" element={<AwardRecognition />} />
+          <Route path="/research/international-collab" element={<InternationalCollab />} />
+          <Route path="/research/research-activities" element={<ResearchActivities />} />
+          <Route path="/placement" element={<Placement />} />
+          <Route path="/media" element={<Media />} />
 
         </Routes>
         <AppFooter />
