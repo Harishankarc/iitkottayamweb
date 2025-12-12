@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
-import api from '../../api/api.jsx';
+import API from '../../api/api.jsx';
 import { Search, GraduationCap, ChevronLeft, ChevronRight, Award, BookOpen } from 'lucide-react';
 
 // Research Scholar Card Component - Simple & Clean
@@ -50,8 +50,8 @@ const ScholarCard = ({ scholar, color1, darkMode }) => {
 
 export default function ResearchScholars() {
   const { darkMode } = useTheme();
-  const color1 = api.color1;
-  const color2 = api.color2;
+  const color1 = API.color1;
+  const color2 = API.color2;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBatch, setSelectedBatch] = useState('2025');
 
@@ -142,8 +142,8 @@ export default function ResearchScholars() {
 
       {/* Main Content */}
       <div className="mx-auto py-8 px-6 max-w-full">
-        {/* Search and Batch Filter Section - STICKY */}
-        <div className="mb-12 sticky top-20 z-40">
+        {/* Search and Batch Filter Section -  */}
+        <div className="mb-12  top-20 z-40">
           <div className={`max-w-6xl mx-auto rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl overflow-hidden`}>
             {/* Search Bar */}
             <div className="p-6 pb-4">

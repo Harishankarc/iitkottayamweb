@@ -1,6 +1,6 @@
-import { useTheme } from '../../context/createContext';
+import { useTheme } from '../../context/createContext.jsx';
 import { Trophy, Users, Mail, Target, Dumbbell, Camera, Award } from 'lucide-react';
-import api from '../../api/api';
+import API from '../../api/api.jsx';
 
 const MemberCard = ({ name, email, role }) => {
   const { darkMode } = useTheme();

@@ -1,6 +1,6 @@
-import { useTheme } from '../../context/createContext';
+import { useTheme } from '../../context/createContext.jsx';
 import { Monitor, Users, Mail, Award, Calendar, Camera } from 'lucide-react';
-import api from '../../api/api';
+import API from '../../api/api.jsx';
 
 const MemberCard = ({ name, designation, batch }) => {
   const { darkMode } = useTheme();
@@ -8,15 +8,15 @@ const MemberCard = ({ name, designation, batch }) => {
     <div
       className={`p-4 rounded-lg border-2 transition-all duration-300 ${
         darkMode
-          ? `bg-gray-800 border-gray-700 hover:border-${api.color1} hover:shadow-lg`
-          : `bg-white border-gray-200 hover:border-${api.color1} hover:shadow-lg`
+          ? `bg-gray-800 border-gray-700 hover:border-${API.color1} hover:shadow-lg`
+          : `bg-white border-gray-200 hover:border-${API.color1} hover:shadow-lg`
       }`}
       style={{
         borderColor: darkMode ? '#374151' : '#e5e7eb',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = api.color1;
-        e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+        e.currentTarget.style.borderColor = API.color1;
+        e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -54,8 +54,8 @@ const ImageGallery = ({ count = 4 }) => {
             borderColor: darkMode ? '#374151' : '#d1d5db',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = api.color1;
-            e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+            e.currentTarget.style.borderColor = API.color1;
+            e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.borderColor = darkMode ? '#374151' : '#d1d5db';
@@ -219,8 +219,8 @@ export default function ACM() {
       {/* Hero Section */}
       <div className={`py-2 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${api.color1}1A`, color: api.color1, borderColor: `${api.color1}66` }}>
-            <Monitor className="w-4 h-4" style={{ color: api.color1 }} />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${API.color1}1A`, color: API.color1, borderColor: `${API.color1}66` }}>
+            <Monitor className="w-4 h-4" style={{ color: API.color1 }} />
             ACM Student Chapter
           </div>
           <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -244,8 +244,8 @@ export default function ACM() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -253,7 +253,7 @@ export default function ACM() {
             }}
           >
             <h2 className={`text-2xl font-bold mb-4 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Monitor size={28} style={{ color: api.color1 }} />
+              <Monitor size={28} style={{ color: API.color1 }} />
               About ACM
             </h2>
             <div className={`text-base leading-relaxed space-y-4 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
@@ -274,8 +274,8 @@ export default function ACM() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -283,7 +283,7 @@ export default function ACM() {
             }}
           >
             <h2 className={`text-2xl font-bold mb-4 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Users size={28} style={{ color: api.color1 }} />
+              <Users size={28} style={{ color: API.color1 }} />
               About Student Chapter
             </h2>
             <div className={`text-base leading-relaxed space-y-4 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
@@ -296,7 +296,7 @@ export default function ACM() {
           {/* Office Bearers */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Users size={28} style={{ color: api.color1 }} />
+              <Users size={28} style={{ color: API.color1 }} />
               Office Bearers of IIIT Kottayam ACM Student Chapter
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -314,8 +314,8 @@ export default function ACM() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -323,7 +323,7 @@ export default function ACM() {
             }}
           >
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Award size={28} style={{ color: api.color1 }} />
+              <Award size={28} style={{ color: API.color1 }} />
               Event Report
             </h2>
             <div className={`text-base leading-relaxed space-y-4 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
@@ -347,8 +347,8 @@ export default function ACM() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -356,7 +356,7 @@ export default function ACM() {
             }}
           >
             <h3 className={`text-xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Camera size={24} style={{ color: api.color1 }} />
+              <Camera size={24} style={{ color: API.color1 }} />
               Event Gallery
             </h3>
             <ImageGallery count={4} />
@@ -365,14 +365,14 @@ export default function ACM() {
           {/* Past Events Table */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Calendar size={28} style={{ color: api.color1 }} />
+              <Calendar size={28} style={{ color: API.color1 }} />
               Events
             </h2>
             <div className={`overflow-x-auto rounded-lg border-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
               <table className={`w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <thead>
                   <tr className={`border-b-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}
-                      style={{ backgroundColor: `${api.color1}15` }}>
+                      style={{ backgroundColor: `${API.color1}15` }}>
                     <th className={`px-6 py-4 text-left text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       Date
                     </th>
@@ -415,14 +415,14 @@ export default function ACM() {
           {/* Upcoming Events */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Calendar size={28} style={{ color: api.color1 }} />
+              <Calendar size={28} style={{ color: API.color1 }} />
               Upcoming Events
             </h2>
             <div className={`overflow-x-auto rounded-lg border-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
               <table className={`w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <thead>
                   <tr className={`border-b-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}
-                      style={{ backgroundColor: `${api.color1}15` }}>
+                      style={{ backgroundColor: `${API.color1}15` }}>
                     <th className={`px-6 py-4 text-left text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       Date
                     </th>
@@ -465,14 +465,14 @@ export default function ACM() {
           {/* Events Jointly With IEEE SB */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Calendar size={28} style={{ color: api.color1 }} />
+              <Calendar size={28} style={{ color: API.color1 }} />
               Events Jointly With IEEE SB
             </h2>
             <div className={`overflow-x-auto rounded-lg border-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
               <table className={`w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <thead>
                   <tr className={`border-b-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}
-                      style={{ backgroundColor: `${api.color1}15` }}>
+                      style={{ backgroundColor: `${API.color1}15` }}>
                     <th className={`px-6 py-4 text-left text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       Date
                     </th>
@@ -515,14 +515,14 @@ export default function ACM() {
           {/* Webinar Series 2020 */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Calendar size={28} style={{ color: api.color1 }} />
+              <Calendar size={28} style={{ color: API.color1 }} />
               Webinar Series 2020 - Jointly with IEEE SB
             </h2>
             <div className={`overflow-x-auto rounded-lg border-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
               <table className={`w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <thead>
                   <tr className={`border-b-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}
-                      style={{ backgroundColor: `${api.color1}15` }}>
+                      style={{ backgroundColor: `${API.color1}15` }}>
                     <th className={`px-6 py-4 text-left text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       Date
                     </th>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
-import api from '../../api/api.jsx';
+import API from '../../api/api.jsx';
 import { Lightbulb, Users, Target, Rocket, TrendingUp, Award, Mail, Phone, ExternalLink, CheckCircle, Camera } from 'lucide-react';
 
 // Team Member Card Component
@@ -151,8 +151,8 @@ const ImageGallery = ({ color1, darkMode }) => {
 
 export default function InnovationCell() {
   const { darkMode } = useTheme();
-  const color1 = api.color1;
-  const color2 = api.color2;
+  const color1 = API.color1;
+  const color2 = API.color2;
 
   // Team Members Data
   const teamMembers = [

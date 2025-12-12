@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
-import api from '../../api/api.jsx';
+import API from '../../api/api.jsx';
 import { Mail, Phone, MapPin, Search, Wrench, Users, Code, Settings } from 'lucide-react';
 
 // Technical Staff Card Component - Simple & Stylish
@@ -154,8 +154,8 @@ const TechnicalCard = ({ staff, color1, darkMode }) => {
 
 export default function Technical() {
   const { darkMode } = useTheme();
-  const color1 = api.color1;
-  const color2 = api.color2;
+  const color1 = API.color1;
+  const color2 = API.color2;
   const [searchTerm, setSearchTerm] = useState('');
 
   // Technical Staff Data
@@ -248,8 +248,8 @@ export default function Technical() {
 
       {/* Main Content */}
       <div className="mx-auto py-8 px-6 max-w-full">
-        {/* Search Section - STICKY */}
-        <div className="mb-12 sticky top-0 z-50">
+        {/* Search Section -  */}
+        <div className="mb-12  top-0 z-50">
           <div className={`max-w-4xl mx-auto p-6 rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl`}>
             <h2 
               className="text-2xl font-bold mb-4 text-center"

@@ -1,6 +1,6 @@
-import { useTheme } from '../../context/createContext';
+import { useTheme } from '../../context/createContext.jsx';
 import { Newspaper, Video, ExternalLink } from 'lucide-react';
-import api from '../../api/api';
+import API from '../../api/api.jsx';
 
 export default function Media() {
     const { darkMode } = useTheme();

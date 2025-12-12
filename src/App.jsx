@@ -1,6 +1,5 @@
 import './App.css'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Loader } from './components/input_output_utils';
 import WhyIIIT from './screens/whyiiit/whyIIIT';
 import { ThemeProvider } from './context/createContext';
 import HomePage from './screens/home/homepage'
@@ -34,7 +33,6 @@ import Gym from './screens/facilities/gym';
 import Sports from './screens/facilities/sports';
 import MedicalCentre from './screens/facilities/medicalCentre';
 import StudentMess from './screens/facilities/studentMess';
-import clubCarnival from './screens/IIC&Clubs/culturalClub';
 import Gallery from './screens/IIC&Clubs/gallery';
 import ClubCarnival from './screens/IIC&Clubs/culturalClub';
 import TechnicalClub from './screens/IIC&Clubs/technicalClub';

@@ -1,6 +1,6 @@
-import { useTheme } from '../../context/createContext';
+import { useTheme } from '../../context/createContext.jsx';
 import { Presentation, Calendar, Building2, User } from 'lucide-react';
-import api from '../../api/api';
+import API from '../../api/api.jsx';
 
 export default function ResearchActivities() {
     const { darkMode } = useTheme();
@@ -33,8 +33,8 @@ export default function ResearchActivities() {
             <div className={`py-1 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
                 <div className="max-w-7xl mx-auto text-center">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-2 border" 
-                         style={{ backgroundColor: `${api.color1}1A`, color: api.color1, borderColor: `${api.color1}66` }}>
-                        <Presentation className="w-3 h-3" style={{ color: api.color1 }} />
+                         style={{ backgroundColor: `${API.color1}1A`, color: API.color1, borderColor: `${API.color1}66` }}>
+                        <Presentation className="w-3 h-3" style={{ color: API.color1 }} />
                         Research Events
                     </div>
                     <h1 className={`text-xl md:text-2xl font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -92,7 +92,7 @@ export default function ResearchActivities() {
                                             }`}
                                             style={{ transition: 'all 0.3s ease' }}
                                             onMouseEnter={(e) => {
-                                                e.currentTarget.style.borderBottomColor = api.color1;
+                                                e.currentTarget.style.borderBottomColor = API.color1;
                                                 e.currentTarget.style.borderBottomWidth = '2px';
                                             }}
                                             onMouseLeave={(e) => {
@@ -105,7 +105,7 @@ export default function ResearchActivities() {
                                             </td>
                                             <td className={`px-3 py-3 text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                                                 <div className="flex items-center gap-2">
-                                                    <User className="w-4 h-4" style={{ color: api.color1 }} />
+                                                    <User className="w-4 h-4" style={{ color: API.color1 }} />
                                                     {talk.faculty}
                                                 </div>
                                             </td>
@@ -114,13 +114,13 @@ export default function ResearchActivities() {
                                             </td>
                                             <td className={`px-3 py-3 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                                                 <div className="flex items-center gap-2">
-                                                    <Building2 className="w-4 h-4 flex-shrink-0" style={{ color: api.color1 }} />
+                                                    <Building2 className="w-4 h-4 flex-shrink-0" style={{ color: API.color1 }} />
                                                     <span>{talk.institution}</span>
                                                 </div>
                                             </td>
                                             <td className={`px-3 py-3 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                                                 <div className="flex items-center gap-2">
-                                                    <Calendar className="w-4 h-4" style={{ color: api.color1 }} />
+                                                    <Calendar className="w-4 h-4" style={{ color: API.color1 }} />
                                                     {talk.date}
                                                 </div>
                                             </td>

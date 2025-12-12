@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
-import api from '../../api/api.jsx';
+import API from '../../api/api.jsx';
 import { Mail, Phone, MapPin, Search, Heart, Stethoscope, UserCheck, Shield, Award } from 'lucide-react';
 
 // Professional Support Staff Card Component - Simple & Stylish
@@ -158,8 +158,8 @@ const StaffCard = ({ staff, color1, darkMode }) => {
 
 export default function ProfessionalSupportStaff() {
   const { darkMode } = useTheme();
-  const color1 = api.color1;
-  const color2 = api.color2;
+  const color1 = API.color1;
+  const color2 = API.color2;
   const [searchTerm, setSearchTerm] = useState('');
 
   // Professional Support Staff Data
@@ -250,8 +250,8 @@ export default function ProfessionalSupportStaff() {
 
       {/* Main Content */}
       <div className="mx-auto py-8 px-6 max-w-full">
-        {/* Search Section - STICKY */}
-        <div className="mb-12 sticky top-20 z-40">
+        {/* Search Section -  */}
+        <div className="mb-12  top-20 z-40">
           <div className={`max-w-4xl mx-auto p-6 rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl`}>
             <h2 
               className="text-2xl font-bold mb-4 text-center"

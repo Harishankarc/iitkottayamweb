@@ -1,13 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Search, GraduationCap, Globe, BookOpen, ChevronRight } from 'lucide-react';
-
-// Mock API and Theme
-const api = {
-  color1: '#239244',
-  color2: '#e8f5f0'
-};
-
-const useTheme = () => ({ darkMode: false });
+import { useTheme } from '../../context/createContext.jsx';
+import API from '../../api/api.jsx';
 
 // Faculty Card Component - Compact Sleek Design
 const FacultyCard = ({ faculty, color1, darkMode }) => {
@@ -170,8 +164,8 @@ const FacultyCard = ({ faculty, color1, darkMode }) => {
 
 export default function Faculty() {
   const { darkMode } = useTheme();
-  const color1 = api.color1;
-  const color2 = api.color2;
+  const color1 = API.color1;
+  const color2 = API.color2;
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('All');
 
@@ -375,7 +369,7 @@ export default function Faculty() {
       {/* Main Content */}
       <div className="mx-auto py-8 px-6 max-w-full">
         {/* Combined Search and Filter Box */}
-        <div className={`mb-12 sticky top-4 z-40 max-w-4xl mx-auto rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
+        <div className={`mb-12  top-4 z-40 max-w-4xl mx-auto rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
           <div className="p-4 md:p-6">
             {/* Filter Buttons */}
             <div className="flex flex-wrap gap-2 justify-center mb-6">

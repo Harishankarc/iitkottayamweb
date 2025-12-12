@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/createContext.jsx';
-import api from '../../api/api.jsx';
+import API from '../../api/api.jsx';
 import { Scale, Landmark, FileText, Link as LinkIcon } from 'lucide-react';
 
 export default function ScholarshipLoan() {
   const { darkMode } = useTheme();
-  const color1 = api.color1; // #239244 (Dark Green)
-  const color2 = api.color2; // #e8f5f0 (Light Mint)
-  const color3 = api.color3; // #F1F3F3 (Light Gray)
+  const color1 = API.color1; // #239244 (Dark Green)
+  const color2 = API.color2; // #e8f5f0 (Light Mint)
+  const color3 = API.color3; // #F1F3F3 (Light Gray)
 
   // Helper component for styled links
   const StyledLink = ({ href, text, icon: Icon }) => (

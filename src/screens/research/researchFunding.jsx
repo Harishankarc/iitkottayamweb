@@ -1,6 +1,6 @@
-import { useTheme } from '../../context/createContext';
+import { useTheme } from '../../context/createContext.jsx';
 import { DollarSign, Building2, Briefcase, TrendingUp } from 'lucide-react';
-import api from '../../api/api';
+import API from '../../api/api.jsx';
 
 export default function ResearchFunding() {
     const { darkMode } = useTheme();
@@ -157,8 +157,8 @@ export default function ResearchFunding() {
             <div className={`py-1 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
                 <div className="max-w-7xl mx-auto text-center">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-2 border" 
-                         style={{ backgroundColor: `${api.color1}1A`, color: api.color1, borderColor: `${api.color1}66` }}>
-                        <DollarSign className="w-3 h-3" style={{ color: api.color1 }} />
+                         style={{ backgroundColor: `${API.color1}1A`, color: API.color1, borderColor: `${API.color1}66` }}>
+                        <DollarSign className="w-3 h-3" style={{ color: API.color1 }} />
                         Research Funding
                     </div>
                     <h1 className={`text-xl md:text-2xl font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -185,8 +185,8 @@ export default function ResearchFunding() {
                              }}>
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-full flex items-center justify-center" 
-                                     style={{ backgroundColor: `${api.color1}20` }}>
-                                    <Briefcase className="w-6 h-6" style={{ color: api.color1 }} />
+                                     style={{ backgroundColor: `${API.color1}20` }}>
+                                    <Briefcase className="w-6 h-6" style={{ color: API.color1 }} />
                                 </div>
                                 <div>
                                     <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -211,8 +211,8 @@ export default function ResearchFunding() {
                              }}>
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-full flex items-center justify-center" 
-                                     style={{ backgroundColor: `${api.color1}20` }}>
-                                    <DollarSign className="w-6 h-6" style={{ color: api.color1 }} />
+                                     style={{ backgroundColor: `${API.color1}20` }}>
+                                    <DollarSign className="w-6 h-6" style={{ color: API.color1 }} />
                                 </div>
                                 <div>
                                     <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -237,8 +237,8 @@ export default function ResearchFunding() {
                              }}>
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-full flex items-center justify-center" 
-                                     style={{ backgroundColor: `${api.color1}20` }}>
-                                    <TrendingUp className="w-6 h-6" style={{ color: api.color1 }} />
+                                     style={{ backgroundColor: `${API.color1}20` }}>
+                                    <TrendingUp className="w-6 h-6" style={{ color: API.color1 }} />
                                 </div>
                                 <div>
                                     <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -290,8 +290,8 @@ export default function ResearchFunding() {
                                             }`}
                                             style={{ transition: 'all 0.3s ease' }}
                                             onMouseEnter={(e) => {
-                                                e.currentTarget.style.borderColor = api.color1;
-                                                e.currentTarget.style.boxShadow = `0 0 15px ${api.color1}20`;
+                                                e.currentTarget.style.borderColor = API.color1;
+                                                e.currentTarget.style.boxShadow = `0 0 15px ${API.color1}20`;
                                             }}
                                             onMouseLeave={(e) => {
                                                 e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -323,7 +323,7 @@ export default function ResearchFunding() {
                     {/* Pipeline Note */}
                     <div className={`p-4 rounded-lg border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                         <div className="flex items-center gap-2">
-                            <Building2 className="w-5 h-5" style={{ color: api.color1 }} />
+                            <Building2 className="w-5 h-5" style={{ color: API.color1 }} />
                             <p className={`text-sm font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                                 +25 more research projects (Rs. {pipelineFunding} Crores) are in pipeline.
                             </p>

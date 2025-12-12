@@ -1,6 +1,6 @@
-import { useTheme } from '../../context/createContext';
+import { useTheme } from '../../context/createContext.jsx';
 import { Shield, Users, Mail, Target, Lock, ExternalLink, Calendar, Award } from 'lucide-react';
-import api from '../../api/api';
+import API from '../../api/api.jsx';
 
 const MemberCard = ({ name, email }) => {
   const { darkMode } = useTheme();
@@ -8,15 +8,15 @@ const MemberCard = ({ name, email }) => {
     <div
       className={`p-4 rounded-lg border-2 transition-all duration-300 ${
         darkMode
-          ? `bg-gray-800 border-gray-700 hover:border-${api.color1} hover:shadow-lg`
-          : `bg-white border-gray-200 hover:border-${api.color1} hover:shadow-lg`
+          ? `bg-gray-800 border-gray-700 hover:border-${API.color1} hover:shadow-lg`
+          : `bg-white border-gray-200 hover:border-${API.color1} hover:shadow-lg`
       }`}
       style={{
         borderColor: darkMode ? '#374151' : '#e5e7eb',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = api.color1;
-        e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+        e.currentTarget.style.borderColor = API.color1;
+        e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -215,8 +215,8 @@ export default function SecurityClub() {
       {/* Hero Section */}
       <div className={`py-2 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${api.color1}1A`, color: api.color1, borderColor: `${api.color1}66` }}>
-            <Shield className="w-4 h-4" style={{ color: api.color1 }} />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${API.color1}1A`, color: API.color1, borderColor: `${API.color1}66` }}>
+            <Shield className="w-4 h-4" style={{ color: API.color1 }} />
             Cyber Security Club
           </div>
           <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -240,8 +240,8 @@ export default function SecurityClub() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -249,7 +249,7 @@ export default function SecurityClub() {
             }}
           >
             <h2 className={`text-2xl font-bold mb-4 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Lock size={28} style={{ color: api.color1 }} />
+              <Lock size={28} style={{ color: API.color1 }} />
               Introduction
             </h2>
             <p className={`text-base leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
@@ -265,8 +265,8 @@ export default function SecurityClub() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -274,7 +274,7 @@ export default function SecurityClub() {
             }}
           >
             <h2 className={`text-2xl font-bold mb-4 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Target size={28} style={{ color: api.color1 }} />
+              <Target size={28} style={{ color: API.color1 }} />
               Vision
             </h2>
             <p className={`text-base leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
@@ -290,8 +290,8 @@ export default function SecurityClub() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -306,7 +306,7 @@ export default function SecurityClub() {
           {/* Mentors */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Users size={28} style={{ color: api.color1 }} />
+              <Users size={28} style={{ color: API.color1 }} />
               Mentors
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -324,8 +324,8 @@ export default function SecurityClub() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -337,10 +337,10 @@ export default function SecurityClub() {
             </h2>
             <div className={`space-y-3 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
               <p><strong>1. Club Formation Day:</strong> 13 Jan 2023</p>
-              <p><strong>2. Club Vault:</strong> <a href="#" style={{ color: api.color1 }} className="hover:underline">GitHub</a></p>
-              <p><strong>3. CYCLUB Official Website:</strong> <a href="#" style={{ color: api.color1 }} className="hover:underline">Visit Now</a></p>
-              <p><strong>4. Socials:</strong> <a href="#" style={{ color: api.color1 }} className="hover:underline">LinkTree</a></p>
-              <p><strong>5. Contact Email:</strong> <a href="mailto:cyclub@iiittkottayam.ac.in" style={{ color: api.color1 }} className="hover:underline">cyclub@iiittkottayam.ac.in</a></p>
+              <p><strong>2. Club Vault:</strong> <a href="#" style={{ color: API.color1 }} className="hover:underline">GitHub</a></p>
+              <p><strong>3. CYCLUB Official Website:</strong> <a href="#" style={{ color: API.color1 }} className="hover:underline">Visit Now</a></p>
+              <p><strong>4. Socials:</strong> <a href="#" style={{ color: API.color1 }} className="hover:underline">LinkTree</a></p>
+              <p><strong>5. Contact Email:</strong> <a href="mailto:cyclub@iiittkottayam.ac.in" style={{ color: API.color1 }} className="hover:underline">cyclub@iiittkottayam.ac.in</a></p>
             </div>
           </div>
 
@@ -352,8 +352,8 @@ export default function SecurityClub() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -369,14 +369,14 @@ export default function SecurityClub() {
           {/* Activities/Events */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Calendar size={28} style={{ color: api.color1 }} />
+              <Calendar size={28} style={{ color: API.color1 }} />
               Cyber Security Club Activities/Events
             </h2>
             <div className={`overflow-x-auto rounded-lg border-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
               <table className={`w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <thead>
                   <tr className={`border-b-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}
-                      style={{ backgroundColor: `${api.color1}15` }}>
+                      style={{ backgroundColor: `${API.color1}15` }}>
                     <th className={`px-6 py-4 text-left text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       Event No.
                     </th>
@@ -419,14 +419,14 @@ export default function SecurityClub() {
           {/* Projects */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Award size={28} style={{ color: api.color1 }} />
+              <Award size={28} style={{ color: API.color1 }} />
               Projects
             </h2>
             <div className={`overflow-x-auto rounded-lg border-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
               <table className={`w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <thead>
                   <tr className={`border-b-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}
-                      style={{ backgroundColor: `${api.color1}15` }}>
+                      style={{ backgroundColor: `${API.color1}15` }}>
                     <th className={`px-6 py-4 text-left text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       Sl. No.
                     </th>
@@ -475,14 +475,14 @@ export default function SecurityClub() {
           {/* Collaborations */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Users size={28} style={{ color: api.color1 }} />
+              <Users size={28} style={{ color: API.color1 }} />
               Collaborations
             </h2>
             <div className={`overflow-x-auto rounded-lg border-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
               <table className={`w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <thead>
                   <tr className={`border-b-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}
-                      style={{ backgroundColor: `${api.color1}15` }}>
+                      style={{ backgroundColor: `${API.color1}15` }}>
                     <th className={`px-6 py-4 text-left text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       Serial No.
                     </th>

@@ -1,6 +1,6 @@
-import { useTheme } from '../../context/createContext';
+import { useTheme } from '../../context/createContext.jsx';
 import { Zap, Users, Mail, Award, Calendar, ExternalLink, FileText, Download } from 'lucide-react';
-import api from '../../api/api';
+import API from '../../api/api.jsx';
 
 const MemberCard = ({ name, role }) => {
   const { darkMode } = useTheme();
@@ -8,15 +8,15 @@ const MemberCard = ({ name, role }) => {
     <div
       className={`p-4 rounded-lg border-2 transition-all duration-300 ${
         darkMode
-          ? `bg-gray-800 border-gray-700 hover:border-${api.color1} hover:shadow-lg`
-          : `bg-white border-gray-200 hover:border-${api.color1} hover:shadow-lg`
+          ? `bg-gray-800 border-gray-700 hover:border-${API.color1} hover:shadow-lg`
+          : `bg-white border-gray-200 hover:border-${API.color1} hover:shadow-lg`
       }`}
       style={{
         borderColor: darkMode ? '#374151' : '#e5e7eb',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = api.color1;
-        e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+        e.currentTarget.style.borderColor = API.color1;
+        e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -46,8 +46,8 @@ const EventCard = ({ title, date, description, isUpcoming = false }) => {
         borderColor: darkMode ? '#374151' : '#e5e7eb',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = api.color1;
-        e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+        e.currentTarget.style.borderColor = API.color1;
+        e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -151,8 +151,8 @@ export default function IEEEStudentBranch() {
       {/* Hero Section */}
       <div className={`py-2 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${api.color1}1A`, color: api.color1, borderColor: `${api.color1}66` }}>
-            <Zap className="w-4 h-4" style={{ color: api.color1 }} />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${API.color1}1A`, color: API.color1, borderColor: `${API.color1}66` }}>
+            <Zap className="w-4 h-4" style={{ color: API.color1 }} />
             IEEE Student Branch
           </div>
           <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -176,8 +176,8 @@ export default function IEEEStudentBranch() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -185,7 +185,7 @@ export default function IEEEStudentBranch() {
             }}
           >
             <h2 className={`text-2xl font-bold mb-4 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Zap size={28} style={{ color: api.color1 }} />
+              <Zap size={28} style={{ color: API.color1 }} />
               About IEEE
             </h2>
             <div className={`text-base leading-relaxed space-y-4 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
@@ -198,7 +198,7 @@ export default function IEEEStudentBranch() {
           {/* Former IEEE SB Counselors */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Users size={28} style={{ color: api.color1 }} />
+              <Users size={28} style={{ color: API.color1 }} />
               Former IEEE SB Counselors
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -216,8 +216,8 @@ export default function IEEEStudentBranch() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -239,7 +239,7 @@ export default function IEEEStudentBranch() {
           {/* Office Bearers */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Users size={28} style={{ color: api.color1 }} />
+              <Users size={28} style={{ color: API.color1 }} />
               Following are the office bearers of IEEE SB
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -257,8 +257,8 @@ export default function IEEEStudentBranch() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -267,7 +267,7 @@ export default function IEEEStudentBranch() {
           >
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-3">
-                <FileText size={28} style={{ color: api.color1 }} />
+                <FileText size={28} style={{ color: API.color1 }} />
                 <div>
                   <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                     IEEE SB IIIT Kottayam 1st Year Anniversary Newsletter
@@ -279,7 +279,7 @@ export default function IEEEStudentBranch() {
               </div>
               <button 
                 className="flex items-center gap-2 px-6 py-3 rounded-lg text-white font-semibold transition-all duration-300 hover:shadow-lg"
-                style={{ backgroundColor: api.color1 }}
+                style={{ backgroundColor: API.color1 }}
               >
                 <Download size={20} />
                 Download Newsletter
@@ -290,7 +290,7 @@ export default function IEEEStudentBranch() {
           {/* Events Section */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Calendar size={28} style={{ color: api.color1 }} />
+              <Calendar size={28} style={{ color: API.color1 }} />
               Events
             </h2>
             <div className="space-y-6">
@@ -309,7 +309,7 @@ export default function IEEEStudentBranch() {
           {/* IEEE Programs */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Award size={28} style={{ color: api.color1 }} />
+              <Award size={28} style={{ color: API.color1 }} />
               IEEE Programs
             </h2>
             <div className="space-y-6">

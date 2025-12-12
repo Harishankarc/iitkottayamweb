@@ -1,6 +1,6 @@
-import { useTheme } from '../../context/createContext';
+import { useTheme } from '../../context/createContext.jsx';
 import { GraduationCap, FileText, ExternalLink, User } from 'lucide-react';
-import api from '../../api/api';
+import API from '../../api/api.jsx';
 
 export default function UgResearchStudents() {
     const { darkMode } = useTheme();
@@ -48,8 +48,8 @@ export default function UgResearchStudents() {
             <div className={`py-1 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
                 <div className="max-w-7xl mx-auto text-center">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-2 border" 
-                         style={{ backgroundColor: `${api.color1}1A`, color: api.color1, borderColor: `${api.color1}66` }}>
-                        <GraduationCap className="w-3 h-3" style={{ color: api.color1 }} />
+                         style={{ backgroundColor: `${API.color1}1A`, color: API.color1, borderColor: `${API.color1}66` }}>
+                        <GraduationCap className="w-3 h-3" style={{ color: API.color1 }} />
                         B.Tech Research
                     </div>
                     <h1 className={`text-xl md:text-2xl font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -103,7 +103,7 @@ export default function UgResearchStudents() {
                                             }`}
                                             style={{ transition: 'all 0.3s ease' }}
                                             onMouseEnter={(e) => {
-                                                e.currentTarget.style.borderBottomColor = api.color1;
+                                                e.currentTarget.style.borderBottomColor = API.color1;
                                                 e.currentTarget.style.borderBottomWidth = '2px';
                                             }}
                                             onMouseLeave={(e) => {
@@ -117,7 +117,7 @@ export default function UgResearchStudents() {
                                             <td className={`px-4 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                                                 <div className="space-y-2">
                                                     <p>
-                                                        <span className="font-semibold" style={{ color: api.color1 }}>
+                                                        <span className="font-semibold" style={{ color: API.color1 }}>
                                                             {paper.studentName}
                                                         </span>
                                                         , {paper.authors.replace(paper.studentName + ', ', '')}, 
@@ -129,7 +129,7 @@ export default function UgResearchStudents() {
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="inline-flex items-center gap-1 text-xs hover:underline"
-                                                        style={{ color: api.color1 }}
+                                                        style={{ color: API.color1 }}
                                                     >
                                                         <ExternalLink size={12} />
                                                         {paper.link}
@@ -140,9 +140,9 @@ export default function UgResearchStudents() {
                                                 <div className="flex flex-col items-center gap-2">
                                                     <div 
                                                         className="w-24 h-24 rounded-full flex items-center justify-center"
-                                                        style={{ backgroundColor: `${api.color1}20` }}
+                                                        style={{ backgroundColor: `${API.color1}20` }}
                                                     >
-                                                        <User size={40} style={{ color: api.color1 }} />
+                                                        <User size={40} style={{ color: API.color1 }} />
                                                     </div>
                                                     <div className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                                                         <div className="font-semibold">Mr. {paper.studentName}</div>

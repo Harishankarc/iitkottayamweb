@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/createContext.jsx';
-import api from '../../api/api.jsx';
+import API from '../../api/api.jsx';
 import {
   Trophy,
   Award,
@@ -19,9 +19,9 @@ import {
 
 export default function Nirf() {
     const { darkMode } = useTheme();
-  const color1 = api.color1; // (Dark Green)
-  const color2 = api.color2; // (Light Mint)
-  const color3 = api.color3; // (Light Gray)
+  const color1 = API.color1; // (Dark Green)
+  const color2 = API.color2; // (Light Mint)
+  const color3 = API.color3; // (Light Gray)
 
   // Placeholder data for NIRF parameters
   const nirfParams = [

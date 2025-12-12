@@ -25,20 +25,18 @@ import facultyimg7 from '../../assets/images/facultyimg7.jpg';
 import facultyimg8 from '../../assets/images/facultyimg8.jpg';
 
 import { useTheme } from "../../context/createContext.jsx";
-import ImageSlider from "../../components/imageslider.jsx";
 import AnnouncementBanner from "../../components/announcementbanner.jsx";
 
 // =================================================================
-//                     HOMEPAGE COMPONENT
+//                    HOMEPAGE COMPONENT
 // =================================================================
 
 const HomePage = () => {
   const { darkMode } = useTheme();
   const color1 = API.color1; // Primary Accent Color
   const color2 = API.color2; // Secondary Accent Color
-  const {increaseFontSize, decreaseFontSize} = useTheme();
 
-  // --- Data Definitions (Preserved) ---
+  // --- Data Definitions ---
   const newsList = [
     { title: "Admission to Ph.D. Programme - January 2026", date: "2025-10-15", isNew: true, link: "#" },
     { title: "Recruitment of Contract Faculty - CSE dated 17.10.2025", date: "2025-10-17", isNew: true, link: "#" },
@@ -48,7 +46,7 @@ const HomePage = () => {
   ];
 
   const eventsList = [
-    { image: event1, title: "Faculty Development Programme 2024(CSE)", link: "#" },
+    { image: event1, title: "Faculty Development Programme 2024 (CSE)", link: "#" },
     { image: event2, title: "Tech Symposium 2024", link: "#" },
     { image: event3, title: "Research Conference", link: "#" },
     { image: event4, title: "Cultural Fest", link: "#" }
@@ -65,14 +63,14 @@ const HomePage = () => {
   ];
 
   const facultyList = [
-    { image: facultyimg1, name: "Dr. Shajulin Benedict", designation: "Associate Professor", department: "Computer Science & Engineering", specialization: "Cloud Computing, IoT", link: "#" },
-    { image: facultyimg2, name: "Dr. Ebin Deni Raj", designation: "Assistant Professor", department: "Computer Science & Engineering", specialization: "Biomedical AI, Pattern Recognition", link: "#" },
-    { image: facultyimg3, name: "Dr. Jayakrushna Sahoo", designation: "Assistant Professor", department: "Computer Science & Engineering", specialization: "Machine Learning, Networks", link: "#" },
-    { image: facultyimg4, name: "Dr. Panchami V", designation: "Assistant Professor", department: "Cyber Security", specialization: "Network Security, Blockchain", link: "#" },
-    { image: facultyimg5, name: "Dr. Bala S", designation: "Assistant Professor", department: "Electronics & Communication", specialization: "VLSI Design, IoT Systems", link: "#" },
-    { image: facultyimg6, name: "Dr. Victor Paul", designation: "Assistant Professor", department: "Computer Science & Engineering", specialization: "Data Analytics, Web Science", link: "#" },
-    { image: facultyimg7, name: "Dr. Bakkyaraj T", designation: "Assistant Professor", department: "Mathematics", specialization: "Nonlinear Analysis, Solitons", link: "#" },
-    { image: facultyimg8, name: "Prof. Ashok S", designation: "Adjunct Professor", department: "Computer Science & Engineering", specialization: "Energy Management, AI", link: "#" }
+    { image: facultyimg1, name: "Dr. Shajulin Benedict", designation: "Associate Professor", department: "CSE", specialization: "Cloud Computing, IoT", link: "#" },
+    { image: facultyimg2, name: "Dr. Ebin Deni Raj", designation: "Assistant Professor", department: "CSE", specialization: "Biomedical AI", link: "#" },
+    { image: facultyimg3, name: "Dr. Jayakrushna Sahoo", designation: "Assistant Professor", department: "CSE", specialization: "Machine Learning", link: "#" },
+    { image: facultyimg4, name: "Dr. Panchami V", designation: "Assistant Professor", department: "Cyber Security", specialization: "Blockchain", link: "#" },
+    { image: facultyimg5, name: "Dr. Bala S", designation: "Assistant Professor", department: "ECE", specialization: "VLSI Design", link: "#" },
+    { image: facultyimg6, name: "Dr. Victor Paul", designation: "Assistant Professor", department: "CSE", specialization: "Data Analytics", link: "#" },
+    { image: facultyimg7, name: "Dr. Bakkyaraj T", designation: "Assistant Professor", department: "Maths", specialization: "Nonlinear Analysis", link: "#" },
+    { image: facultyimg8, name: "Prof. Ashok S", designation: "Adjunct Professor", department: "CSE", specialization: "Energy Management", link: "#" }
   ];
 
   const NIRF_Ranking = [
@@ -83,55 +81,40 @@ const HomePage = () => {
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
+      
+      {/* CSS for custom animation */}
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+          animation: fadeInUp 0.8s ease-out forwards;
+        }
+      `}</style>
+
       <AnnouncementBanner />
 
       {/* ------------------------------------------------------------- */}
-      {/*                   HERO SECTION (2 COLUMNS)                   */}
+      {/* HERO SECTION (UPDATED)                      */}
       {/* ------------------------------------------------------------- */}
-      <header className={`relative overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} border-b`} style={{ borderColor: darkMode ? '#374151' : color1 + '30' }}>
-        <div className="container mx-auto px-2 py-4 flex flex-col lg:flex-row items-center gap-4 max-w-full">
-          {/* Left Content: Title & CTA */}
-          <div className="flex-1 w-full px-2">
-            <h1 className="text-3xl md:text-4xl font-extrabold leading-tight mb-3" style={{ color: color1 }}>
-              IIIT Kottayam: Educating Tomorrow's Technologists
-            </h1>
-            <p className={`text-sm md:text-base mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              A modern, research-driven institute of national importance, fostering innovation and technical expertise in the heart of Kerala.
-            </p>
-
-            <div className="flex flex-wrap gap-2">
-              <a href="#" className="inline-flex items-center px-4 py-2 text-sm rounded-lg font-semibold shadow-lg transition-all hover:scale-[1.02]" style={{ backgroundColor: color1, color: '#fff' }}>
-                Apply Now →
-              </a>
-              <a href="#" className={`inline-flex items-center px-4 py-2 text-sm rounded-lg font-semibold border-2 transition-all hover:bg-opacity-10`} style={{ borderColor: color1, color: color1, backgroundColor: color2 + '20' }}>
-                Explore Programs
-              </a>
-            </div>
-          </div>
-
-          {/* Right Content: Image Slider */}
-          <div className="w-full lg:w-1/2 px-2">
-            <div className="rounded-lg overflow-hidden shadow-xl border-2" style={{ borderColor: color1 }}>
-              <ImageSlider images={[img1, img2, img3]} />
-            </div>
-            <a href="#" className="mt-2 text-xs text-center block font-medium" style={{ color: color1 }}>
-              View Campus Gallery →
-            </a>
-          </div>
-        </div>
+      <header className="relative overflow-hidden">
+        <HeroSlider events={eventsList} darkMode={darkMode} color1={color1} />
+        {/* Yellow strip removed as requested */}
       </header>
 
       {/* ------------------------------------------------------------- */}
-      {/*               MAIN CONTENT (2/3 & 1/3 GRID)                 */}
+      {/* MAIN CONTENT (2/3 & 1/3 GRID)                   */}
       {/* ------------------------------------------------------------- */}
       <main className="mx-auto py-8 px-6 max-w-full">
         <div className="grid lg:grid-cols-3 gap-3">
+          
           {/* LEFT: Main Content Sections (spans 2 cols) */}
           <div className="lg:col-span-2 space-y-3">
+            
             {/* NIRF Ranking Snapshot */}
             <section>
               <h3 className="text-base md:text-lg font-bold mb-2 px-1" style={{ color: color1 }}>NIRF Rankings (2025)</h3>
-              
               <div className={`grid grid-cols-3 gap-3 p-4 rounded-lg shadow-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 {NIRF_Ranking.map((item, idx) => (
                   <div key={idx} className="text-center p-3 border-r last:border-r-0" style={{ borderColor: darkMode ? '#374151' : '#E5E7EB' }}>
@@ -145,7 +128,7 @@ const HomePage = () => {
               </div>
             </section>
             
-            {/* Vision & Mission (Enhanced Card) */}
+            {/* Vision & Mission */}
             <section>
               <h3 className="text-base md:text-lg font-bold mb-2 px-1" style={{ color: color1 }}>Our Core Values</h3>
               <div className={`grid md:grid-cols-2 shadow-xl overflow-hidden rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
@@ -168,7 +151,7 @@ const HomePage = () => {
               </div>
             </section>
             
-            {/* Innovative Initiatives (Reworked Grid) */}
+            {/* Innovative Initiatives */}
             <section>
               <h3 className="text-base md:text-lg font-bold mb-2 px-1" style={{ color: color1 }}>Incubation & Research Hubs</h3>
               <div className={`grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 gap-3 p-4 rounded-lg shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}> 
@@ -185,7 +168,6 @@ const HomePage = () => {
                       <img src={c.logo} alt={c.name} className="max-h-12 object-contain" />
                     </div>
                     <div className="text-xs font-semibold leading-tight" style={{ color: darkMode ? '#E5E7EB' : '#111827' }}>{c.name}</div>
-                    <div className="text-[10px] mt-1" style={{ color: color1 }}>Go to site →</div>
                   </a>
                 ))}
               </div>
@@ -203,13 +185,12 @@ const HomePage = () => {
               </div>
             </section>
 
-            {/* Placement (Reworked Card) */}
+            {/* Placement */}
             <section className={`rounded-lg overflow-hidden shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
               <div className="p-4 grid md:grid-cols-5 gap-4 items-center">
                 <div className="md:col-span-3">
                   <h4 className="text-lg md:text-xl font-bold mb-3" style={{ color: color1 }}>Placement Highlights</h4>
                   <img src={placementdetailimg} alt="Placements" className="rounded-lg shadow-md w-full max-h-48 object-contain" />
-                  <p className="text-xs text-gray-500 mt-2">Snapshot of statistics (Source: IIIT Kottayam T&P Cell)</p>
                 </div>
                 <div className="md:col-span-2 flex flex-col gap-3 items-start">
                   <div className="text-sm font-bold">Highest Package</div>
@@ -228,33 +209,41 @@ const HomePage = () => {
           </div>
 
           {/* ------------------------------------------------------------- */}
-          {/*               RIGHT: Sticky Sidebar (1/3 COL)                */}
+          {/* RIGHT: Sticky Sidebar (1/3 COL)                 */}
           {/* ------------------------------------------------------------- */}
           <aside className="lg:sticky lg:top-3 h-fit space-y-3">
-            {/* Latest News Card (compact list) */}
+            {/* Latest News Card */}
             <div className={`rounded-lg p-4 shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`} style={{ border: `1px solid ${color1}50` }}>
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-bold text-sm md:text-base" style={{ color: color1 }}>Latest News</h4>
                 <a href="#" style={{ color: color1 }} className="text-xs font-semibold hover:underline">View All</a>
               </div>
-
-              <div className="space-y-3 divide-y" style={{ borderColor: darkMode ? '#374151' : '#E5E7EB' }}>
-                {newsList.slice(0, 5).map((n, i) => (
-                  <NewsCard 
+              
+              <div className="p-4 space-y-3 h-[500px] overflow-y-auto">
+                {newsList.slice(0, 10).map((n, i) => (
+                  <a 
                     key={i} 
-                    title={n.title} 
-                    date={n.date} 
-                    isNew={n.isNew} 
-                    link={n.link} 
-                    darkMode={darkMode} 
-                    color1={color1} 
-                    color2={color2} 
-                  />
+                    href={n.link} 
+                    className="block p-3 bg-white/10 hover:bg-white/20 rounded-md transition-all border-l-3" 
+                    style={{ borderLeftColor: n.isNew ? '#fbbf24' : 'transparent', borderLeftWidth: '3px' }}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <h5 className={`text-xs md:text-sm font-medium leading-snug mb-1.5 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{n.title}</h5>
+                        <p className={`text-[10px] md:text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{new Date(n.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                      </div>
+                      {n.isNew && (
+                        <div className="text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap animate-pulse" style={{ backgroundColor: '#fbbf24', color: '#1e3a5f' }}>
+                          NEW
+                        </div>
+                      )}
+                    </div>
+                  </a>
                 ))}
               </div>
             </div>
 
-            {/* Upcoming Events Slider (preserved component) */}
+            {/* Upcoming Events Slider (Small) */}
             <div className={`rounded-lg overflow-hidden shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
               <EventSlider events={eventsList} darkMode={darkMode} color1={color1} />
             </div>
@@ -275,14 +264,13 @@ const HomePage = () => {
                 ))}
               </div>
             </div>
-
           </aside>
 
         </div>
       </main>
 
       {/* ------------------------------------------------------------- */}
-      {/*                     FOOTER CTA                     */}
+      {/* FOOTER CTA                              */}
       {/* ------------------------------------------------------------- */}
       <footer className={`mt-3 py-4 ${darkMode ? 'bg-gray-800' : 'bg-white'} border-t`} style={{ borderTopColor: color1 }}>
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-3">
@@ -316,8 +304,111 @@ const HomePage = () => {
 };
 
 // =================================================================
-//                     HELPER COMPONENTS (PRESERVED)
+//                    HELPER COMPONENTS
 // =================================================================
+
+const HeroSlider = ({ events, color1 }) => {
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+
+  // Auto-slide logic
+  React.useEffect(() => {
+    const timer = setInterval(() => setCurrentIndex((p) => (p + 1) % events.length), 5000);
+    return () => clearInterval(timer);
+  }, [events.length]);
+
+  const goToSlide = (i) => setCurrentIndex(i);
+  const nextSlide = () => setCurrentIndex((p) => (p + 1) % events.length);
+  const prevSlide = () => setCurrentIndex((p) => (p - 1 + events.length) % events.length);
+
+  return (
+    // 1. TALLER HEIGHT: h-[600px] on mobile, h-[80vh] on desktop (approx 80% of screen height)
+    <div className="relative w-full h-[600px] lg:h-[80vh] overflow-hidden group">
+      
+      {events.map((event, i) => (
+        <div
+          key={i}
+          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+            i === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+          }`}
+        >
+          {/* Background Image */}
+          <img
+            src={event.image}
+            alt={event.title}
+            className="w-full h-full object-cover"
+          />
+          
+          {/* 2. FULL HEIGHT OVERLAY: 
+              Gradient covers entire height from Left (Black) to Right (Transparent). 
+              This creates the "Full Height Notification Bar" effect. 
+          */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/50 to-transparent" />
+        </div>
+      ))}
+
+      {/* Content Container - Centered Vertically, Aligned Left */}
+      <div className="absolute inset-0 z-20 flex items-center">
+        <div className="container mx-auto px-6 md:px-12">
+          <div className="max-w-3xl space-y-4">
+            
+            {/* Title with Animation */}
+            <h2 
+              key={currentIndex} 
+              className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight drop-shadow-lg animate-fade-in-up"
+            >
+              {events[currentIndex].title}
+            </h2>
+
+            {/* Subtitle / Description */}
+            <p className="text-gray-300 text-lg md:text-xl max-w-2xl font-light">
+              Generating knowledge for the future through research and innovation.
+            </p>
+
+            {/* Read More Button */}
+            <div className="pt-4">
+              <a
+                href={events[currentIndex].link}
+                className="inline-block px-8 py-3 text-sm md:text-base font-bold text-white uppercase tracking-wider border-2 border-white hover:bg-white hover:text-black transition-all duration-300"
+                style={{ borderColor: color1 }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = color1; e.currentTarget.style.borderColor = color1; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.borderColor = 'white'; }}
+              >
+                Read More
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Arrows */}
+      <button
+        onClick={prevSlide}
+        className="absolute left-0 top-0 bottom-0 w-20 flex items-center justify-center text-white/50 hover:text-white hover:bg-black/10 transition-all z-30"
+      >
+        <span className="text-4xl">‹</span>
+      </button>
+      <button
+        onClick={nextSlide}
+        className="absolute right-0 top-0 bottom-0 w-20 flex items-center justify-center text-white/50 hover:text-white hover:bg-black/10 transition-all z-30"
+      >
+        <span className="text-4xl">›</span>
+      </button>
+
+      {/* Indicators (Dots) */}
+      <div className="absolute bottom-10 left-12 flex gap-3 z-30">
+        {events.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => goToSlide(idx)}
+            className={`h-1 transition-all duration-300 ${
+              idx === currentIndex ? 'w-12 bg-white' : 'w-6 bg-white/40'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const FacultyCarousel = ({ faculty, darkMode, color1, color2 }) => {
   const scrollRef = React.useRef(null);
@@ -365,11 +456,6 @@ const FacultyCarousel = ({ faculty, darkMode, color1, color2 }) => {
           </div>
         ))}
       </div>
-
-      <div className="absolute left-0 top-0 bottom-0 w-8 pointer-events-none" style={{ background: darkMode ? 'linear-gradient(to right,#111827,transparent)' : 'linear-gradient(to right,#f9fafb,transparent)' }} />
-      <div className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none" style={{ background: darkMode ? 'linear-gradient(to left,#111827,transparent)' : 'linear-gradient(to left,#f9fafb,transparent)' }} />
-
-      {isPaused && <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">Paused</div>}
     </div>
   );
 };
@@ -422,20 +508,6 @@ const EventSlider = ({ events, darkMode, color1 }) => {
         <a href="#" className="text-xs font-semibold" style={{ color: color1 }}>Gallery</a>
       </div>
     </div>
-  );
-};
-
-const NewsCard = ({ title, date, isNew, link, darkMode, color1, color2 }) => {
-  return (
-    <a href={link} className={`block pt-3 first:pt-0 rounded-md transition-all hover:bg-opacity-80`}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1">
-          <h5 className={`text-xs font-medium leading-snug ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>{title}</h5>
-          <p className="text-[10px] mt-1.5 text-gray-400">{date}</p>
-        </div>
-        {isNew && <div className="text-[10px] font-bold px-2 py-1 rounded-full animate-pulse whitespace-nowrap" style={{ backgroundColor: color1, color: '#fff' }}>New</div>}
-      </div>
-    </a>
   );
 };
 

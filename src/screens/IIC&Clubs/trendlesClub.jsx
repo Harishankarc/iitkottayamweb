@@ -1,6 +1,6 @@
-import { useTheme } from '../../context/createContext';
+import { useTheme } from '../../context/createContext.jsx';
 import { BookOpen, Users, Mail, Sparkles, Camera, Calendar } from 'lucide-react';
-import api from '../../api/api';
+import API from '../../api/api.jsx';
 
 const MemberCard = ({ name, email }) => {
   const { darkMode } = useTheme();
@@ -8,15 +8,15 @@ const MemberCard = ({ name, email }) => {
     <div
       className={`p-4 rounded-lg border-2 transition-all duration-300 ${
         darkMode
-          ? `bg-gray-800 border-gray-700 hover:border-${api.color1} hover:shadow-lg`
-          : `bg-white border-gray-200 hover:border-${api.color1} hover:shadow-lg`
+          ? `bg-gray-800 border-gray-700 hover:border-${API.color1} hover:shadow-lg`
+          : `bg-white border-gray-200 hover:border-${API.color1} hover:shadow-lg`
       }`}
       style={{
         borderColor: darkMode ? '#374151' : '#e5e7eb',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = api.color1;
-        e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+        e.currentTarget.style.borderColor = API.color1;
+        e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -46,15 +46,15 @@ const FICCard = ({ member }) => {
     <div
       className={`p-6 rounded-lg border-2 transition-all duration-300 ${
         darkMode
-          ? `bg-gray-800 border-gray-700 hover:border-${api.color1} hover:shadow-lg`
-          : `bg-white border-gray-200 hover:border-${api.color1} hover:shadow-lg`
+          ? `bg-gray-800 border-gray-700 hover:border-${API.color1} hover:shadow-lg`
+          : `bg-white border-gray-200 hover:border-${API.color1} hover:shadow-lg`
       }`}
       style={{
         borderColor: darkMode ? '#374151' : '#e5e7eb',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = api.color1;
-        e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+        e.currentTarget.style.borderColor = API.color1;
+        e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -64,9 +64,9 @@ const FICCard = ({ member }) => {
       <div className="text-center">
         <div 
           className="w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center"
-          style={{ backgroundColor: `${api.color1}20` }}
+          style={{ backgroundColor: `${API.color1}20` }}
         >
-          <Users className="w-8 h-8" style={{ color: api.color1 }} />
+          <Users className="w-8 h-8" style={{ color: API.color1 }} />
         </div>
         <h4 className={`font-semibold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>
           {member.name}
@@ -99,8 +99,8 @@ const ImageGallery = ({ title, count = 9 }) => {
               borderColor: darkMode ? '#374151' : '#d1d5db',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#d1d5db';
@@ -134,8 +134,8 @@ export default function TrendlesClub() {
       {/* Hero Section */}
       <div className={`py-2 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${api.color1}1A`, color: api.color1, borderColor: `${api.color1}66` }}>
-            <BookOpen className="w-4 h-4" style={{ color: api.color1 }} />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${API.color1}1A`, color: API.color1, borderColor: `${API.color1}66` }}>
+            <BookOpen className="w-4 h-4" style={{ color: API.color1 }} />
             Literary & Social Club
           </div>
           <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -159,8 +159,8 @@ export default function TrendlesClub() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -168,7 +168,7 @@ export default function TrendlesClub() {
             }}
           >
             <h2 className={`text-2xl font-bold mb-4 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Sparkles size={28} style={{ color: api.color1 }} />
+              <Sparkles size={28} style={{ color: API.color1 }} />
               About Trendles Club
             </h2>
             <div className={`text-base leading-relaxed space-y-4 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
@@ -193,7 +193,7 @@ export default function TrendlesClub() {
           {/* Faculty In-Charge */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Users size={28} style={{ color: api.color1 }} />
+              <Users size={28} style={{ color: API.color1 }} />
               Trendles Club FIC
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -206,7 +206,7 @@ export default function TrendlesClub() {
           {/* Mentors */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Users size={28} style={{ color: api.color1 }} />
+              <Users size={28} style={{ color: API.color1 }} />
               Mentors
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
@@ -227,8 +227,8 @@ export default function TrendlesClub() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -236,7 +236,7 @@ export default function TrendlesClub() {
             }}
           >
             <div className="flex items-center gap-3 mb-6">
-              <Calendar size={28} style={{ color: api.color1 }} />
+              <Calendar size={28} style={{ color: API.color1 }} />
               <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                 Agony 2025
               </h2>
@@ -252,8 +252,8 @@ export default function TrendlesClub() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -261,7 +261,7 @@ export default function TrendlesClub() {
             }}
           >
             <div className="flex items-center gap-3 mb-6">
-              <Calendar size={28} style={{ color: api.color1 }} />
+              <Calendar size={28} style={{ color: API.color1 }} />
               <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                 Blood Donation Camp 2025
               </h2>
@@ -277,8 +277,8 @@ export default function TrendlesClub() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -286,7 +286,7 @@ export default function TrendlesClub() {
             }}
           >
             <div className="flex items-center gap-3 mb-6">
-              <Camera size={28} style={{ color: api.color1 }} />
+              <Camera size={28} style={{ color: API.color1 }} />
               <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                 Events Gallery
               </h2>

@@ -1,11 +1,11 @@
 import React from 'react';
 import { useTheme } from '../../context/createContext.jsx';
-import api from '../../api/api.jsx';
+import API from '../../api/api.jsx';
 import { ExternalLink, Calendar, Users, BookOpen } from 'lucide-react';
 
 export default function FdpWebinar() {
   const { darkMode } = useTheme();
-  const color1 = api.color1;
+  const color1 = API.color1;
   const targetUrl = 'https://iiitkottayam.ac.in/#!/fdp';
 
   return (

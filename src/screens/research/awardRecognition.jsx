@@ -1,6 +1,6 @@
-import { useTheme } from '../../context/createContext';
+import { useTheme } from '../../context/createContext.jsx';
 import { Award, Trophy, Medal } from 'lucide-react';
-import api from '../../api/api';
+import API from '../../api/api.jsx';
 
 export default function AwardRecognition() {
     const { darkMode } = useTheme();
@@ -85,8 +85,8 @@ export default function AwardRecognition() {
             <div className={`py-1 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
                 <div className="max-w-7xl mx-auto text-center">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-2 border" 
-                         style={{ backgroundColor: `${api.color1}1A`, color: api.color1, borderColor: `${api.color1}66` }}>
-                        <Trophy className="w-3 h-3" style={{ color: api.color1 }} />
+                         style={{ backgroundColor: `${API.color1}1A`, color: API.color1, borderColor: `${API.color1}66` }}>
+                        <Trophy className="w-3 h-3" style={{ color: API.color1 }} />
                         Excellence
                     </div>
                     <h1 className={`text-xl md:text-2xl font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -133,7 +133,7 @@ export default function AwardRecognition() {
                                             }`}
                                             style={{ transition: 'all 0.3s ease' }}
                                             onMouseEnter={(e) => {
-                                                e.currentTarget.style.borderBottomColor = api.color1;
+                                                e.currentTarget.style.borderBottomColor = API.color1;
                                                 e.currentTarget.style.borderBottomWidth = '2px';
                                             }}
                                             onMouseLeave={(e) => {
@@ -150,9 +150,9 @@ export default function AwardRecognition() {
                                             <td className={`px-3 py-3 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                                                 <div className="flex items-center gap-2">
                                                     {award.type === 'Award' ? (
-                                                        <Award className="w-4 h-4" style={{ color: api.color1 }} />
+                                                        <Award className="w-4 h-4" style={{ color: API.color1 }} />
                                                     ) : (
-                                                        <Medal className="w-4 h-4" style={{ color: api.color1 }} />
+                                                        <Medal className="w-4 h-4" style={{ color: API.color1 }} />
                                                     )}
                                                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                                                         award.type === 'Award'

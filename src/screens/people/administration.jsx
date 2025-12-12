@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/createContext.jsx';
-import api from '../../api/api.jsx';
+import API from '../../api/api.jsx';
 import { Users, Mail, Phone, MapPin, Search, BookOpenText, UserCog, Headphones } from 'lucide-react';
 
 // Sub-component for the profile card with modern, professional design
@@ -288,8 +288,8 @@ const CompactListCard = ({ person, color1, darkMode, icon: Icon }) => {
 
 export default function Administration() {
   const { darkMode } = useTheme();
-  const color1 = api.color1;
-  const color2 = api.color2;
+  const color1 = API.color1;
+  const color2 = API.color2;
   const [activeTab, setActiveTab] = useState('General');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -443,7 +443,7 @@ export default function Administration() {
       {/* Main Content Container */}
       <div className="mx-auto py-8 px-6 max-w-full">
         {/* Tab Navigation */}
-        <div className="mb-12 sticky top-20 z-40 w-full"> 
+        <div className="mb-12  top-20 z-40 w-full"> 
           <div className={`flex flex-wrap justify-center gap-2 rounded-lg p-2 shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
             {tabs.map((tab) => (
               <button 

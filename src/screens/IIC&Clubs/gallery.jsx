@@ -1,6 +1,6 @@
  import React, { useState } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
-import api from '../../api/api.jsx';
+import API from '../../api/api.jsx';
 import { Camera, Calendar, Users, Award, Palette, Activity, ExternalLink } from 'lucide-react';
 
 // Event Gallery Card Component
@@ -105,8 +105,8 @@ const FeaturedGallery = ({ color1, darkMode }) => {
 
 export default function Gallery() {
   const { darkMode } = useTheme();
-  const color1 = api.color1;
-  const color2 = api.color2;
+  const color1 = API.color1;
+  const color2 = API.color2;
 
   // Event galleries data based on the reference
   const eventGalleries = [

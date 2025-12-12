@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTheme } from '../../context/createContext.jsx';
-import api from '../../api/api.jsx';
+import API from '../../api/api.jsx';
 import { ExternalLink, Users, Target, Lightbulb, Globe } from 'lucide-react';
 
 export default function ResearchGroup() {
@@ -50,8 +50,8 @@ export default function ResearchGroup() {
       <div className={`py-1 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-2 border" 
-               style={{ backgroundColor: `${api.color1}1A`, color: api.color1, borderColor: `${api.color1}66` }}>
-            <Users className="w-3 h-3" style={{ color: api.color1 }} />
+               style={{ backgroundColor: `${API.color1}1A`, color: API.color1, borderColor: `${API.color1}66` }}>
+            <Users className="w-3 h-3" style={{ color: API.color1 }} />
             Research Groups
           </div>
           <h1 className={`text-xl md:text-2xl font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -67,9 +67,9 @@ export default function ResearchGroup() {
           {/* About Section */}
           <div className={`p-4 rounded-lg border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <div className="flex items-start gap-3 mb-3">
-              <Lightbulb className="w-5 h-5 mt-1" style={{ color: api.color1 }} />
+              <Lightbulb className="w-5 h-5 mt-1" style={{ color: API.color1 }} />
               <div>
-                <h2 className={`text-lg font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`} style={{ color: api.color1 }}>
+                <h2 className={`text-lg font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`} style={{ color: API.color1 }}>
                   About Research Groups
                 </h2>
                 <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -88,15 +88,15 @@ export default function ResearchGroup() {
               {/* Who is Involved */}
               <div className={`p-4 rounded-lg border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <div className="flex items-center gap-2 mb-3">
-                  <Users className="w-5 h-5" style={{ color: api.color1 }} />
-                  <h2 className={`text-base font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`} style={{ color: api.color1 }}>
+                  <Users className="w-5 h-5" style={{ color: API.color1 }} />
+                  <h2 className={`text-base font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`} style={{ color: API.color1 }}>
                     Who is Involved?
                   </h2>
                 </div>
                 <ul className={`space-y-1 text-xs ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   {introBullets.map((b, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <span style={{ color: api.color1 }}>•</span>
+                      <span style={{ color: API.color1 }}>•</span>
                       <span>{b}</span>
                     </li>
                   ))}
@@ -106,15 +106,15 @@ export default function ResearchGroup() {
               {/* Goals */}
               <div className={`p-4 rounded-lg border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <div className="flex items-center gap-2 mb-3">
-                  <Target className="w-5 h-5" style={{ color: api.color1 }} />
-                  <h2 className={`text-base font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`} style={{ color: api.color1 }}>
+                  <Target className="w-5 h-5" style={{ color: API.color1 }} />
+                  <h2 className={`text-base font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`} style={{ color: API.color1 }}>
                     Goals
                   </h2>
                 </div>
                 <ol className={`space-y-2 text-xs ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   {goals.map((g, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <span className="font-bold" style={{ color: api.color1 }}>{idx + 1}.</span>
+                      <span className="font-bold" style={{ color: API.color1 }}>{idx + 1}.</span>
                       <span>{g}</span>
                     </li>
                   ))}
@@ -126,8 +126,8 @@ export default function ResearchGroup() {
             {/* Right Column - Research Groups Grid */}
             <div className="lg:col-span-2">
               <div className="flex items-center gap-2 mb-3">
-                <Globe className="w-5 h-5" style={{ color: api.color1 }} />
-                <h2 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`} style={{ color: api.color1 }}>
+                <Globe className="w-5 h-5" style={{ color: API.color1 }} />
+                <h2 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`} style={{ color: API.color1 }}>
                   Active Research Groups
                 </h2>
               </div>
@@ -146,8 +146,8 @@ export default function ResearchGroup() {
                       borderColor: darkMode ? '#374151' : '#e5e7eb',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = api.color1;
-                      e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+                      e.currentTarget.style.borderColor = API.color1;
+                      e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
                       e.currentTarget.style.transform = 'translateY(-2px)';
                     }}
                     onMouseLeave={(e) => {
@@ -167,7 +167,7 @@ export default function ResearchGroup() {
                       </div>
                       <ExternalLink 
                         className="w-4 h-4 flex-shrink-0 mt-1 transition-transform group-hover:translate-x-1" 
-                        style={{ color: api.color1 }} 
+                        style={{ color: API.color1 }} 
                       />
                     </div>
                   </a>

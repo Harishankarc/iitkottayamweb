@@ -21,8 +21,21 @@ export const ThemeProvider = ({ children }) => {
       document.body.style.color = '#FFD700'; 
     } else {
       document.body.classList.remove('dark');
+      document.body.style.color = '';
     }
   }, [darkMode]);
+
+  useEffect(() => {
+    // Apply font size to the root element
+    const root = document.documentElement;
+    if (fontSize === 'small') {
+      root.style.fontSize = '14px';
+    } else if (fontSize === 'medium') {
+      root.style.fontSize = '16px';
+    } else if (fontSize === 'large') {
+      root.style.fontSize = '18px';
+    }
+  }, [fontSize]);
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);

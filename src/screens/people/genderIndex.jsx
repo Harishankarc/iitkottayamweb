@@ -1,12 +1,12 @@
 import React from 'react';
 import { useTheme } from '../../context/createContext.jsx';
-import api from '../../api/api.jsx';
+import API from '../../api/api.jsx';
 import { Users, TrendingUp, BarChart3, PieChart } from 'lucide-react';
 
 export default function GenderIndex() {
   const { darkMode } = useTheme();
-  const color1 = api.color1;
-  const color2 = api.color2;
+  const color1 = API.color1;
+  const color2 = API.color2;
 
   // Gender Index Data
   const genderData = {

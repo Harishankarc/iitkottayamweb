@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
-import api from '../../api/api.jsx';
+import API from '../../api/api.jsx';
 import { Mail, Phone, MapPin, Search, GraduationCap, Building2 } from 'lucide-react';
 
 // HOD Card Component - Vertical Layout Only
@@ -165,8 +165,8 @@ const HODCard = ({ hod, color1, darkMode }) => {
 
 export default function HeadofDepartment() {
   const { darkMode } = useTheme();
-  const color1 = api.color1;
-  const color2 = api.color2;
+  const color1 = API.color1;
+  const color2 = API.color2;
   const [searchTerm, setSearchTerm] = useState('');
 
   // HOD Data based on the image

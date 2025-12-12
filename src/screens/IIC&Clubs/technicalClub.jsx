@@ -1,6 +1,6 @@
-import { useTheme } from '../../context/createContext';
+import { useTheme } from '../../context/createContext.jsx';
 import { Code2, Users, Mail, Trophy, Lightbulb, Camera } from 'lucide-react';
-import api from '../../api/api';
+import API from '../../api/api.jsx';
 
 const MemberCard = ({ name, email, isCoordinator = false }) => {
   const { darkMode } = useTheme();
@@ -8,15 +8,15 @@ const MemberCard = ({ name, email, isCoordinator = false }) => {
     <div
       className={`p-4 rounded-lg border-2 transition-all duration-300 ${
         darkMode
-          ? `bg-gray-800 border-gray-700 hover:border-${api.color1} hover:shadow-lg`
-          : `bg-white border-gray-200 hover:border-${api.color1} hover:shadow-lg`
+          ? `bg-gray-800 border-gray-700 hover:border-${API.color1} hover:shadow-lg`
+          : `bg-white border-gray-200 hover:border-${API.color1} hover:shadow-lg`
       }`}
       style={{
         borderColor: darkMode ? '#374151' : '#e5e7eb',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = api.color1;
-        e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+        e.currentTarget.style.borderColor = API.color1;
+        e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -38,7 +38,7 @@ const MemberCard = ({ name, email, isCoordinator = false }) => {
         {isCoordinator && (
           <span
             className="px-3 py-1 rounded-full text-sm font-medium text-white"
-            style={{ backgroundColor: api.color1 }}
+            style={{ backgroundColor: API.color1 }}
           >
             FIC
           </span>
@@ -59,8 +59,8 @@ const EventCard = ({ title, description, participants, achievement }) => {
         borderColor: darkMode ? '#374151' : '#e5e7eb',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = api.color1;
-        e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+        e.currentTarget.style.borderColor = API.color1;
+        e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -80,7 +80,7 @@ const EventCard = ({ title, description, participants, achievement }) => {
         </p>
       )}
       {achievement && (
-        <p className={`text-sm flex items-center gap-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} style={{ color: api.color1 }}>
+        <p className={`text-sm flex items-center gap-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} style={{ color: API.color1 }}>
           <Trophy size={16} />
           {achievement}
         </p>
@@ -103,8 +103,8 @@ const ImageGallery = ({ count = 6 }) => {
             borderColor: darkMode ? '#374151' : '#d1d5db',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = api.color1;
-            e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+            e.currentTarget.style.borderColor = API.color1;
+            e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.borderColor = darkMode ? '#374151' : '#d1d5db';
@@ -126,8 +126,8 @@ export default function TechnicalClub() {
       {/* Hero Section */}
       <div className={`py-2 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${api.color1}1A`, color: api.color1, borderColor: `${api.color1}66` }}>
-            <Code2 className="w-4 h-4" style={{ color: api.color1 }} />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${API.color1}1A`, color: API.color1, borderColor: `${API.color1}66` }}>
+            <Code2 className="w-4 h-4" style={{ color: API.color1 }} />
             Technical Club
           </div>
           <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -151,8 +151,8 @@ export default function TechnicalClub() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -160,7 +160,7 @@ export default function TechnicalClub() {
             }}
           >
             <h2 className={`text-2xl font-bold mb-4 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Lightbulb size={28} style={{ color: api.color1 }} />
+              <Lightbulb size={28} style={{ color: API.color1 }} />
               About Beta Labs
             </h2>
             <p className={`text-base leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
@@ -170,14 +170,14 @@ export default function TechnicalClub() {
               <strong>Vision:</strong> The activities of the club motivate self-learning and sharing information amongst peers enabling students to widen the horizon of knowledge whilst sharpening their skills.
             </p>
             <p className={`text-base leading-relaxed mt-3 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-              <strong>Email:</strong> <a href="mailto:tec.techclub@iittkottayam.ac.in" style={{ color: api.color1 }} className="hover:underline">tec.techclub@iittkottayam.ac.in</a>
+              <strong>Email:</strong> <a href="mailto:tec.techclub@iittkottayam.ac.in" style={{ color: API.color1 }} className="hover:underline">tec.techclub@iittkottayam.ac.in</a>
             </p>
           </div>
 
           {/* Faculty Coordinators */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Users size={28} style={{ color: api.color1 }} />
+              <Users size={28} style={{ color: API.color1 }} />
               Faculty Coordinators
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -192,7 +192,7 @@ export default function TechnicalClub() {
           {/* Student Mentors */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Code2 size={28} style={{ color: api.color1 }} />
+              <Code2 size={28} style={{ color: API.color1 }} />
               Student Mentors
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -210,14 +210,14 @@ export default function TechnicalClub() {
           {/* Coding Achievements */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Trophy size={28} style={{ color: api.color1 }} />
+              <Trophy size={28} style={{ color: API.color1 }} />
               IIIT Kottayam Students - Coding Performance
             </h2>
             <div className={`overflow-x-auto rounded-lg border-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
               <table className={`w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <thead>
                   <tr className={`border-b-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}
-                      style={{ backgroundColor: `${api.color1}15` }}>
+                      style={{ backgroundColor: `${API.color1}15` }}>
                     <th className={`px-6 py-4 text-left text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       Sl. No.
                     </th>
@@ -246,7 +246,7 @@ export default function TechnicalClub() {
                     <td className={`px-6 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                       Mr. Rahul Badami
                     </td>
-                    <td className={`px-6 py-4 text-sm font-semibold`} style={{ color: api.color1 }}>
+                    <td className={`px-6 py-4 text-sm font-semibold`} style={{ color: API.color1 }}>
                       ₹5400 cash award
                     </td>
                   </tr>
@@ -265,7 +265,7 @@ export default function TechnicalClub() {
                       Mr. Gotam Gorash (20bcs173)<br />
                       Mr. Akshay Warrier (21bcs8)
                     </td>
-                    <td className={`px-6 py-4 text-sm font-semibold`} style={{ color: api.color1 }}>
+                    <td className={`px-6 py-4 text-sm font-semibold`} style={{ color: API.color1 }}>
                       ₹5000 stipend each
                     </td>
                   </tr>
@@ -283,7 +283,7 @@ export default function TechnicalClub() {
                     <td className={`px-6 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                       Team Lead: Aaditi (2021BEC006)
                     </td>
-                    <td className={`px-6 py-4 text-sm font-semibold`} style={{ color: api.color1 }}>
+                    <td className={`px-6 py-4 text-sm font-semibold`} style={{ color: API.color1 }}>
                       ₹1 Lakh
                     </td>
                   </tr>
@@ -301,7 +301,7 @@ export default function TechnicalClub() {
                     <td className={`px-6 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                       Mr. Anurop K B
                     </td>
-                    <td className={`px-6 py-4 text-sm font-semibold`} style={{ color: api.color1 }}>
+                    <td className={`px-6 py-4 text-sm font-semibold`} style={{ color: API.color1 }}>
                       ₹4 Lakh support<br />(₹1.5 Lakh prize)
                     </td>
                   </tr>
@@ -324,7 +324,7 @@ export default function TechnicalClub() {
                       Mr. Akarsh Pandey<br />
                       Mr. Divyansh Panwar
                     </td>
-                    <td className={`px-6 py-4 text-sm font-semibold`} style={{ color: api.color1 }}>
+                    <td className={`px-6 py-4 text-sm font-semibold`} style={{ color: API.color1 }}>
                       1st Prize
                     </td>
                   </tr>
@@ -336,7 +336,7 @@ export default function TechnicalClub() {
           {/* Gallery */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Camera size={28} style={{ color: api.color1 }} />
+              <Camera size={28} style={{ color: API.color1 }} />
               Gallery
             </h2>
             <ImageGallery count={9} />

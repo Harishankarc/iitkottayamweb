@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
-import api from '../../api/api.jsx';
+import API from '../../api/api.jsx';
 import { Home, Mail, Phone, MapPin, Users, Shield, Wifi, Utensils, Bed, FileText } from 'lucide-react';
 
 // Warden Card Component
@@ -160,8 +160,8 @@ const HallCard = ({ hall, color1, darkMode }) => {
 
 export default function Hostel() {
   const { darkMode } = useTheme();
-  const color1 = api.color1;
-  const color2 = api.color2;
+  const color1 = API.color1;
+  const color2 = API.color2;
 
   // Hostel Information
   const hostelInfo = {

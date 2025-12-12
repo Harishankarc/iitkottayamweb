@@ -1,6 +1,6 @@
- import { useTheme } from '../../context/createContext';
+ import { useTheme } from '../../context/createContext.jsx';
 import { BookOpen, FileText, Award, ExternalLink, X, User } from 'lucide-react';
-import api from '../../api/api';
+import API from '../../api/api.jsx';
 import { useState } from 'react';
 
 export default function FacultyResearchPaper() {
@@ -261,8 +261,8 @@ export default function FacultyResearchPaper() {
       {/* Hero Section */}
       <div className={`py-1 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-2 border" style={{ backgroundColor: `${api.color1}1A`, color: api.color1, borderColor: `${api.color1}66` }}>
-            <FileText className="w-3 h-3" style={{ color: api.color1 }} />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-2 border" style={{ backgroundColor: `${API.color1}1A`, color: API.color1, borderColor: `${API.color1}66` }}>
+            <FileText className="w-3 h-3" style={{ color: API.color1 }} />
             Research Publications
           </div>
           <h1 className={`text-xl md:text-2xl font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -286,8 +286,8 @@ export default function FacultyResearchPaper() {
                     borderColor: darkMode ? '#374151' : '#e5e7eb',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = api.color1;
-                  e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+                  e.currentTarget.style.borderColor = API.color1;
+                  e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
                   e.currentTarget.style.transform = 'translateY(-4px)';
                 }}
                 onMouseLeave={(e) => {
@@ -299,9 +299,9 @@ export default function FacultyResearchPaper() {
                 <div className="flex flex-col items-center text-center space-y-2">
                   <div 
                     className="w-16 h-16 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: `${api.color1}20` }}
+                    style={{ backgroundColor: `${API.color1}20` }}
                   >
-                    <User size={32} style={{ color: api.color1 }} />
+                    <User size={32} style={{ color: API.color1 }} />
                   </div>
                   <h3 className={`font-bold text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                     {researcher.name}
@@ -315,13 +315,13 @@ export default function FacultyResearchPaper() {
                   <div className="flex gap-2 text-xs pt-2">
                     <span 
                       className="px-2 py-1 rounded"
-                      style={{ backgroundColor: `${api.color1}20`, color: api.color1 }}
+                      style={{ backgroundColor: `${API.color1}20`, color: API.color1 }}
                       >
                       {researcher.books.length} Books
                     </span>
                     <span 
                       className="px-2 py-1 rounded"
-                      style={{ backgroundColor: `${api.color1}20`, color: api.color1 }}
+                      style={{ backgroundColor: `${API.color1}20`, color: API.color1 }}
                       >
                       {researcher.sciJournals.length} Journals
                     </span>
@@ -378,8 +378,8 @@ export default function FacultyResearchPaper() {
           {selectedResearcher.books.length > 0 && (
                 <div>
                   <h2 className={`text-lg font-bold mb-3 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}
-                      style={{ color: api.color1 }}>
-                    <BookOpen size={20} style={{ color: api.color1 }} />
+                      style={{ color: API.color1 }}>
+                    <BookOpen size={20} style={{ color: API.color1 }} />
                     BOOKS
                   </h2>
                   <div className="space-y-2">
@@ -425,8 +425,8 @@ export default function FacultyResearchPaper() {
           {selectedResearcher.sciJournals.length > 0 && (
                 <div>
                   <h2 className={`text-lg font-bold mb-3 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}
-                      style={{ color: api.color1 }}>
-                    <Award size={20} style={{ color: api.color1 }} />
+                      style={{ color: API.color1 }}>
+                    <Award size={20} style={{ color: API.color1 }} />
                     SCI JOURNALS
                   </h2>
                   <div className="space-y-2">
@@ -467,7 +467,7 @@ export default function FacultyResearchPaper() {
                                     href={journal.doi} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    style={{ color: api.color1 }}
+                                    style={{ color: API.color1 }}
                                     className="hover:underline inline-flex items-center gap-1"
                                   >
                                     {journal.doi}

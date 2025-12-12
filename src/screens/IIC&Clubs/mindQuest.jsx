@@ -1,6 +1,6 @@
- import { useTheme } from '../../context/createContext';
+ import { useTheme } from '../../context/createContext.jsx';
 import { Brain, Users, Mail, Target, Heart, Lightbulb, Camera, Shield, MessageCircle } from 'lucide-react';
-import api from '../../api/api';
+import API from '../../api/api.jsx';
 
 const MemberCard = ({ name, email, role }) => {
   const { darkMode } = useTheme();
@@ -8,15 +8,15 @@ const MemberCard = ({ name, email, role }) => {
     <div
       className={`p-4 rounded-lg border-2 transition-all duration-300 ${
         darkMode
-          ? `bg-gray-800 border-gray-700 hover:border-${api.color1} hover:shadow-lg`
-          : `bg-white border-gray-200 hover:border-${api.color1} hover:shadow-lg`
+          ? `bg-gray-800 border-gray-700 hover:border-${API.color1} hover:shadow-lg`
+          : `bg-white border-gray-200 hover:border-${API.color1} hover:shadow-lg`
       }`}
       style={{
         borderColor: darkMode ? '#374151' : '#e5e7eb',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = api.color1;
-        e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+        e.currentTarget.style.borderColor = API.color1;
+        e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -56,8 +56,8 @@ const GoalCard = ({ icon: Icon, title, description }) => {
         borderColor: darkMode ? '#374151' : '#e5e7eb',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = api.color1;
-        e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+        e.currentTarget.style.borderColor = API.color1;
+        e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -67,9 +67,9 @@ const GoalCard = ({ icon: Icon, title, description }) => {
       <div className="flex items-start gap-4">
         <div 
           className="p-3 rounded-lg flex-shrink-0"
-          style={{ backgroundColor: `${api.color1}20` }}
+          style={{ backgroundColor: `${API.color1}20` }}
         >
-          <Icon size={24} style={{ color: api.color1 }} />
+          <Icon size={24} style={{ color: API.color1 }} />
         </div>
         <div>
           <h4 className={`font-semibold text-base mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -98,8 +98,8 @@ const ImageGallery = ({ count = 5 }) => {
             borderColor: darkMode ? '#374151' : '#d1d5db',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = api.color1;
-            e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+            e.currentTarget.style.borderColor = API.color1;
+            e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.borderColor = darkMode ? '#374151' : '#d1d5db';
@@ -179,8 +179,8 @@ export default function MindQuest() {
       {/* Hero Section */}
       <div className={`py-2 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${api.color1}1A`, color: api.color1, borderColor: `${api.color1}66` }}>
-            <Brain className="w-4 h-4" style={{ color: api.color1 }} />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${API.color1}1A`, color: API.color1, borderColor: `${API.color1}66` }}>
+            <Brain className="w-4 h-4" style={{ color: API.color1 }} />
             Mental Health Club
           </div>
           <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -204,8 +204,8 @@ export default function MindQuest() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -223,7 +223,7 @@ export default function MindQuest() {
           {/* Student Mentors */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Users size={28} style={{ color: api.color1 }} />
+              <Users size={28} style={{ color: API.color1 }} />
               Student Mentors
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
@@ -239,8 +239,8 @@ export default function MindQuest() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -248,7 +248,7 @@ export default function MindQuest() {
             }}
           >
             <h2 className={`text-2xl font-bold mb-4 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Brain size={28} style={{ color: api.color1 }} />
+              <Brain size={28} style={{ color: API.color1 }} />
               About Us
             </h2>
             <div className={`text-base leading-relaxed space-y-4 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
@@ -266,8 +266,8 @@ export default function MindQuest() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -275,7 +275,7 @@ export default function MindQuest() {
             }}
           >
             <h2 className={`text-2xl font-bold mb-4 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Target size={28} style={{ color: api.color1 }} />
+              <Target size={28} style={{ color: API.color1 }} />
               Our Vision
             </h2>
             <div className={`text-base leading-relaxed space-y-4 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
@@ -291,7 +291,7 @@ export default function MindQuest() {
           {/* Our Goals */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Lightbulb size={28} style={{ color: api.color1 }} />
+              <Lightbulb size={28} style={{ color: API.color1 }} />
               Our Goals
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -309,8 +309,8 @@ export default function MindQuest() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -336,8 +336,8 @@ export default function MindQuest() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -350,7 +350,7 @@ export default function MindQuest() {
             <div className={`space-y-3 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
               <p>
                 <strong>Email:</strong>{' '}
-                <a href="mailto:mindquest@iiittkottayam.ac.in" style={{ color: api.color1 }} className="hover:underline">
+                <a href="mailto:mindquest@iiittkottayam.ac.in" style={{ color: API.color1 }} className="hover:underline">
                   mindquest@iiittkottayam.ac.in
                 </a>
               </p>
@@ -360,7 +360,7 @@ export default function MindQuest() {
                   href="https://www.instagram.com/mindquest_iiitkotayam_9HS_rfpANPtGScdPc4OdAwQ==" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  style={{ color: api.color1 }} 
+                  style={{ color: API.color1 }} 
                   className="hover:underline"
                 >
                   Instagram
@@ -380,8 +380,8 @@ export default function MindQuest() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -389,7 +389,7 @@ export default function MindQuest() {
             }}
           >
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Camera size={28} style={{ color: api.color1 }} />
+              <Camera size={28} style={{ color: API.color1 }} />
               Freshers Day
             </h2>
             <ImageGallery count={5} />

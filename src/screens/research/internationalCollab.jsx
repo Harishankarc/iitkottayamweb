@@ -1,6 +1,6 @@
-import { useTheme } from '../../context/createContext';
+import { useTheme } from '../../context/createContext.jsx';
 import { Globe, Building2, GraduationCap } from 'lucide-react';
-import api from '../../api/api';
+import API from '../../api/api.jsx';
 
 export default function InternationalCollab() {
     const { darkMode } = useTheme();
@@ -46,8 +46,8 @@ export default function InternationalCollab() {
             <div className={`py-1 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
                 <div className="max-w-7xl mx-auto text-center">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-2 border" 
-                         style={{ backgroundColor: `${api.color1}1A`, color: api.color1, borderColor: `${api.color1}66` }}>
-                        <Globe className="w-3 h-3" style={{ color: api.color1 }} />
+                         style={{ backgroundColor: `${API.color1}1A`, color: API.color1, borderColor: `${API.color1}66` }}>
+                        <Globe className="w-3 h-3" style={{ color: API.color1 }} />
                         Global Partnerships
                     </div>
                     <h1 className={`text-xl md:text-2xl font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -71,8 +71,8 @@ export default function InternationalCollab() {
                                 }`}
                                 style={{ transition: 'all 0.3s ease' }}
                                 onMouseEnter={(e) => {
-                                    e.currentTarget.style.borderColor = api.color1;
-                                    e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+                                    e.currentTarget.style.borderColor = API.color1;
+                                    e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
                                     e.currentTarget.style.transform = 'translateY(-4px)';
                                 }}
                                 onMouseLeave={(e) => {
@@ -89,7 +89,7 @@ export default function InternationalCollab() {
                                     <div className={`w-24 h-24 rounded-lg flex items-center justify-center ${
                                         darkMode ? 'bg-gray-800' : 'bg-white'
                                     }`}>
-                                        <Building2 className="w-12 h-12" style={{ color: api.color1 }} />
+                                        <Building2 className="w-12 h-12" style={{ color: API.color1 }} />
                                     </div>
                                     
                                     <div>

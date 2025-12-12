@@ -4,7 +4,7 @@ import logo from '../assets/images/iiitlogo.jpg';
 import DesktopNavigation from "./desktopnav";
 import MobileNavigation from "./mobnav";
 import { useTheme } from "../context/createContext";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ImageSlider from "./imageslider";
 import img1 from '../assets/images/img1.jpg';
 import img2 from '../assets/images/img2.jpg';
@@ -24,6 +24,16 @@ export default function NavBar() {
   } = useTheme();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -135,9 +145,11 @@ export default function NavBar() {
         </div>
       </div>
 
-      {/* Main Header with Logo and Title - White Background - Not sticky */}
+      {/* Main Header with Logo and Title - White Background - Becomes sticky when scrolled */}
       <div 
-        className={`w-full px-4 md:px-12 py-3 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}
+        className={`w-full px-4 md:px-12 transition-all duration-300 ${
+          isScrolled ? 'py-1 sticky top-0 z-50 shadow-md' : 'py-3'
+        } ${darkMode ? 'bg-gray-900' : 'bg-white'}`}
       >
         <div className="max-w-[1400px] mx-auto flex items-center gap-4">
           {/* Mobile Menu Button */}
@@ -152,42 +164,58 @@ export default function NavBar() {
           </button>
 
           {/* Logo */}
-          <img src={logo} alt="IIIT Kottayam Logo" className="h-16 md:h-20" />
+          <img 
+            src={logo} 
+            alt="IIIT Kottayam Logo" 
+            className={`transition-all duration-300 ${
+              isScrolled ? 'h-10 md:h-12' : 'h-16 md:h-20'
+            }`}
+          />
 
           {/* Institute Name - Right aligned with blue-green gradient effect */}
-          <div className="flex flex-col flex-1 items-end">
+          <div className={`flex flex-col flex-1 items-end transition-all duration-300 ${
+            isScrolled ? 'hidden lg:block' : ''
+          }`}>
+            {!isScrolled && (
+              <>
+                <h1 
+                  className={`${
+                    fontSize === 'small' ? 'text-[8px] sm:text-xs' :
+                    fontSize === 'large' ? 'text-[10px] sm:text-base' : 'text-[9px] sm:text-sm'
+                  } font-semibold leading-tight text-right bg-linear-to-r from-green-600 to-blue-600 bg-clip-text text-transparent`}
+                >
+                  ഇന്ത്യൻ ഇൻസ്റ്റിറ്റ്യൂട്ട് ഓഫ് ഇൻഫർമേഷൻ ടെക്നോളജി കോട്ടയം
+                </h1>
+                <h1 
+                  className={`${
+                    fontSize === 'small' ? 'text-xs sm:text-lg md:text-xl' :
+                    fontSize === 'large' ? 'text-sm sm:text-2xl md:text-3xl' : 'text-xs sm:text-xl md:text-2xl'
+                  } font-bold leading-tight text-right bg-linear-to-r from-green-600 to-blue-600 bg-clip-text text-transparent`}
+                >
+                  भारतीय सूचना प्रौद्योगिकी संस्थान कोट्टायम
+                </h1>
+              </>
+            )}
             <h1 
               className={`${
-                fontSize === 'small' ? 'text-[8px] sm:text-xs' :
-                fontSize === 'large' ? 'text-[10px] sm:text-base' : 'text-[9px] sm:text-sm'
-              } font-semibold leading-tight text-right bg-linear-to-r from-green-600 to-blue-600 bg-clip-text text-transparent`}
-            >
-              ഇന്ത്യൻ ഇൻസ്റ്റിറ്റ്യൂട്ട് ഓഫ് ഇൻഫർമേഷൻ ടെക്നോളജി കോട്ടയം
-            </h1>
-            <h1 
-              className={`${
-                fontSize === 'small' ? 'text-xs sm:text-lg md:text-xl' :
-                fontSize === 'large' ? 'text-sm sm:text-2xl md:text-3xl' : 'text-xs sm:text-xl md:text-2xl'
-              } font-bold leading-tight text-right bg-linear-to-r from-green-600 to-blue-600 bg-clip-text text-transparent`}
-            >
-              भारतीय सूचना प्रौद्योगिकी संस्थान कोट्टायम
-            </h1>
-            <h1 
-              className={`${
-                fontSize === 'small' ? 'text-sm sm:text-base md:text-lg' :
-                fontSize === 'large' ? 'text-base sm:text-xl md:text-2xl' : 'text-sm sm:text-lg md:text-xl'
-              } font-bold leading-tight text-right bg-linear-to-r from-green-600 to-blue-600 bg-clip-text text-transparent`}
+                isScrolled 
+                  ? 'text-xs sm:text-sm md:text-base' 
+                  : fontSize === 'small' ? 'text-sm sm:text-base md:text-lg' :
+                    fontSize === 'large' ? 'text-base sm:text-xl md:text-2xl' : 'text-sm sm:text-lg md:text-xl'
+              } font-bold leading-tight text-right bg-linear-to-r from-green-600 to-blue-600 bg-clip-text text-transparent transition-all duration-300`}
             >
               Indian Institute of Information Technology Kottayam
             </h1>
           </div>
         </div>
-        <hr className="mt-2" style={{ borderColor: API.color1 }} />
+        {!isScrolled && <hr className="mt-2" style={{ borderColor: API.color1 }} />}
       </div>
 
       {/* Desktop Navigation - STICKY (only this section) */}
-      <div className="hidden lg:block sticky top-0 z-50">
-        <DesktopNavigation />
+      <div className={`hidden lg:block transition-all duration-300 ${
+        isScrolled ? 'fixed top-[0.0rem] left-0 right-0 z-40' : 'sticky top-0 z-50'
+      }`}>
+        <DesktopNavigation isScrolled={isScrolled} />
       </div>
 
       {/* Mobile Navigation */}

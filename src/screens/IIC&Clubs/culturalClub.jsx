@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
-import api from '../../api/api.jsx';
+import API from '../../api/api.jsx';
 import { Palette, Users, Music, Star, Calendar, Award, Mail, Camera, ExternalLink } from 'lucide-react';
 
 // Faculty/Member Card Component
@@ -141,8 +141,8 @@ const ImageGallery = ({ color1, darkMode }) => {
 
 export default function ClubCarnival() {
   const { darkMode } = useTheme();
-  const color1 = api.color1;
-  const color2 = api.color2;
+  const color1 = API.color1;
+  const color2 = API.color2;
 
   // Cultural club FIC
   const culturalFIC = {
