@@ -1,75 +1,58 @@
 import { useTheme } from '../../context/createContext.jsx';
 import { Briefcase, TrendingUp, Users, Award, Building2 } from 'lucide-react';
 import API from '../../api/api.jsx';
+import { useState, useEffect } from 'react';
 
 export default function Placement() {
     const { darkMode } = useTheme();
+    const [placementData, setPlacementData] = useState([]);
+    const [sponsors, setSponsors] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const placementData = [
-        {
-            year: '2020-21',
-            highestCTC: '36 LPA',
-            avgCTC: '9.07 LPA',
-            placements: 44,
-            offers: 97
-        },
-        {
-            year: '2021-22',
-            highestCTC: '42 LPA',
-            avgCTC: '10.45 LPA',
-            placements: 67,
-            offers: 212
-        },
-        {
-            year: '2022-23',
-            date: '(as on 08-03-2023)',
-            highestCTC: '58.93 LPA',
-            avgCTC: '14.32 LPA',
-            placements: 84,
-            offers: 144
-        },
-        {
-            year: '2023-24',
-            highestCTC: '45 LPA',
-            avgCTC: '12.70 LPA',
-            placements: 128,
-            offers: 171
-        },
-        {
-            year: '2024-25',
-            highestCTC: '50 LPA',
-            avgCTC: '11.91 LPA',
-            placements: 178,
-            offers: 219
-        }
-    ];
+    useEffect(() => {
+        const fetchPlacements = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/placements');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const formattedPlacements = data.data
+                        .filter(item => item.isPublished)
+                        .map(item => ({
+                            year: item.academicYear || item.year,
+                            date: item.updatedAt ? `(as on ${new Date(item.updatedAt).toLocaleDateString()})` : '',
+                            highestCTC: item.highestPackage || 'N/A',
+                            avgCTC: item.averagePackage || 'N/A',
+                            placements: item.totalPlacements || 0,
+                            offers: item.totalOffers || 0
+                        }));
+                    setPlacementData(formattedPlacements);
+                }
+                
+                // Fetch company logos for sponsors
+                const companiesRes = await fetch('http://localhost:5000/api/company-logos');
+                const companiesData = await companiesRes.json();
+                if (companiesData.success) {
+                    const formattedSponsors = companiesData.data
+                        .filter(item => item.isActive)
+                        .map(item => ({
+                            name: item.name,
+                            location: item.description || 'India',
+                            logo: item.logo || item.name.toLowerCase()
+                        }));
+                    setSponsors(formattedSponsors);
+                }
+            } catch (error) {
+                console.error('Error fetching placement data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const sponsors = [
-        { name: 'Amazon', location: 'Bangalore, India', logo: 'amazon' },
-        { name: 'IBM', location: 'Bangalore, India', logo: 'ibm' },
-        { name: 'Bosch', location: 'Bangalore, India', logo: 'bosch' },
-        { name: 'NISSAN', location: 'Thiruvananthapuram, India', logo: 'nissan' },
-        { name: 'TCS', location: 'Kochi, India', logo: 'tcs' },
-        { name: 'Infosys', location: 'Bangalore, India', logo: 'infosys' },
-        { name: 'NVIDIA', location: 'Bangalore, India', logo: 'nvidia' },
-        { name: 'Cognizant', location: 'Kochi, India', logo: 'cognizant' },
-        { name: 'Deloitte', location: 'Kochi, India', logo: 'deloitte' },
-        { name: 'Jio', location: 'India', logo: 'jio' },
-        { name: 'Human Resocia Co., Ltd.', location: 'Japan', logo: 'human-resocia' },
-        { name: 'HP', location: 'California, United States', logo: 'hp' },
-        { name: 'NRWE', location: 'Chennai, India', logo: 'nrwe' },
-        { name: 'IISc', location: 'Bangalore, India', logo: 'iisc' },
-        { name: 'Informatics', location: 'TUM, Germany', logo: 'tum' },
-        { name: 'Wipro', location: 'Bangalore, India', logo: 'wipro' },
-        { name: 'UST Global', location: 'Thiruvananthapuram, India', logo: 'ust' },
-        { name: 'SUNTEC', location: 'India', logo: 'suntec' },
-        { name: 'IBS', location: 'Thiruvananthapuram, India', logo: 'ibs' },
-        { name: 'Sharda Technologies L.L.C.', location: 'Dubai', logo: 'sharda' },
-        { name: 'Infobell IT', location: 'Bangalore', logo: 'infobell' },
-        { name: 'CDAC', location: 'Bangalore', logo: 'cdac' },
-        { name: 'Mindtree', location: 'Bangalore, India', logo: 'mindtree' },
-        { name: 'Navigant', location: 'Kochi, India', logo: 'navigant' }
-    ];
+        fetchPlacements();
+    }, []);
+
+    const api = API;
 
     return (
         <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>

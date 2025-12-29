@@ -63,6 +63,27 @@ import ManagePlacements from './admin/pages/ManagePlacements';
 import ManageAnnouncements from './admin/pages/ManageAnnouncements';
 import ManageGallery from './admin/pages/ManageGallery';
 import ManageMedia from './admin/pages/ManageMedia';
+import ManageCourses from './admin/pages/ManageCourses';
+import ManageResearchPublications from './admin/pages/ManageResearchPublications';
+import ManageHeroSliders from './admin/pages/ManageHeroSliders';
+import ManageCompanyLogos from './admin/pages/ManageCompanyLogos';
+import ManageNIRF from './admin/pages/ManageNIRF';
+import ManageFooter from './admin/pages/ManageFooter';
+import ManageNavigation from './admin/pages/ManageNavigation';
+import ManageSiteSettings from './admin/pages/ManageSiteSettings';
+import ManagePageContent from './admin/pages/ManagePageContent';
+import ManageContentBlocks from './admin/pages/ManageContentBlocks';
+import ManagePages from './admin/pages/ManagePages';
+import VisualPageEditor from './admin/pages/VisualPageEditor';
+import LMSLinks from './screens/footer/lmsLinks';
+import IDY2022 from './screens/footer/idy-2022';
+import SiteMap from './screens/footer/siteMap';
+import Events from './screens/footer/events';
+import Tenders from './screens/footer/tenders';
+import Contact from './screens/footer/contact';
+import RTI from './screens/footer/rti';
+import ICC from './screens/footer/icc';
+import AntiRagging from './screens/footer/antiRagging';
 
 
 function App() {
@@ -86,6 +107,18 @@ function App() {
             <Route path="announcements" element={<ManageAnnouncements />} />
             <Route path="gallery" element={<ManageGallery />} />
             <Route path="media" element={<ManageMedia />} />
+            <Route path="courses" element={<ManageCourses />} />
+            <Route path="research-publications" element={<ManageResearchPublications />} />
+            <Route path="hero-sliders" element={<ManageHeroSliders />} />
+            <Route path="company-logos" element={<ManageCompanyLogos />} />
+            <Route path="nirf" element={<ManageNIRF />} />
+            <Route path="footer" element={<ManageFooter />} />
+            <Route path="navigation" element={<ManageNavigation />} />
+            <Route path="pages" element={<ManagePages />} />
+            <Route path="page-content" element={<ManagePageContent />} />
+            <Route path="content-blocks" element={<ManageContentBlocks />} />
+            <Route path="visual-editor" element={<VisualPageEditor />} />
+            <Route path="settings" element={<ManageSiteSettings />} />
           </Route>
 
           {/* Public Routes - With NavBar/Footer */}
@@ -94,6 +127,15 @@ function App() {
               <NavBar />
               <Routes>
                 <Route path="/" element={<HomePage />} />
+                <Route path="/lms" element={<LMSLinks />} />
+                <Route path="/idy-2022" element={<IDY2022 />} />
+                <Route path="/sitemap" element={<SiteMap />} />
+                <Route path="/events" element={<Events />} />
+                <Route path="/tenders" element={<Tenders />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/rti" element={<RTI />} />
+                <Route path="/icc" element={<ICC />} />
+                <Route path="/anti-ragging" element={<AntiRagging />} />
                 <Route path="/why-iiitk" element={<WhyIIIT/>} />
                 <Route path="/nirf/2025" element={<Nirf />} />
                 <Route path="/institute/governance" element={<Governance />} />

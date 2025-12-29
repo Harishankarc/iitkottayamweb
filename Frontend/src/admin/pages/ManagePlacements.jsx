@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Briefcase } from 'lucide-react';
 import API from '../../api/api';
+import ImageUploader from '../components/ImageUploader';
 
 export default function ManagePlacements() {
   const [placements, setPlacements] = useState([]);
@@ -11,6 +12,7 @@ export default function ManagePlacements() {
   const [formData, setFormData] = useState({
     academicYear: '2024-25',
     companyName: '',
+    companyLogo: '',
     sector: '',
     role: '',
     package: '',
@@ -223,6 +225,13 @@ export default function ManagePlacements() {
                   />
                 </div>
               </div>
+              <ImageUploader
+                value={formData.companyLogo || ''}
+                onChange={(url) => setFormData({...formData, companyLogo: url})}
+                label="Company Logo"
+                folder="placements"
+                aspectRatio="16/9"
+              />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Role *</label>
                 <input

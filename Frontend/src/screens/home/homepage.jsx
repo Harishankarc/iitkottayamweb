@@ -1,28 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import API from "../../api/api.jsx";
 import placementdetailimg from '../../assets/images/placementstatisticsiiit.jpeg'
-import aiclogo from '../../assets/images/aiclogo.png'
-import gyanlogo from '../../assets/images/gyanlogo.png'
-import msmelogo from '../../assets/images/msmelogo.jpg'
-import cyberlogo from '../../assets/images/cyberlogo.png'
-import i2cslogo from '../../assets/images/12cslogo.png'
-import dadblogo from '../../assets/images/dadblogo.jpeg'
-import factlogo from '../../assets/images/factlogo.jpeg'
 import img1 from '../../assets/images/img1.jpg';
 import img2 from '../../assets/images/img2.jpg';
 import img3 from '../../assets/images/img3.jpg';
-import event1 from '../../assets/images/event1.jpg';
-import event2 from '../../assets/images/event2.jpg';
-import event3 from '../../assets/images/event3.jpg';
-import event4 from '../../assets/images/event4.jpg';
-import facultyimg1 from '../../assets/images/facultyimg1.jpg';
-import facultyimg2 from '../../assets/images/facultyimg2.jpg';
-import facultyimg3 from '../../assets/images/facultyimg3.jpg';
-import facultyimg4 from '../../assets/images/facultyimg4.jpg';
-import facultyimg5 from '../../assets/images/facultyimg5.jpg';
-import facultyimg6 from '../../assets/images/facultyimg6.jpg';
-import facultyimg7 from '../../assets/images/facultyimg7.jpg';
-import facultyimg8 from '../../assets/images/facultyimg8.jpg';
 
 import { useTheme } from "../../context/createContext.jsx";
 import AnnouncementBanner from "../../components/announcementbanner.jsx";
@@ -36,48 +17,126 @@ const HomePage = () => {
   const color1 = API.color1; // Primary Accent Color
   const color2 = API.color2; // Secondary Accent Color
 
-  // --- Data Definitions ---
-  const newsList = [
-    { title: "Admission to Ph.D. Programme - January 2026", date: "2025-10-15", isNew: true, link: "#" },
-    { title: "Recruitment of Contract Faculty - CSE dated 17.10.2025", date: "2025-10-17", isNew: true, link: "#" },
-    { title: "Result of Mess Manager (On Contract) dated 29.09.2025", date: "2025-09-29", isNew: true, link: "#" },
-    { title: "Result of Technician (On Contract) dated 08.09.2025", date: "2025-09-08", isNew: false, link: "#" },
-    { title: "Result of Psychologist (On Contract) dated 08.09.2025", date: "2025-09-08", isNew: false, link: "#" }
-  ];
+  // --- State for Dynamic Data ---
+  const [newsList, setNewsList] = useState([]);
+  const [eventsList, setEventsList] = useState([]);
+  const [companyList, setCompanyList] = useState([]);
+  const [facultyList, setFacultyList] = useState([]);
+  const [NIRF_Ranking, setNIRF_Ranking] = useState([]);
+  const [heroSliders, setHeroSliders] = useState([]);
+  const [pageContent, setPageContent] = useState(null);
+  const [contentBlocks, setContentBlocks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const eventsList = [
-    { image: event1, title: "Faculty Development Programme 2024 (CSE)", link: "#" },
-    { image: event2, title: "Tech Symposium 2024", link: "#" },
-    { image: event3, title: "Research Conference", link: "#" },
-    { image: event4, title: "Cultural Fest", link: "#" }
-  ];
+  // --- Fetch Data from API ---
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch News
+        const newsRes = await fetch('http://localhost:5000/api/news');
+        const newsData = await newsRes.json();
+        if (newsData.success) {
+          const formattedNews = newsData.data
+            .filter(item => item.isPublished)
+            .slice(0, 5)
+            .map(item => ({
+              title: item.title,
+              date: item.publishedDate || item.createdAt,
+              isNew: new Date(item.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+              link: `/news/${item.id}`
+            }));
+          setNewsList(formattedNews);
+        }
 
-  const companyList = [
-    { logo: aiclogo, name: "Incubation Centre (AIC)", link: "https://icentre.iiitkottayam.ac.in/" },
-    { logo: gyanlogo, name: "Gyaan Lab", link: "https://gyaan.iiitkottayam.ac.in/" },
-    { logo: i2cslogo, name: "I2CS", link: "https://i2cs.iiitkottayam.ac.in/" },
-    { logo: msmelogo, name: "MSME Business Incubation Centre", link: "https://msme.iiitkottayam.ac.in/" },
-    { logo: cyberlogo, name: "CyberLabs", link: "https://cyberlabs.iiitkottayam.ac.in/" },
-    { logo: dadblogo, name: "DADB", link: "https://dadb.com/in/?lang=en" },
-    { logo: factlogo, name: "FACTS-H Lab", link: "https://factsh.iiitkottayam.ac.in/home" }
-  ];
+        // Fetch Events
+        const eventsRes = await fetch('http://localhost:5000/api/events');
+        const eventsData = await eventsRes.json();
+        if (eventsData.success) {
+          const formattedEvents = eventsData.data
+            .filter(item => item.isPublished)
+            .slice(0, 4)
+            .map(item => ({
+              image: API.getImageUrl(item.image) || img1,
+              title: item.title,
+              link: `/events/${item.id}`
+            }));
+          setEventsList(formattedEvents);
+        }
 
-  const facultyList = [
-    { image: facultyimg1, name: "Dr. Shajulin Benedict", designation: "Associate Professor", department: "CSE", specialization: "Cloud Computing, IoT", link: "#" },
-    { image: facultyimg2, name: "Dr. Ebin Deni Raj", designation: "Assistant Professor", department: "CSE", specialization: "Biomedical AI", link: "#" },
-    { image: facultyimg3, name: "Dr. Jayakrushna Sahoo", designation: "Assistant Professor", department: "CSE", specialization: "Machine Learning", link: "#" },
-    { image: facultyimg4, name: "Dr. Panchami V", designation: "Assistant Professor", department: "Cyber Security", specialization: "Blockchain", link: "#" },
-    { image: facultyimg5, name: "Dr. Bala S", designation: "Assistant Professor", department: "ECE", specialization: "VLSI Design", link: "#" },
-    { image: facultyimg6, name: "Dr. Victor Paul", designation: "Assistant Professor", department: "CSE", specialization: "Data Analytics", link: "#" },
-    { image: facultyimg7, name: "Dr. Bakkyaraj T", designation: "Assistant Professor", department: "Maths", specialization: "Nonlinear Analysis", link: "#" },
-    { image: facultyimg8, name: "Prof. Ashok S", designation: "Adjunct Professor", department: "CSE", specialization: "Energy Management", link: "#" }
-  ];
+        // Fetch Company Logos
+        const companiesRes = await fetch('http://localhost:5000/api/company-logos');
+        const companiesData = await companiesRes.json();
+        if (companiesData.success) {
+          setCompanyList(companiesData.data.filter(item => item.isActive));
+        }
 
-  const NIRF_Ranking = [
-    { rank: 25, category: "Engineering", change: "up" },
-    { rank: 18, category: "Architecture & Planning", change: "up" },
-    { rank: 45, category: "Overall", change: "down" },
-  ];
+        // Fetch Faculty
+        const facultyRes = await fetch('http://localhost:5000/api/faculty');
+        const facultyData = await facultyRes.json();
+        if (facultyData.success) {
+          const formattedFaculty = facultyData.data
+            .filter(item => item.isActive)
+            .slice(0, 8)
+            .map(item => ({
+              image: API.getImageUrl(item.photo) || `https://placehold.co/200x200/e8f5f0/239244?text=${item.name.charAt(0)}`,
+              name: item.name,
+              designation: item.designation,
+              department: item.department,
+              specialization: item.specialization || '',
+              link: `/people/faculty/${item.id}`
+            }));
+          setFacultyList(formattedFaculty);
+        }
+
+        // Fetch NIRF Rankings
+        const nirfRes = await fetch('http://localhost:5000/api/nirf?year=2025');
+        const nirfData = await nirfRes.json();
+        if (nirfData.success) {
+          setNIRF_Ranking(nirfData.data.filter(item => item.isPublished));
+        }
+
+        // Fetch Hero Sliders
+        const slidersRes = await fetch('http://localhost:5000/api/hero-sliders');
+        const slidersData = await slidersRes.json();
+        if (slidersData.success) {
+          const formattedSliders = slidersData.data
+            .filter(item => item.isActive)
+            .map(item => ({
+              image: API.getImageUrl(item.image) || img1,
+              title: item.title,
+              link: item.buttonLink || '#'
+            }));
+          setHeroSliders(formattedSliders.length > 0 ? formattedSliders : [
+            { image: img1, title: "Default Slider 1", link: "#" },
+            { image: img2, title: "Default Slider 2", link: "#" },
+            { image: img3, title: "Default Slider 3", link: "#" }
+          ]);
+          setEventsList(prev => prev.length > 0 ? prev : formattedSliders);
+        }
+
+        // Fetch Page Content
+        const pageRes = await fetch('http://localhost:5000/api/pages/homepage');
+        const pageData = await pageRes.json();
+        if (pageData.success) {
+          setPageContent(pageData.data);
+        }
+
+        // Fetch Content Blocks
+        const blocksRes = await fetch('http://localhost:5000/api/content-blocks/page/homepage');
+        const blocksData = await blocksRes.json();
+        if (blocksData.success) {
+          setContentBlocks(blocksData.data || []);
+        }
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
@@ -104,92 +163,134 @@ const HomePage = () => {
       </header>
 
       {/* ------------------------------------------------------------- */}
-      {/* LATEST NEWS SECTION - FULL WIDTH                  */}
+      {/* LATEST NEWS SECTION - FULL WIDTH WITH 3 DIFFERENT DESIGNS     */}
       {/* ------------------------------------------------------------- */}
-      <section className="mx-auto py-6 sm:py-8 md:py-10 lg:py-12 xl:py-16 px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 max-w-screen-2xl">
-        <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-3 sm:mb-4 md:mb-5 lg:mb-6 px-1" style={{ color: color1 }}>Latest News</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3 gap-3 sm:gap-4 md:gap-6 lg:gap-8">
-          {/* News Box 1 */}
-          <div className={`rounded-lg p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8 shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`} style={{ border: `1px solid ${color1}50` }}>
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-bold text-sm sm:text-base md:text-lg lg:text-xl" style={{ color: color1 }}>Admissions & Recruitment</h4>
-            </div>
-            <div className="space-y-3 h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px] overflow-y-auto">
-              {newsList.slice(0, 3).map((n, i) => (
-                <a 
-                  key={i} 
-                  href={n.link} 
-                  className="block p-3 bg-white/10 hover:bg-white/20 rounded-md transition-all border-l-3" 
-                  style={{ borderLeftColor: n.isNew ? '#fbbf24' : 'transparent', borderLeftWidth: '3px' }}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <h5 className={`text-xs sm:text-sm md:text-base lg:text-lg font-medium leading-snug mb-1.5 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{n.title}</h5>
-                      <p className={`text-[10px] sm:text-xs md:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{new Date(n.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+      <section className="mx-auto py-4 px-4 sm:px-6 md:px-8 max-w-screen-2xl">
+        <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Latest News & Updates</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          {/* News Box 1 - Left Accent Bar Design */}
+          <div className={`rounded-xl overflow-hidden shadow-2xl transform hover:scale-[1.02] transition-all duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className="p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: color1 }}>
+                  <span className="text-xl">📢</span>
+                </div>
+                <h4 className="font-bold text-lg" style={{ color: color1 }}>Announcements</h4>
+              </div>
+              <div className="space-y-3 h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                {newsList.slice(0, 5).map((n, i) => (
+                  <a 
+                    key={i} 
+                    href={n.link} 
+                    className={`block p-4 rounded-lg transition-all hover:shadow-lg relative border-l-4 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
+                    style={{ borderLeftColor: n.isNew ? '#fbbf24' : color1 }}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h5 className={`text-sm font-semibold leading-tight flex-1 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{n.title}</h5>
+                      {n.isNew && (
+                        <span className="inline-block text-[9px] font-bold px-2 py-1 rounded-full" style={{ backgroundColor: '#fbbf24', color: '#1e3a5f' }}>
+                          NEW
+                        </span>
+                      )}
                     </div>
-                    {n.isNew && (
-                      <div className="text-[10px] sm:text-xs font-bold px-2 py-1 rounded-full whitespace-nowrap animate-pulse" style={{ backgroundColor: '#fbbf24', color: '#1e3a5f' }}>
-                        NEW
-                      </div>
-                    )}
-                  </div>
-                </a>
-              ))}
+                    <div className={`text-xs flex items-center gap-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      <span>📅</span>
+                      <span>{new Date(n.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                    </div>
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* News Box 2 */}
-          <div className={`rounded-lg p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8 shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`} style={{ border: `1px solid ${color1}50` }}>
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-bold text-sm sm:text-base md:text-lg lg:text-xl" style={{ color: color1 }}>Events & Activities</h4>
-            </div>
-            <div className="space-y-3 h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px] overflow-y-auto">
-              {newsList.slice(0, 3).map((n, i) => (
-                <a 
-                  key={i} 
-                  href={n.link} 
-                  className="block p-3 bg-white/10 hover:bg-white/20 rounded-md transition-all border-l-3" 
-                  style={{ borderLeftColor: n.isNew ? '#fbbf24' : 'transparent', borderLeftWidth: '3px' }}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <h5 className={`text-xs md:text-sm font-medium leading-snug mb-1.5 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{n.title}</h5>
-                      <p className={`text-[10px] md:text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{new Date(n.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
-                    </div>
-                    {n.isNew && (
-                      <div className="text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap animate-pulse" style={{ backgroundColor: '#fbbf24', color: '#1e3a5f' }}>
-                        NEW
+          {/* News Box 2 - Glass Morphism Design */}
+          <div className={`rounded-xl p-5 shadow-2xl transform hover:scale-[1.02] transition-all duration-300 relative overflow-hidden ${darkMode ? 'bg-gray-800/90' : 'bg-white/90'}`} style={{ backdropFilter: 'blur(10px)', border: `1px solid ${color1}30` }}>
+            <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-30" style={{ backgroundColor: color1 }}></div>
+            <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full blur-3xl opacity-20" style={{ backgroundColor: color2 }}></div>
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center border-2" style={{ borderColor: color1, backgroundColor: `${color1}20` }}>
+                  <span className="text-xl">📰</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <h4 className="font-bold text-lg" style={{ color: color1 }}>Campus Updates</h4>
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                </div>
+              </div>
+              <div className="space-y-3 h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                {newsList.slice(0, 5).map((n, i) => (
+                  <a 
+                    key={i} 
+                    href={n.link} 
+                    className={`block p-4 rounded-xl transition-all hover:shadow-xl group ${darkMode ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-white/50 hover:bg-white'}`}
+                    style={{ border: `1px solid ${darkMode ? '#374151' : '#E5E7EB'}` }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 mt-1">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ background: `linear-gradient(135deg, ${color1}, ${color2})` }}>
+                          {new Date(n.date).getDate()}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </a>
-              ))}
+                      <div className="flex-1 min-w-0">
+                        <h5 className={`text-sm font-semibold leading-tight mb-2 group-hover:translate-x-1 transition-transform ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{n.title}</h5>
+                        <div className="flex items-center justify-between">
+                          <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {new Date(n.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                          </p>
+                          {n.isNew && (
+                            <span className="text-[9px] font-bold px-2 py-1 rounded-full" style={{ backgroundColor: '#8b5cf6', color: '#fff' }}>
+                               LATEST
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* News Box 3 */}
-          <div className={`rounded-lg p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8 shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`} style={{ border: `1px solid ${color1}50` }}>
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-bold text-sm sm:text-base md:text-lg lg:text-xl" style={{ color: color1 }}>Research & Publications</h4>
+          {/* News Box 3 - Compact List with Numbered Cards */}
+          <div className={`rounded-xl p-5 shadow-2xl transform hover:scale-[1.02] transition-all duration-300 ${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'}`} style={{ border: `2px solid ${color1}20` }}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white" style={{ background: `linear-gradient(135deg, ${color1}, ${color2})` }}>
+                  <span className="text-xl">⚡</span>
+                </div>
+                <h4 className="font-bold text-lg" style={{ color: color1 }}>Quick Updates</h4>
+              </div>
+              <span className={`text-xs font-bold px-2 py-1 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} style={{ color: color1 }}>
+                {newsList.length} items
+              </span>
             </div>
-            <div className="space-y-3 h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px] overflow-y-auto">
-              {newsList.slice(0, 3).map((n, i) => (
+            <div className="space-y-2 h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+              {newsList.slice(0, 5).map((n, i) => (
                 <a 
                   key={i} 
                   href={n.link} 
-                  className="block p-3 bg-white/10 hover:bg-white/20 rounded-md transition-all border-l-3" 
-                  style={{ borderLeftColor: n.isNew ? '#fbbf24' : 'transparent', borderLeftWidth: '3px' }}
+                  className={`block rounded-lg transition-all hover:shadow-md ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-white'}`}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <h5 className={`text-xs md:text-sm font-medium leading-snug mb-1.5 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{n.title}</h5>
-                      <p className={`text-[10px] md:text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{new Date(n.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
-                    </div>
-                    {n.isNew && (
-                      <div className="text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap animate-pulse" style={{ backgroundColor: '#fbbf24', color: '#1e3a5f' }}>
-                        NEW
+                  <div className="flex gap-3 p-3">
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: color1 }}>
+                        {i + 1}
                       </div>
-                    )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h5 className={`text-sm font-semibold leading-tight mb-1.5 line-clamp-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{n.title}</h5>
+                      <div className="flex items-center gap-3">
+                        <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {new Date(n.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                        </p>
+                        {n.isNew && (
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: color1, color: '#fff' }}>
+                            NEW
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </a>
               ))}
@@ -198,18 +299,31 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Custom Scrollbar Styles */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: ${color1}40;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: ${color1};
+        }
+      `}</style>
+
       {/* ------------------------------------------------------------- */}
-      {/* MAIN CONTENT (2/3 & 1/3 GRID)                   */}
+      {/* MAIN CONTENT - FULL WIDTH SECTIONS                          */}
       {/* ------------------------------------------------------------- */}
-      <main className="mx-auto py-6 sm:py-8 md:py-10 lg:py-12 xl:py-16 px-4 sm:px-6 md:px-8 lg:px-10 xl:px-12 max-w-screen-2xl">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 lg:gap-8">
+      <main className="mx-auto py-4 px-4 sm:px-6 md:px-8 max-w-screen-2xl space-y-4">
           
-          {/* LEFT: Main Content Sections (spans 2 cols) */}
-          <div className="lg:col-span-2 space-y-3">
-            
-            {/* NIRF Ranking Snapshot */}
-            <section>
-              <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold mb-3 sm:mb-4 md:mb-5 px-1" style={{ color: color1 }}>NIRF Rankings (2025)</h3>
+            {/* NIRF Ranking Snapshot - FULL WIDTH */}
+            {/* <section>
+              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>NIRF Rankings (2025)</h3>
               <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6 p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8 rounded-lg shadow-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 {NIRF_Ranking.map((item, idx) => (
                   <div key={idx} className="text-center p-2 sm:p-3 md:p-4 border-r last:border-r-0" style={{ borderColor: darkMode ? '#374151' : '#E5E7EB' }}>
@@ -221,117 +335,132 @@ const HomePage = () => {
                   </div>
                 ))}
               </div>
-            </section>
+            </section> */}
             
-            {/* Vision & Mission */}
+            {/* Vision & Mission - FULL WIDTH */}
             <section>
-              <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold mb-3 sm:mb-4 md:mb-5 px-1" style={{ color: color1 }}>Our Core Values</h3>
-              <div className={`grid grid-cols-1 md:grid-cols-2 shadow-xl overflow-hidden rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                <div className={`p-4 sm:p-5 md:p-6 lg:p-8 xl:p-10 border-r-2 md:border-r-0 lg:border-r-2 border-b-2 lg:border-b-0`} style={{ borderColor: color1 + '30' }}>
-                  <h4 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-2 sm:mb-3">🎯 Vision</h4>
-                  <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-relaxed mb-3 text-sm sm:text-base md:text-lg lg:text-xl`}>
-                    "Generating knowledge for the future" — aspiring to be a top-tier, research-driven organization in IT and allied fields.
+              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Our Core Values</h3>
+              <div className={`grid grid-cols-1 md:grid-cols-2 shadow-xl overflow-hidden rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                <div className={`p-6 md:p-8 border-r-0 md:border-r-2`} style={{ borderColor: color1 + '30' }}>
+                  <h4 className="text-2xl font-bold mb-3">🎯 Vision</h4>
+                  <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-relaxed mb-3 text-base`}>
+                    {contentBlocks.find(b => b.blockId === 'homepage-vision')?.content?.text || 
+                     pageContent?.sections?.find(s => s.id === 'vision')?.content || 
+                     '"Generating knowledge for the future" — aspiring to be a top-tier, research-driven organization in IT and allied fields.'}
                   </p>
-                  <a href="#" className="text-xs sm:text-sm md:text-base font-semibold" style={{ color: color1 }}>Read Strategic Plan →</a>
+                  <a href="#" className="text-sm font-semibold hover:underline" style={{ color: color1 }}>Read Strategic Plan →</a>
                 </div>
-
-                <div className="p-4 sm:p-5 md:p-6 lg:p-8 xl:p-10">
-                  <h4 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-2 sm:mb-3">🎯 Mission</h4>
-                  <ul className={`list-disc pl-5 ${darkMode ? 'text-gray-300' : 'text-gray-600'} space-y-1.5 text-sm sm:text-base md:text-lg lg:text-xl`}>
-                    <li>Produce competent and ethical graduates.</li>
-                    <li>Solve local & global problems through technology.</li>
-                    <li>Promote significance of ethics and integrity.</li>
+                <div className="p-6 md:p-8">
+                  <h4 className="text-2xl font-bold mb-3">🎯 Mission</h4>
+                  <ul className={`list-disc pl-5 ${darkMode ? 'text-gray-300' : 'text-gray-600'} space-y-2 text-base`}>
+                    {(contentBlocks.find(b => b.blockId === 'homepage-mission')?.content?.items || 
+                      pageContent?.sections?.find(s => s.id === 'mission')?.items || [
+                        'Produce competent and ethical graduates.',
+                        'Solve local & global problems through technology.',
+                        'Promote significance of ethics and integrity.'
+                      ]).map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
                   </ul>
                 </div>
               </div>
             </section>
             
-            {/* Innovative Initiatives */}
+            {/* Distinguished Faculty - FULL WIDTH */}
             <section>
-              <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold mb-3 sm:mb-4 md:mb-5 px-1" style={{ color: color1 }}>Incubation & Research Hubs</h3>
-              <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 sm:gap-4 md:gap-6 lg:gap-8 p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8 rounded-lg shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}> 
+              <div className="flex items-center justify-between mb-4 px-1">
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-bold" style={{ color: color1 }}>Distinguished Faculty</h3>
+                <a href="/people/faculty" style={{ color: color1 }} className="text-sm font-semibold hover:underline">View all faculty →</a>
+              </div>
+              <div className={`rounded-xl overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl border`} style={{ borderColor: color1 + '30' }}>
+                <FacultyCarousel faculty={facultyList} darkMode={darkMode} color1={color1} color2={color2} />
+              </div>
+            </section>
+
+            {/* Recruitment Partners - FULL WIDTH */}
+            <section>
+              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Recruitment Partners</h3>
+              <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 p-8 rounded-xl shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}> 
                 {companyList.map((c, idx) => (
                   <a 
                     key={idx} 
                     href={c.link} 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className={`p-3 rounded-lg flex flex-col items-center gap-2 text-center transition-transform hover:scale-105 hover:shadow-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`} 
+                    className={`p-5 rounded-lg flex flex-col items-center gap-3 text-center transition-all hover:scale-110 hover:shadow-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`} 
                     style={{ border: `1px solid ${darkMode ? '#374151' : `${color1}22`}` }}
                   >
-                    <div className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-18 lg:w-18 flex items-center justify-center p-2 rounded-lg border" style={{ borderColor: color1 + '80' }}>
-                      <img src={c.logo} alt={c.name} className="max-h-10 sm:max-h-12 md:max-h-14 object-contain" />
+                    <div className="h-28 w-28 flex items-center justify-center p-3 rounded-lg" style={{ backgroundColor: `${color1}10` }}>
+                      <img src={API.getImageUrl(c.logo)} alt={c.name} className="max-h-24 max-w-24 object-contain" />
                     </div>
-                    <div className="text-xs sm:text-sm md:text-base font-semibold leading-tight" style={{ color: darkMode ? '#E5E7EB' : '#111827' }}>{c.name}</div>
+                    <div className="text-sm font-semibold leading-tight line-clamp-2" style={{ color: darkMode ? '#E5E7EB' : '#111827' }}>{c.name}</div>
                   </a>
                 ))}
               </div>
             </section>
-            
-            {/* Faculty Carousel */}
+
+            {/* Placement Highlights - FULL WIDTH */}
             <section>
-              <div className="flex items-center justify-between mb-3 px-1">
-                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold" style={{ color: color1 }}>Distinguished Faculty</h3>
-                <a href="#" style={{ color: color1 }} className="text-xs sm:text-sm md:text-base font-semibold">View all faculty →</a>
-              </div>
-
-              <div className={`rounded-lg overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg border`} style={{ borderColor: color1 + '30' }}>
-                <FacultyCarousel faculty={facultyList} darkMode={darkMode} color1={color1} color2={color2} />
-              </div>
-            </section>
-
-            {/* Placement */}
-            <section className={`rounded-lg overflow-hidden shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-              <div className="p-4 grid md:grid-cols-5 gap-4 items-center">
-                <div className="md:col-span-3">
-                  <h4 className="text-lg md:text-xl font-bold mb-3" style={{ color: color1 }}>Placement Highlights</h4>
-                  <img src={placementdetailimg} alt="Placements" className="rounded-lg shadow-md w-full max-h-48 object-contain" />
+              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Placement Highlights</h3>
+              <div className={`rounded-xl overflow-hidden shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                <div className="p-6 grid md:grid-cols-2 gap-6 items-center">
+                  <div>
+                    <img src={placementdetailimg} alt="Placements" className="rounded-lg shadow-md w-full object-cover" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {(() => {
+                      const statsBlock = contentBlocks.find(b => b.blockId === 'homepage-placement-stats');
+                      const stats = statsBlock?.content?.statistics || 
+                                   pageContent?.sections?.find(s => s.id === 'placement-stats')?.statistics || [
+                        { label: 'Highest Package', value: '45 LPA' },
+                        { label: 'Avg. Package', value: '14 LPA' },
+                        { label: 'Companies Visited', value: '100+' },
+                        { label: 'Placement Rate', value: '95%' }
+                      ];
+                      return stats.map((stat, i) => (
+                        <div key={i} className={`p-6 rounded-xl text-center ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                          <div className={`text-sm font-bold mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{stat.label}</div>
+                          <div className="text-4xl font-extrabold" style={{ color: color1 }}>{stat.value}</div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
                 </div>
-                <div className="md:col-span-2 flex flex-col gap-3 items-start">
-                  <div className="text-sm font-bold">Highest Package</div>
-                  <div className="text-2xl md:text-3xl font-extrabold" style={{ color: color1 }}>45 LPA</div>
-                  
-                  <div className="text-sm font-bold">Avg. Package</div>
-                  <div className="text-xl md:text-2xl font-extrabold" style={{ color: color1 }}>14 LPA</div>
-
-                  <a href="#" className="mt-2 px-4 py-2 text-sm rounded-full font-semibold shadow-md transition-all hover:scale-105" style={{ backgroundColor: color1, color: 'white' }}>
-                    View Full Report →
+                <div className="p-4 text-center border-t" style={{ borderColor: `${color1}30` }}>
+                  <a href="/placement" className="inline-block px-6 py-3 text-sm rounded-lg font-semibold shadow-md transition-all hover:scale-105" style={{ backgroundColor: color1, color: 'white' }}>
+                    View Complete Placement Report →
                   </a>
                 </div>
               </div>
             </section>
 
-          </div>
+            {/* Upcoming Events & Quick Links - 2 COLUMN GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Upcoming Events */}
+              <div className={`rounded-xl overflow-hidden shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                <div className="p-4 border-b" style={{ borderColor: `${color1}30` }}>
+                  <h5 className="font-bold text-lg" style={{ color: color1 }}>Upcoming Events</h5>
+                </div>
+                <EventSlider events={eventsList} darkMode={darkMode} color1={color1} />
+              </div>
 
-          {/* ------------------------------------------------------------- */}
-          {/* RIGHT: Sticky Sidebar (1/3 COL)                 */}
-          {/* ------------------------------------------------------------- */}
-          <aside className="lg:sticky lg:top-3 h-fit space-y-3">
-
-            {/* Upcoming Events Slider (Small) */}
-            <div className={`rounded-lg overflow-hidden shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-              <EventSlider events={eventsList} darkMode={darkMode} color1={color1} />
-            </div>
-
-            {/* Quick Links */}
-            <div className={`rounded-lg p-4 shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-              <h5 className="font-bold text-sm md:text-base mb-3" style={{ color: color1 }}>Quick Links</h5>
-              <div className="grid grid-cols-2 gap-2">
-                {['Admissions', 'Academics', 'Departments', 'Research', 'Placements', 'Alumni'].map((link, idx) => (
-                  <a 
-                    key={idx} 
-                    href="#" 
-                    className={`text-xs font-medium p-2.5 rounded-md transition hover:scale-[1.05] text-center`} 
-                    style={{ backgroundColor: color2 + '30', color: color1 }}
-                  >
-                    {link}
-                  </a>
-                ))}
+              {/* Quick Links */}
+              <div className={`rounded-xl p-6 shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                <h5 className="font-bold text-lg mb-4" style={{ color: color1 }}>Quick Access</h5>
+                <div className="grid grid-cols-2 gap-3">
+                  {['Admissions', 'Academics', 'Departments', 'Research', 'Placements', 'Alumni'].map((link, idx) => (
+                    <a 
+                      key={idx} 
+                      href="#" 
+                      className={`text-sm font-semibold p-3 rounded-lg transition-all hover:scale-105 text-center shadow-md`} 
+                      style={{ backgroundColor: `${color1}15`, color: color1 }}
+                    >
+                      {link}
+                    </a>
+                  ))}
+                </div>
               </div>
             </div>
-          </aside>
-
-        </div>
       </main>
 
       {/* ------------------------------------------------------------- */}
@@ -377,6 +506,7 @@ const HeroSlider = ({ events, color1 }) => {
 
   // Auto-slide logic
   React.useEffect(() => {
+    if (events.length === 0) return;
     const timer = setInterval(() => setCurrentIndex((p) => (p + 1) % events.length), 5000);
     return () => clearInterval(timer);
   }, [events.length]);
@@ -384,6 +514,18 @@ const HeroSlider = ({ events, color1 }) => {
   const goToSlide = (i) => setCurrentIndex(i);
   const nextSlide = () => setCurrentIndex((p) => (p + 1) % events.length);
   const prevSlide = () => setCurrentIndex((p) => (p - 1 + events.length) % events.length);
+
+  // Return loading state if no events
+  if (!events || events.length === 0) {
+    return (
+      <div className="relative w-full h-[350px] sm:h-[450px] md:h-[550px] lg:h-[70vh] xl:h-[80vh] overflow-hidden bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300" style={{ borderTopColor: color1 }}></div>
+          <p className="mt-4 text-lg">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     // 1. TALLER HEIGHT: h-[600px] on mobile, h-[80vh] on desktop (approx 80% of screen height)
@@ -421,7 +563,7 @@ const HeroSlider = ({ events, color1 }) => {
               key={currentIndex} 
               className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight drop-shadow-lg animate-fade-in-up"
             >
-              {events[currentIndex].title}
+              {events[currentIndex]?.title || 'Welcome to IIIT Kottayam'}
             </h2>
 
             {/* Subtitle / Description */}
@@ -432,7 +574,7 @@ const HeroSlider = ({ events, color1 }) => {
             {/* Read More Button */}
             <div className="pt-4">
               <a
-                href={events[currentIndex].link}
+                href={events[currentIndex]?.link || '#'}
                 className="inline-block px-8 py-3 text-sm md:text-base font-bold text-white uppercase tracking-wider border-2 border-white hover:bg-white hover:text-black transition-all duration-300"
                 style={{ borderColor: color1 }}
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = color1; e.currentTarget.style.borderColor = color1; }}
@@ -539,12 +681,12 @@ const EventSlider = ({ events, darkMode, color1 }) => {
 
   return (
     <div className="relative group">
-      <div className="relative overflow-hidden" style={{ height: 160 }}> 
+      <div className="relative overflow-hidden" style={{ height: 280 }}> 
         {events.map((ev, i) => (
           <div key={i} className={`absolute inset-0 transition-all duration-700 ease-in-out ${i === currentIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}>
             <img src={ev.image} alt={ev.title} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-            <div className="absolute bottom-2 left-2 right-2 text-xs">
+            <div className="absolute bottom-3 left-3 right-3 text-sm">
               <a href={ev.link} className="text-white font-semibold block">{ev.title}</a>
             </div>
           </div>

@@ -1,18 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../context/createContext';
 
 export default function AnnouncementBanner() {
   const [isPaused, setIsPaused] = useState(false);
   const { darkMode, fontSize } = useTheme();
+  const [announcements, setAnnouncements] = useState([
+    "Loading announcements...",
+  ]);
 
-  const announcements = [
-    "Online Admissions 2025",
-    "AskIITM.com for JoSAA 2023 doubts & queries",
-    "Admissions to 4 year Medical Science and Engineering Programs",
-    "New Research Facilities Now Open",
-    "International Student Applications Open",
-    "Campus Placement Drive 2025"
-  ];
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/announcements');
+        const data = await response.json();
+        
+        if (data.success && data.data.length > 0) {
+          const activeAnnouncements = data.data
+            .filter(item => item.isActive)
+            .map(item => item.title);
+          setAnnouncements(activeAnnouncements.length > 0 ? activeAnnouncements : [
+            "Online Admissions 2025",
+            "New Research Facilities Now Open",
+            "Campus Placement Drive 2025"
+          ]);
+        }
+      } catch (error) {
+        console.error('Error fetching announcements:', error);
+        setAnnouncements([
+          "Online Admissions 2025",
+          "New Research Facilities Now Open",
+          "Campus Placement Drive 2025"
+        ]);
+      }
+    };
+
+    fetchAnnouncements();
+  }, []);
 
   const getFontSizeClass = () => {
     if (fontSize === 'small') return 'text-xs';

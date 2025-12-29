@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Mail, Phone } from 'lucide-react';
 import API from '../../api/api';
+import ImageUploader from '../components/ImageUploader';
 
 export default function ManageFaculty() {
   const [faculty, setFaculty] = useState([]);
@@ -14,6 +15,7 @@ export default function ManageFaculty() {
     department: '',
     email: '',
     phone: '',
+    photo: '',
     qualification: '',
     specialization: '',
     experience: '',
@@ -258,6 +260,13 @@ export default function ManageFaculty() {
                   />
                 </div>
               </div>
+              <ImageUploader
+                value={formData.photo || ''}
+                onChange={(url) => setFormData({...formData, photo: url})}
+                label="Faculty Photo"
+                folder="faculty"
+                aspectRatio="1/1"
+              />
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Qualification *</label>

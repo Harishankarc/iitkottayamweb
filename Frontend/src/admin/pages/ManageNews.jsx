@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Eye, Search, Filter } from 'lucide-react';
 import API from '../../api/api';
+import ImageUploader from '../components/ImageUploader';
 
 export default function ManageNews() {
   const [news, setNews] = useState([]);
@@ -14,6 +15,7 @@ export default function ManageNews() {
     content: '',
     excerpt: '',
     category: 'general',
+    image: '',
     author: '',
     isPublished: true
   });
@@ -24,14 +26,16 @@ export default function ManageNews() {
 
   const fetchNews = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/news', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      setNews(data.data || []);
+      const result = await API.get('/api/news');
+      if (result.success) {
+        setNews(result.data.data || []);
+      } else {
+        console.error('Error fetching news:', result.error);
+        alert('Failed to load news. Please try again.');
+      }
     } catch (error) {
       console.error('Error fetching news:', error);
+      alert('Failed to load news. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -40,27 +44,21 @@ export default function ManageNews() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      const url = editingItem 
-        ? `http://localhost:5000/api/news/${editingItem.id}`
-        : 'http://localhost:5000/api/news';
+      const result = editingItem 
+        ? await API.put(`/api/news/${editingItem.id}`, formData)
+        : await API.post('/api/news', formData);
       
-      const response = await fetch(url, {
-        method: editingItem ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
+      if (result.success) {
         fetchNews();
         setShowModal(false);
         resetForm();
+        alert(editingItem ? 'News updated successfully!' : 'News created successfully!');
+      } else {
+        alert('Failed to save news: ' + result.error);
       }
     } catch (error) {
       console.error('Error saving news:', error);
+      alert('Failed to save news. Please try again.');
     }
   };
 
@@ -68,14 +66,16 @@ export default function ManageNews() {
     if (!window.confirm('Are you sure you want to delete this news article?')) return;
     
     try {
-      const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/news/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      fetchNews();
+      const result = await API.delete(`/api/news/${id}`);
+      if (result.success) {
+        fetchNews();
+        alert('News deleted successfully!');
+      } else {
+        alert('Failed to delete news: ' + result.error);
+      }
     } catch (error) {
       console.error('Error deleting news:', error);
+      alert('Failed to delete news. Please try again.');
     }
   };
 
@@ -256,6 +256,13 @@ export default function ManageNews() {
                   className="w-full px-3 py-2 border rounded-lg"
                 />
               </div>
+              <ImageUploader
+                value={formData.image || ''}
+                onChange={(url) => setFormData({...formData, image: url})}
+                label="Featured Image"
+                folder="news"
+                aspectRatio="16/9"
+              />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Content *</label>
                 <textarea

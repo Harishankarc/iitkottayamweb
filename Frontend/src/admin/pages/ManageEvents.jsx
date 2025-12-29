@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Calendar as CalendarIcon, Search } from 'lucide-react';
 import API from '../../api/api';
+import ImageUploader from '../components/ImageUploader';
 
 export default function ManageEvents() {
   const [events, setEvents] = useState([]);
@@ -12,6 +13,7 @@ export default function ManageEvents() {
     title: '',
     description: '',
     category: 'technical',
+    image: '',
     venue: '',
     startDate: '',
     endDate: '',
@@ -210,6 +212,13 @@ export default function ManageEvents() {
                   className="w-full px-3 py-2 border rounded-lg"
                 />
               </div>
+              <ImageUploader
+                value={formData.image || ''}
+                onChange={(url) => setFormData({...formData, image: url})}
+                label="Event Banner"
+                folder="events"
+                aspectRatio="16/9"
+              />
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>

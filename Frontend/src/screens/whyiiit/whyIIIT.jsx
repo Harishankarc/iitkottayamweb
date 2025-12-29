@@ -2,10 +2,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import API from '../../api/api.jsx';
 import { useTheme } from '../../context/createContext.jsx';
+import { usePageContent, getVisibleBlocks, renderContentBlock } from '../../hooks/usePageContent.jsx';
 import {
   Sparkles,
   GraduationCap,
   ArrowRight,
+  Plus,
+  Edit2,
   ShieldCheck,
   BookOpenText,
   Lightbulb,
@@ -40,13 +43,21 @@ import {
 
 
 export default function WhyIIIT() {
-
+  // Fetch dynamic content from database
+  const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('why-iiitk');
 
   const { darkMode } = useTheme();
 
   const color1 = API.color1; // #239244 (Dark Green)
   const color2 = API.color2; // #e8f5f0 (Light Mint)
   const color3 = API.color3; // #F1F3F3 (Light Gray)
+
+  // Check if admin is logged in
+  const isAdmin = localStorage.getItem('token');
+
+  // Check if we have dynamic content
+  const hasDynamicContent = contentBlocks && contentBlocks.length > 0;
+  const visibleBlocks = hasDynamicContent ? getVisibleBlocks(contentBlocks) : [];
 
   // Data for Research Groups
   const researchGroups = [
@@ -106,13 +117,13 @@ export default function WhyIIIT() {
             <div className="max-w-5xl mx-auto text-center px-6">
               <div className="inline-flex items-center gap-2 px-4 py-2 backdrop-blur-md rounded-full text-xs font-bold mb-3 border hover:scale-105 transition-all duration-500 shadow-lg cursor-pointer" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
                 <Sparkles className="w-4 h-4" style={{ color: color1 }} />
-                Established 2015 • Institution of National Importance
+                {pageContent?.pageTitle || 'Established 2015 • Institution of National Importance'}
               </div>
               <h1 className={`text-2xl md:text-3xl font-extrabold mb-3 leading-tight tracking-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
                 Why <span className="block md:inline text-transparent bg-clip-text" style={{ backgroundImage: `linear-gradient(to right, ${color1}, ${color1}B3)` }}>IIIT Kottayam</span>
               </h1>
               <p className={`text-xs md:text-sm leading-relaxed font-light max-w-4xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Pioneering excellence in Information Technology education and research
+                {pageContent?.metaDescription || 'Pioneering excellence in Information Technology education and research'}
               </p>
             </div>
           </div>
@@ -120,6 +131,35 @@ export default function WhyIIIT() {
 
         {/* Main Content */}
         <main className="mx-auto py-8 px-6 max-w-full">
+          {/* Show dynamic content if available */}
+          {hasDynamicContent ? (
+            <div className="space-y-6 max-w-6xl mx-auto">
+              {visibleBlocks.map((block, index) => (
+                <div key={block.blockId || index}>
+                  {renderContentBlock(block, { darkMode, color1, color2 })}
+                </div>
+              ))}
+              
+              {/* Admin Edit Link */}
+              {localStorage.getItem('token') && (
+                <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800 mb-2">
+                    <strong>Admin:</strong> You're logged in. You can edit this page content.
+                  </p>
+                  <Link
+                    to={`/admin/content-blocks?page=why-iiitk`}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    Edit Page Content
+                  </Link>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Static fallback content (original content) */}
+              
           {/* Introduction Card */}
           <section className="mb-8">
             <div className="w-full mx-auto">
@@ -175,7 +215,21 @@ export default function WhyIIIT() {
               </Link>
             </div>
           </section>
+            </>
+          )}
         </main>
+
+        {/* Floating Admin Edit Button */}
+        {isAdmin && (
+          <Link
+            to={`/admin/content-blocks?page=why-iiitk`}
+            className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 transition-all duration-300 group"
+            title="Edit Page Content"
+          >
+            <Edit2 className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
+            <span className="font-semibold">Edit Page</span>
+          </Link>
+        )}
       </div>
     </>
   );

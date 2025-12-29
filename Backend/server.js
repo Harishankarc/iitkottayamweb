@@ -4,7 +4,13 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import sequelize from './config/database.js';
+
+// Get __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load environment variables
 dotenv.config();
@@ -24,6 +30,16 @@ import courseRoutes from './routes/courseRoutes.js';
 import researchPublicationRoutes from './routes/researchPublicationRoutes.js';
 import heroSliderRoutes from './routes/heroSliderRoutes.js';
 import pageContentRoutes from './routes/pageContentRoutes.js';
+import footerRoutes from './routes/footerRoutes.js';
+import navigationRoutes from './routes/navigationRoutes.js';
+import companyLogoRoutes from './routes/companyLogoRoutes.js';
+import nirfRoutes from './routes/nirfRoutes.js';
+import siteSettingsRoutes from './routes/siteSettingsRoutes.js';
+import homepageRoutes from './routes/homepageRoutes.js';
+import contactRoutes from './routes/contactRoutes.js';
+import tenderRoutes from './routes/tenderRoutes.js';
+import newsletterRoutes from './routes/newsletterRoutes.js';
+import contentBlockRoutes from './routes/contentBlockRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -38,10 +54,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev')); // Logging
 
-// Rate limiting
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/images', express.static(path.join(__dirname, 'uploads/images')));
+
+// Rate limiting - relaxed for development
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 1000 // limit each IP to 1000 requests per windowMs (increased for development)
 });
 app.use('/api/', limiter);
 
@@ -69,6 +89,16 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/research-publications', researchPublicationRoutes);
 app.use('/api/hero-sliders', heroSliderRoutes);
 app.use('/api/pages', pageContentRoutes);
+app.use('/api/footer', footerRoutes);
+app.use('/api/navigation', navigationRoutes);
+app.use('/api/company-logos', companyLogoRoutes);
+app.use('/api/nirf', nirfRoutes);
+app.use('/api/site-settings', siteSettingsRoutes);
+app.use('/api/homepage', homepageRoutes);
+app.use('/api/contact', contactRoutes);
+app.use('/api/tenders', tenderRoutes);
+app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/content-blocks', contentBlockRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

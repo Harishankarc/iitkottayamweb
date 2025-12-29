@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "seed": "node seed/seedData.js"
+    "seed": "node seedDatabase.js",
+    "seed:homepage": "node seedHomepageData.js",
+    "seed:missing": "node seedMissingData.js"
   },
   "keywords": ["express", "mysql", "sequelize", "api"],
   "author": "IIIT Kottayam",

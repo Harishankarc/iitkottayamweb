@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import API from '../../api/api';
+import ImageUploader from '../components/ImageUploader';
 
 export default function ManageStudents() {
   const [students, setStudents] = useState([]);
@@ -12,6 +13,7 @@ export default function ManageStudents() {
     name: '',
     rollNumber: '',
     email: '',
+    photo: '',
     program: 'B.Tech',
     branch: '',
     batch: new Date().getFullYear(),
@@ -179,7 +181,7 @@ export default function ManageStudents() {
                 <td className="px-6 py-4 text-sm text-gray-600">{student.batch}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{student.currentSemester}</td>
                 <td className="px-6 py-4 text-sm font-medium" style={{ color: API.color1 }}>
-                  {student.cgpa?.toFixed(2) || 'N/A'}
+                  {student.cgpa ? Number(student.cgpa).toFixed(2) : 'N/A'}
                 </td>
                 <td className="px-6 py-4 text-sm font-medium">
                   <button
@@ -245,6 +247,13 @@ export default function ManageStudents() {
                   className="w-full px-3 py-2 border rounded-lg"
                 />
               </div>
+              <ImageUploader
+                value={formData.photo || ''}
+                onChange={(url) => setFormData({...formData, photo: url})}
+                label="Student Photo"
+                folder="students"
+                aspectRatio="1/1"
+              />
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Program *</label>

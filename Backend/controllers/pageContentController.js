@@ -5,9 +5,16 @@ import PageContent from '../models/PageContent.js';
 // @access  Public
 export const getAllPages = async (req, res, next) => {
   try {
+    const { category, isPublished } = req.query;
+    
+    const where = {};
+    if (category) where.category = category;
+    if (isPublished !== undefined) where.isPublished = isPublished === 'true';
+    else where.isPublished = true; // Default to published only
+
     const pages = await PageContent.findAll({
-      where: { isPublished: true },
-      order: [['pageName', 'ASC']]
+      where,
+      order: [['sortOrder', 'ASC'], ['pageName', 'ASC']]
     });
 
     res.json({

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, Search, GraduationCap, Globe, BookOpen, ChevronRight } from 'lucide-react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
@@ -167,170 +167,44 @@ export default function Faculty() {
   const color2 = API.color2;
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('All');
+  const [facultyData, setFacultyData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Faculty Data
-  const facultyData = [
-    {
-      id: 1,
-      name: 'Prof Ashok S',
-      designation: 'Professor (Scalable Academics)',
-      affiliation: 'Former professor, NIT Calicut',
-      role: 'Adjunct Professor',
-      interests: [
-        'Risk-Cost Management',
-        'Energy Management',
-        'Power System Planning',
-        'Renewable Energy System',
-        'Operations and Power Quality',
-        'Regulatory Economics',
-        'Electricity Market',
-        'Project Management',
-        'Industrial Automation'
-      ],
-      education: 'PhD from Indian Institute of Technology Bombay/Indian Institute of Technology-Kanpur',
-      phone: '+91-482-2202132',
-      email: 'pic.academics at iiitkottayam dot ac.in',
-      room: 'Room No: AC 307',
-      website: '#',
-      image: 'https://placehold.co/70x70/e8f5f0/239244?text=AS'
-    },
-    {
-      id: 2,
-      name: 'Dr. Shajulin Benedict',
-      designation: 'Faculty In-Charge (Data and Information ethics)',
-      affiliation: 'Associate Professor',
-      role: 'Associate Professor',
-      interests: [
-        'Cloud Computing',
-        'IoT',
-        'Neuromorphic',
-        'Energy Computer'
-      ],
-      education: 'Post-Doctoral (Post Doctoral), Writing Professor at TheComputer Sc',
-      phone: '+91-482-2202150',
-      email: 'shajulin at iiitkottayam dot ac.in',
-      room: 'Room No: AC 315',
-      website: '#',
-      image: 'https://placehold.co/70x70/e8f5f0/239244?text=SB'
-    },
-    {
-      id: 3,
-      name: 'Dr. Ebin Deni Raj',
-      designation: 'Associate Dean (Academic Affairs)',
-      affiliation: 'Assistant Professor',
-      role: 'Assistant Professor',
-      interests: [
-        'Biomedical AI',
-        'Pattern Recognition and Learning',
-        'AI for Social Good',
-        'Precision, Accountability and Transparency in AI',
-        'Model Compression',
-        'Social Computing'
-      ],
-      education: 'PhD from IIT BHU Institute of Sciences',
-      phone: '+91-482-2202195',
-      email: 'ebindeniraj at iiitkottayam dot ac.in',
-      room: 'Room No: AA 117 / AA 116',
-      website: '#',
-      image: 'https://placehold.co/70x70/e8f5f0/239244?text=ED'
-    },
-    {
-      id: 4,
-      name: 'Dr. Bakkyaraj T',
-      designation: 'Associate Dean (Hostel Affairs & Student Events)',
-      affiliation: 'Assistant Professor',
-      role: 'Assistant Professor',
-      interests: [
-        'Lab Group Analysis of Nonlinear Differential Equations',
-        'Solitons',
-        'Conservation Theory and Important Numbers'
-      ],
-      education: 'Post-Doc from IIT - University of Santiago, Germany',
-      phone: '+91-482-2202160',
-      email: 'bakkyaraj at iiitkottayam dot ac.in',
-      room: 'Room No: AB 212 / AA 118',
-      website: '#',
-      image: 'https://placehold.co/70x70/e8f5f0/239244?text=BT'
-    },
-    {
-      id: 5,
-      name: 'Dr. Jayakrushna Sahoo',
-      designation: 'HOD (Computer Science & Engineering-I)',
-      affiliation: 'Assistant Professor',
-      role: 'Assistant Professor',
-      interests: [
-        'Peer-to-peer',
-        'Machine Learning',
-        'Smartphone (Digital and Social Sensing)'
-      ],
-      education: 'PhD from IIT Kharagpur',
-      phone: '+91-482-2202164',
-      email: 'jsahoo at iiitkottayam dot ac.in',
-      room: 'Room No: AA 123',
-      website: '#',
-      image: 'https://placehold.co/70x70/e8f5f0/239244?text=JS'
-    },
-    {
-      id: 6,
-      name: 'Dr. Bala S',
-      designation: 'Assistant Professor',
-      affiliation: 'Assistant Professor',
-      role: 'Assistant Professor',
-      interests: [
-        'Memristive-based Architectures',
-        'Emerging Technologies',
-        'FPGA and SoC',
-        'IoT and Embedded systems',
-        'VLSI Circuit and System Design',
-        'Machine Learning'
-      ],
-      education: 'PhD from CUSAT, IISc Bangalore',
-      phone: '+91-482-2202161',
-      email: 'bala at iiitkottayam dot ac.in',
-      room: 'Room No: BC 314',
-      website: '#',
-      image: 'https://placehold.co/70x70/e8f5f0/239244?text=BS'
-    },
-    {
-      id: 7,
-      name: 'Dr. Panchami V',
-      designation: 'HOD (CSE-Cyber Security)',
-      affiliation: 'Assistant Professor',
-      role: 'Assistant Professor',
-      interests: [
-        'Bioinformatics and Data Management',
-        'Blockchain Technology',
-        'IoT Security',
-        'Network Security',
-        'Machine Learning'
-      ],
-      education: 'PhD from Anna University IIITDM',
-      phone: '+91-482-2202151',
-      email: 'panchami036 at iiitkottayam dot ac.in',
-      room: 'Room No: AB 213 / AB 218',
-      website: '#',
-      image: 'https://placehold.co/70x70/e8f5f0/239244?text=PV'
-    },
-    {
-      id: 8,
-      name: 'Dr. P. Victor Paul',
-      designation: 'Faculty In-Charge',
-      affiliation: 'Assistant Professor',
-      role: 'Assistant Professor',
-      interests: [
-        'Data analytics',
-        'Web Science',
-        'Social Networks',
-        'Cloud Computing and Optimization'
-      ],
-      education: 'Ph.D. from Bharathiyar Central University',
-      phone: '+91-482-2202162',
-      email: 'victor at iiitkottayam dot ac.in',
-      room: 'Room No: AC 310',
-      website: '#',
-      image: 'https://placehold.co/70x70/e8f5f0/239244?text=VP'
-    },
-  ];
+  // Fetch Faculty Data from API
+  useEffect(() => {
+    const fetchFaculty = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/faculty');
+        const data = await response.json();
+        
+        if (data.success) {
+          const formattedFaculty = data.data
+            .filter(item => item.isActive)
+            .map(item => ({
+              id: item.id,
+              name: item.name,
+              designation: item.designation,
+              affiliation: item.department,
+              role: item.position || 'Faculty',
+              interests: item.specialization ? item.specialization.split(',').map(s => s.trim()) : [],
+              education: item.qualifications || '',
+              phone: item.phone || '',
+              email: item.email,
+              room: item.office || '',
+              website: item.website || '#',
+              image: item.photo || `https://placehold.co/70x70/e8f5f0/239244?text=${item.name.charAt(0)}`
+            }));
+          setFacultyData(formattedFaculty);
+        }
+      } catch (error) {
+        console.error('Error fetching faculty:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFaculty();
+  }, []);
 
   const roles = ['All', ...new Set(facultyData.map(f => f.role))];
 
@@ -420,7 +294,12 @@ export default function Faculty() {
         </div>
 
         {/* Faculty Cards Grid */}
-        {filteredFaculty.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300" style={{ borderTopColor: color1 }}></div>
+            <p className={`mt-4 text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading faculty data...</p>
+          </div>
+        ) : filteredFaculty.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
             {filteredFaculty.map((faculty) => (
               <FacultyCard key={faculty.id} faculty={faculty} color1={color1} darkMode={darkMode} />

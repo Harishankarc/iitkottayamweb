@@ -1,108 +1,43 @@
 import { useTheme } from '../../context/createContext.jsx';
 import { Newspaper, Video, ExternalLink } from 'lucide-react';
 import API from '../../api/api.jsx';
+import { useState, useEffect } from 'react';
 
 export default function Media() {
     const { darkMode } = useTheme();
+    const [mediaArticles, setMediaArticles] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const mediaArticles = [
-        {
-            source: 'Mathrubhumi Daily',
-            type: 'news',
-            title: 'Read News 7th Convocation',
-            image: '/media/mathrubhumi-convocation.jpg',
-            link: '#',
-            color: '#FF6B35'
-        },
-        {
-            source: 'Manorama Online',
-            type: 'news',
-            title: 'Read News PIN VIKAS skill development programme launched at IIIT Kotta...',
-            image: '/media/manorama-vikas.jpg',
-            link: '#',
-            color: '#E63946'
-        },
-        {
-            source: 'Youtube',
-            type: 'video',
-            title: 'View Video',
-            image: '/media/youtube-skill-dev.jpg',
-            link: '#',
-            color: '#FF0000'
-        },
-        {
-            source: 'X.com',
-            type: 'video',
-            title: 'View Video',
-            image: '/media/x-skill-dev.jpg',
-            link: '#',
-            color: '#000000'
-        },
-        {
-            source: 'The Hindu',
-            type: 'news',
-            title: 'Read News PIN VIKAS skill development programme launched at IIIT Kotta...',
-            image: '/media/hindu-vikas.jpg',
-            link: '#',
-            color: '#000000'
-        },
-        {
-            source: 'Deepika Daily',
-            type: 'news',
-            title: 'Read News One Nation One Election',
-            image: '/media/deepika-election.jpg',
-            link: '#',
-            color: '#8B4513'
-        },
-        {
-            source: 'Youtube',
-            type: 'video',
-            title: 'View Video',
-            image: '/media/youtube-cyber.jpg',
-            link: '#',
-            color: '#FF0000'
-        },
-        {
-            source: 'The New Indian Express',
-            type: 'news',
-            title: 'Read News 1st batch of cyber commandos completes training at IIIT Kottayam in...',
-            image: '/media/indian-express-cyber.jpg',
-            link: '#',
-            color: '#1E3A8A'
-        },
-        {
-            source: 'Manorama Online',
-            type: 'news',
-            title: 'Read News 1st batch of cyber commandos completes training, set for deploy...',
-            image: '/media/manorama-cyber.jpg',
-            link: '#',
-            color: '#E63946'
-        },
-        {
-            source: 'Malayala Manorama Daily',
-            type: 'news',
-            title: 'Read News First batch of cyber commandos completes training at IIIT Kot...',
-            image: '/media/manorama-daily-cyber.jpg',
-            link: '#',
-            color: '#D32F2F'
-        },
-        {
-            source: 'The Hindu',
-            type: 'news',
-            title: 'Read News First batch of cyber commandos completes training at IIIT Kot...',
-            image: '/media/hindu-cyber.jpg',
-            link: '#',
-            color: '#000000'
-        },
-        {
-            source: 'Deepika Daily',
-            type: 'news',
-            title: 'Read News First batch of cyber commandos completes training at IIIT Kot...',
-            image: '/media/deepika-cyber.jpg',
-            link: '#',
-            color: '#8B4513'
-        }
-    ];
+    useEffect(() => {
+        const fetchMedia = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/media');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const formattedMedia = data.data
+                        .filter(item => item.isPublished)
+                        .map(item => ({
+                            source: item.source || 'News',
+                            type: item.type || 'news',
+                            title: item.title,
+                            image: item.thumbnailUrl || item.imageUrl || '/media/placeholder.jpg',
+                            link: item.url || '#',
+                            color: item.type === 'video' ? '#FF0000' : '#1E3A8A'
+                        }));
+                    setMediaArticles(formattedMedia);
+                }
+            } catch (error) {
+                console.error('Error fetching media:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMedia();
+    }, []);
+
+    const api = API;
 
     return (
         <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>

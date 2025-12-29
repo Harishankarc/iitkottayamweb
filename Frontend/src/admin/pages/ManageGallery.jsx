@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Image as ImageIcon } from 'lucide-react';
 import API from '../../api/api';
+import ImageUploader from '../components/ImageUploader';
+import MultiImageUploader from '../components/MultiImageUploader';
 
 export default function ManageGallery() {
   const [gallery, setGallery] = useState([]);
@@ -13,6 +15,8 @@ export default function ManageGallery() {
     eventDate: '',
     description: '',
     category: 'academic',
+    thumbnail: '',
+    images: [],
     isPublished: true,
     isFeatured: false
   });
@@ -208,6 +212,21 @@ export default function ManageGallery() {
                   className="w-full px-3 py-2 border rounded-lg"
                 />
               </div>
+              <ImageUploader
+                value={formData.thumbnail || ''}
+                onChange={(url) => setFormData({...formData, thumbnail: url})}
+                label="Cover/Thumbnail Image"
+                folder="gallery"
+                aspectRatio="16/9"
+              />
+              <MultiImageUploader
+                value={formData.images || []}
+                onChange={(images) => setFormData({...formData, images})}
+                label="Gallery Images"
+                folder="gallery"
+                maxImages={30}
+                aspectRatio="4/3"
+              />
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Event Date *</label>

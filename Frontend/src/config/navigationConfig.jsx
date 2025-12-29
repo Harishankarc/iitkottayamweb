@@ -11,14 +11,14 @@ export const navigationConfig = [
     hasDropdown: false,
     link: '/why-iiitk'
   },
-  {
-    id: 'nirf',
-    label: 'NIRF',
-    hasDropdown: true,
-    submenu: [
-      { id: 'nirf-2025', label: '2025', link: '/nirf/2025' }
-    ]
-  },
+  // {
+  //   id: 'nirf',
+  //   label: 'NIRF',
+  //   hasDropdown: true,
+  //   submenu: [
+  //     { id: 'nirf-2025', label: '2025', link: '/nirf/2025' }
+  //   ]
+  // },
   {
     id: 'institute',
     label: 'Institute',
@@ -93,7 +93,7 @@ export const navigationConfig = [
       { id: 'mind-quest', label: 'Mind Quest', link: '/iic-clubs/mind-quest' },
       { id: 'magazine', label: 'Magazine', link: 'https://iiitkottayam.ac.in/#!/magazine' },
       { id: 'ieee-student-branch', label: 'IEEE Student Branch', link: '/iic-clubs/ieee-student-branch' },
-      { id: 'acm-student-chapter', label: 'ACM Student Chapter', link: '/iic-clubs/acm-student-chapter' }
+      { id: 'acm-student-chapter', label: 'ACM Student Chapter', link: '/iic-clubs/acm' }
     ]
   },
   {
@@ -129,10 +129,58 @@ export const navigationConfig = [
     hasDropdown: false,
     link: '/media'
   },
-  {
-    id:'login',
-    label: 'Login',
-    link: '/login'
-  }
+  
 
+];
+
+// Footer Links Configuration
+export const footerLinks = {
+  col1: [
+    { id: 'lms', name: 'LMS', path: '/lms' },
+    { id: 'idy-2022', name: 'IDY-2022', path: '/idy-2022' },
+    { id: 'placement', name: 'Placement', path: '/placement' },
+    { id: 'sitemap', name: 'Site Map', path: '/sitemap' },
+    { id: 'events', name: 'Events', path: '/events' },
+    { id: 'gallery', name: 'Gallery', path: 'https://drive.google.com/drive/folders/1DY5DYKzb2yzneYGRcmefoTStB0E9JfUu?usp=sharing' }
+  ],
+  col2: [
+    { id: 'matlab', name: 'Matlab Portal', path: 'https://www.mathworks.com/academia/tah-portal/indian-institute-of-information-technology-kottayam-31453279.html' },
+    { id: 'tenders', name: 'Tenders', path: '/tenders' },
+    { id: 'career', name: 'Career', path: '/career' },
+    { id: 'acm', name: 'ACM', path: '/iic-clubs/acm' },
+    { id: 'contact', name: 'Contact', path: '/contact' },
+    { id: 'email', name: 'Institute Email', path: 'https://myaccount.google.com/' }
+  ],
+  col3: [
+    { id: 'pay-fees', name: 'Pay Your Fees', path: 'https://onlinesbi.sbi.bank.in/sbicollect/icollecthome.htm' },
+    { id: 'gymnasium', name: 'Gymnasium', path: '/facilities/gymnasium' },
+    { id: 'ieee', name: 'IEEE', path: '/iic-clubs/ieee-student-branch' },
+    { id: 'hostel', name: 'Hostel', path: '/facilities/hostel' },
+    { id: 'internet', name: 'Internet', path: '/facilities/campus-network' },
+    { id: 'sports-yoga', name: 'Sports & Yoga', path: '/facilities/sports' }
+  ],
+  col4: [
+    { id: 'rti', name: 'RTI', path: '/rti' },
+    { id: 'scholarships', name: 'Scholarships', path: '/institute/scholarship' },
+    { id: 'icc', name: 'ICC', path: '/icc' },
+    { id: 'grievance', name: 'Grievance', path: 'https://iiitkottayam.ac.in/data/pdf/Grievance%20Redressal%20Committee.pdf' },
+    { id: 'anti-ragging', name: 'Anti-Ragging', path: '/anti-ragging' },
+    { id: 'reach-us', name: 'Reach Us', path: '/contact' }
+  ]
+};
+
+export const footerReports = [
+  { id: 'annual-reports', name: 'Annual Reports', path: '/reports/annual' },
+  { id: 'accounts', name: 'Accounts', path: '/reports/accounts' },
+  { id: 'budget', name: 'Budget', path: '/reports/budget' },
+  { id: 'act-statutes', name: 'Act & Statutes', path: '/institute/governance' },
+  { id: 'quality-policy', name: 'Quality Policy', path: '/quality-policy' },
+  { id: 'iso', name: 'ISO 9001:2015', path: '/iso-certification' }
+];
+
+export const footerLegal = [
+  { id: 'accessibility', name: 'Accessibility', path: '/accessibility' },
+  { id: 'privacy', name: 'Privacy Policy', path: '/privacy-policy' },
+  { id: 'terms', name: 'Terms of Use', path: '/terms-of-use' },
+  { id: 'sitemap', name: 'Sitemap', path: '/sitemap' }
 ];

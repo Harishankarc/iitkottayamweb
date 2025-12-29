@@ -1,4 +1,4 @@
- import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Camera, Calendar, Users, Award, Palette, Activity, ExternalLink } from 'lucide-react';
@@ -107,58 +107,49 @@ export default function Gallery() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
   const color2 = API.color2;
+  const [eventGalleries, setEventGalleries] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Event galleries data based on the reference
-  const eventGalleries = [
-    {
-      id: 1,
-      title: 'IEEE CONFERENCE',
-      date: 'February 2020',
-      description: 'IEEE Conference proceedings and networking sessions with distinguished participants.',
-      imageCount: 6,
-      icon: Award
-    },
-    {
-      id: 2,
-      title: 'Inter-IIIT20 Jabalpur',
-      date: 'February 2020',
-      description: 'Inter IIIT Sports Meet (Gusto 2020) at Jabalpur showcasing athletic excellence.',
-      imageCount: 6,
-      icon: Activity
-    },
-    {
-      id: 3,
-      title: 'Republic Day 2020',
-      date: 'January 26 2020',
-      description: 'Republic day celebrations with patriotic fervor and cultural programs.',
-      imageCount: 6,
-      icon: Calendar
-    },
-    {
-      id: 4,
-      title: 'Dhruva 2019',
-      date: 'March 2019',
-      description: 'Annual technical and cultural festival celebrating innovation and creativity.',
-      imageCount: 6,
-      icon: Users
-    },
-    {
-      id: 5,
-      title: 'International Day of Yoga 2019',
-      date: '21st June 2019',
-      description: 'Yoga Day Celebrations on 21st June 2019 promoting harmony and peace.',
-      imageCount: 6,
-      icon: Activity
-    },
-    {
-      id: 6,
-      title: 'ENLACE 2019',
-      date: '22nd & 23rd March 2019',
-      description: 'Enlace- Cultural Programme held on 22nd & 23rd March 2019.',
-      imageCount: 6,
-      icon: Palette
-    }
-  ];
+  useEffect(() => {
+    const fetchGallery = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/gallery');
+        const data = await response.json();
+        
+        if (data.success) {
+          const formattedGallery = data.data
+            .filter(item => item.isPublished)
+            .map(item => ({
+              id: item.id,
+              title: item.title,
+              date: item.eventDate ? new Date(item.eventDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '',
+              description: item.description || '',
+              imageCount: item.images ? JSON.parse(item.images).length : 6,
+              icon: getIconForCategory(item.category)
+            }));
+          setEventGalleries(formattedGallery);
+        }
+      } catch (error) {
+        console.error('Error fetching gallery:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGallery();
+  }, []);
+
+  const getIconForCategory = (category) => {
+    const iconMap = {
+      'conference': Award,
+      'sports': Activity,
+      'cultural': Palette,
+      'festival': Users,
+      'celebration': Calendar,
+      'default': Camera
+    };
+    return iconMap[category?.toLowerCase()] || iconMap.default;
+  };
 
   // Gallery features
   const galleryFeatures = [

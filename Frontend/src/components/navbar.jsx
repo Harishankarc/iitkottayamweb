@@ -65,7 +65,7 @@ export default function NavBar() {
             <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden lg:block">
               NIWAHIKA
             </a>
-            <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden lg:block">
+            <a href="/rti" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden lg:block">
               RTI
             </a>
             <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden lg:block">
