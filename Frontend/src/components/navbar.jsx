@@ -25,6 +25,7 @@ export default function NavBar() {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isGoogleTranslateReady, setIsGoogleTranslateReady] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -35,12 +36,86 @@ export default function NavBar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Check if Google Translate is ready
+  useEffect(() => {
+    const checkGoogleTranslate = () => {
+      // Check both the DOM element and window flag
+      const selectElement = document.querySelector('.goog-te-combo');
+      const scriptLoaded = window.googleTranslateScriptLoaded;
+      const isReady = window.googleTranslateReady;
+      
+      if (selectElement || isReady) {
+        setIsGoogleTranslateReady(true);
+        console.log('Google Translate is ready');
+        return true;
+      }
+      
+      // Log script loading status
+      if (scriptLoaded === false) {
+        console.error('Google Translate script failed to load - may be blocked by firewall/network');
+      }
+      
+      return false;
+    };
+
+    // Check immediately
+    if (checkGoogleTranslate()) return;
+
+    // Check periodically
+    const interval = setInterval(() => {
+      if (checkGoogleTranslate()) {
+        clearInterval(interval);
+      }
+    }, 500);
+
+    // Clear after 15 seconds
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      if (!isGoogleTranslateReady) {
+        console.warn('Google Translate did not load - translation features disabled');
+        console.warn('This may be due to: network issues, firewall blocking Google domains, or browser extensions');
+      }
+    }, 15000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, []);
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
+  };
+
+  // Function to trigger Google Translate
+  const changeLanguage = (lang) => {
+    setLanguage(lang);
+    
+    // Map display names to Google Translate language codes
+    const langMap = {
+      'മലയാളം': 'ml',
+      'हिं': 'hi',
+      'ENG': 'en'
+    };
+    
+    const langCode = langMap[lang];
+    
+    if (!isGoogleTranslateReady) {
+      console.warn('Google Translate is not ready yet');
+      return;
+    }
+    
+    // Trigger Google Translate
+    const selectElement = document.querySelector('.goog-te-combo');
+    if (selectElement) {
+      selectElement.value = langCode;
+      selectElement.dispatchEvent(new Event('change'));
+      console.log('Language changed to:', langCode);
+    }
   };
 
   return (
@@ -116,7 +191,7 @@ export default function NavBar() {
               {['മലയാളം', 'हिं', 'ENG'].map((lang, index) => (
                 <React.Fragment key={`${lang}-${darkMode}`}>
                   <button
-                    onClick={() => setLanguage(lang)}
+                    onClick={() => changeLanguage(lang)}
                     style={{
                       color: darkMode 
                         ? (language === lang ? '#facc15' : '#fef08a') 

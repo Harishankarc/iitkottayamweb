@@ -25,7 +25,7 @@ export default function ManagePages() {
   const fetchPages = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/page-contents', {
+      const response = await fetch('http://localhost:5000/api/pages', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -42,8 +42,8 @@ export default function ManagePages() {
     try {
       const token = localStorage.getItem('token');
       const url = editingPage 
-        ? `http://localhost:5000/api/page-contents/${editingPage.id}`
-        : 'http://localhost:5000/api/page-contents';
+        ? `http://localhost:5000/api/pages/${editingPage.id}`
+        : 'http://localhost:5000/api/pages';
       
       const response = await fetch(url, {
         method: editingPage ? 'PUT' : 'POST',
@@ -97,13 +97,45 @@ export default function ManagePages() {
 
   // Predefined pages that should exist
   const suggestedPages = [
+    // Institute & General
     { name: 'homepage', title: 'Homepage', slug: '/' },
     { name: 'why-iiitk', title: 'Why IIIT Kottayam', slug: '/why-iiitk' },
     { name: 'about', title: 'About Us', slug: '/about' },
     { name: 'admissions', title: 'Admissions', slug: '/admissions' },
     { name: 'academics', title: 'Academics', slug: '/academics' },
-    { name: 'research', title: 'Research', slug: '/research' },
+    { name: 'research-groups', title: 'Research Groups', slug: '/research-groups' },
     { name: 'placements', title: 'Placements', slug: '/placements' },
+    { name: 'nirf', title: 'NIRF', slug: '/nirf' },
+    { name: 'governance', title: 'Governance', slug: '/governance' },
+    { name: 'scholarships', title: 'Scholarships', slug: '/scholarships' },
+    // Courses
+    { name: 'btech-cse', title: 'B.Tech CSE', slug: '/course/btech-cse' },
+    { name: 'btech-ece', title: 'B.Tech ECE', slug: '/course/btech-ece' },
+    { name: 'btech-cybersecurity', title: 'B.Tech Cybersecurity', slug: '/course/btech-cybersecurity' },
+    { name: 'btech-ai-ds', title: 'B.Tech AI & Data Science', slug: '/course/btech-ai-ds' },
+    // Facilities
+    { name: 'hostel', title: 'Hostel', slug: '/facilities/hostel' },
+    { name: 'gym', title: 'Gymnasium', slug: '/facilities/gym' },
+    { name: 'internet', title: 'Internet', slug: '/facilities/internet' },
+    { name: 'campus-network', title: 'Campus Network', slug: '/facilities/campus-network' },
+    { name: 'medical-centre', title: 'Medical Centre', slug: '/facilities/medical-centre' },
+    { name: 'student-mess', title: 'Student Mess', slug: '/facilities/student-mess' },
+    { name: 'security', title: 'Security', slug: '/facilities/security' },
+    { name: 'sports', title: 'Sports', slug: '/facilities/sports' },
+    { name: 'bank-atm', title: 'Bank/ATM', slug: '/facilities/bank-atm' },
+    // IIC & Clubs
+    { name: 'innovation-cell', title: 'Innovation Cell', slug: '/iic-clubs/innovation-cell' },
+    { name: 'cultural-club', title: 'Cultural Club', slug: '/iic-clubs/cultural-club' },
+    { name: 'technical-club', title: 'Technical Club', slug: '/iic-clubs/technical-club' },
+    { name: 'sports-club', title: 'Sports Club', slug: '/iic-clubs/sports-club' },
+    { name: 'fdp-webinars', title: 'FDP & Webinars', slug: '/iic-clubs/fdp-webinars' },
+    { name: 'trendles-club', title: 'Trendles Club', slug: '/iic-clubs/trendles-club' },
+    { name: 'cyber-security-club', title: 'Cyber Security Club', slug: '/iic-clubs/cyber-security-club' },
+    { name: 'mind-quest', title: 'Mind Quest', slug: '/iic-clubs/mind-quest' },
+    { name: 'ieee-student-branch', title: 'IEEE Student Branch', slug: '/iic-clubs/ieee-student-branch' },
+    { name: 'acm', title: 'ACM Student Chapter', slug: '/iic-clubs/acm' },
+    // Others
+    { name: 'gallery', title: 'Gallery', slug: '/gallery' },
     { name: 'campus-life', title: 'Campus Life', slug: '/campus-life' },
     { name: 'contact', title: 'Contact Us', slug: '/contact' }
   ];

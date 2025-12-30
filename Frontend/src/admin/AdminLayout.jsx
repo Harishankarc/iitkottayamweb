@@ -53,7 +53,7 @@ export default function AdminLayout() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    navigate('/login');
+    navigate('/');
   };
 
   const toggleSection = (sectionId) => {
@@ -120,8 +120,15 @@ export default function AdminLayout() {
       icon: Users,
       hasDropdown: true,
       submenu: [
+        { icon: UserCog, label: 'Administration', path: '/admin/administration' },
+        { icon: UserCog, label: 'Head of Department', path: '/admin/hod' },
         { icon: UserCog, label: 'Faculty', path: '/admin/faculty' },
-        { icon: GraduationCap, label: 'Students', path: '/admin/students' }
+        { icon: UserCog, label: 'Technical Staff', path: '/admin/technical-staff' },
+        { icon: UserCog, label: 'Support Staff', path: '/admin/support-staff' },
+        { icon: GraduationCap, label: 'Research Scholars', path: '/admin/research-scholars' },
+        { icon: GraduationCap, label: 'B.Tech Students', path: '/admin/btech-students' },
+        { icon: GraduationCap, label: 'M.Tech Students', path: '/admin/mtech-students' },
+        { icon: Users, label: 'Gender Index', path: '/admin/gender-index' }
       ]
     },
     {

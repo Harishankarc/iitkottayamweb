@@ -6,8 +6,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="/src/style.css" rel="stylesheet">
     <title>Welcome to IIIT Kottayam </title>
+    <!-- Google Translate CSS -->
+    <style>
+      /* Hide Google Translate banner and toolbar */
+      .goog-te-banner-frame.skiptranslate {
+        display: none !important;
+      }
+      
+      /* Fix body top position issue caused by Google Translate */
+      body {
+        top: 0px !important;
+        position: static !important;
+      }
+      
+      /* Hide Google Translate branding */
+      .goog-logo-link {
+        display: none !important;
+      }
+      
+      .goog-te-gadget {
+        color: transparent !important;
+      }
+      
+      /* Hide the translate element completely */
+      #google_translate_element {
+        position: absolute;
+        left: -9999px;
+        visibility: hidden;
+      }
+      
+      /* Hide all Google Translate UI elements */
+      .skiptranslate {
+        display: none !important;
+      }
+      
+      /* Prevent iframe from showing */
+      .goog-te-banner-frame {
+        display: none !important;
+      }
+    </style>
+    <!-- Google Translate -->
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        try {
+          new google.translate.TranslateElement({
+            pageLanguage: 'en',
+            includedLanguages: 'en,hi,ml',
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+            autoDisplay: false
+          }, 'google_translate_element');
+          console.log('Google Translate initialized successfully');
+          window.googleTranslateReady = true;
+        } catch (error) {
+          console.error('Error initializing Google Translate:', error);
+        }
+      }
+      
+      // Track script loading
+      window.googleTranslateReady = false;
+      window.googleTranslateScriptLoaded = false;
+      
+      // Fallback if callback doesn't fire
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          if (typeof google !== 'undefined' && google.translate && !document.querySelector('.goog-te-combo')) {
+            googleTranslateElementInit();
+          } else if (typeof google === 'undefined') {
+            console.error('Google Translate script failed to load - check network/firewall');
+          }
+        }, 2000);
+      });
+    </script>
+    <script 
+      type="text/javascript" 
+      src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+      onerror="console.error('Failed to load Google Translate script'); window.googleTranslateScriptLoaded = false;"
+      onload="window.googleTranslateScriptLoaded = true; console.log('Google Translate script loaded');"
+    ></script>
   </head>
   <body>
+    <div id="google_translate_element" style="display: none;"></div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

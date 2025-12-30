@@ -30,16 +30,11 @@ import courseRoutes from './routes/courseRoutes.js';
 import researchPublicationRoutes from './routes/researchPublicationRoutes.js';
 import heroSliderRoutes from './routes/heroSliderRoutes.js';
 import pageContentRoutes from './routes/pageContentRoutes.js';
+import contentBlockRoutes from './routes/contentBlockRoutes.js';
 import footerRoutes from './routes/footerRoutes.js';
 import navigationRoutes from './routes/navigationRoutes.js';
-import companyLogoRoutes from './routes/companyLogoRoutes.js';
-import nirfRoutes from './routes/nirfRoutes.js';
-import siteSettingsRoutes from './routes/siteSettingsRoutes.js';
-import homepageRoutes from './routes/homepageRoutes.js';
-import contactRoutes from './routes/contactRoutes.js';
-import tenderRoutes from './routes/tenderRoutes.js';
-import newsletterRoutes from './routes/newsletterRoutes.js';
-import contentBlockRoutes from './routes/contentBlockRoutes.js';
+import peopleRoutes from './routes/peopleRoutes.js';
+import companyRoutes from './routes/companyRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -89,16 +84,11 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/research-publications', researchPublicationRoutes);
 app.use('/api/hero-sliders', heroSliderRoutes);
 app.use('/api/pages', pageContentRoutes);
+app.use('/api/content-blocks', contentBlockRoutes);
 app.use('/api/footer', footerRoutes);
 app.use('/api/navigation', navigationRoutes);
-app.use('/api/company-logos', companyLogoRoutes);
-app.use('/api/nirf', nirfRoutes);
-app.use('/api/site-settings', siteSettingsRoutes);
-app.use('/api/homepage', homepageRoutes);
-app.use('/api/contact', contactRoutes);
-app.use('/api/tenders', tenderRoutes);
-app.use('/api/newsletter', newsletterRoutes);
-app.use('/api/content-blocks', contentBlockRoutes);
+app.use('/api/people', peopleRoutes);
+app.use('/api/company-logos', companyRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

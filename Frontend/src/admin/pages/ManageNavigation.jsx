@@ -24,14 +24,16 @@ export default function ManageNavigation() {
 
   const fetchNavItems = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/navigation', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      setNavItems(data.data || []);
+      const result = await API.get('/api/navigation');
+      if (result.success) {
+        setNavItems(result.data.data || []);
+      } else {
+        console.error('Error fetching navigation:', result.error);
+        alert('Failed to load navigation items. Please try again.');
+      }
     } catch (error) {
       console.error('Error:', error);
+      alert('Failed to load navigation items. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -40,41 +42,37 @@ export default function ManageNavigation() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      const url = editingItem 
-        ? `http://localhost:5000/api/navigation/${editingItem.id}`
-        : 'http://localhost:5000/api/navigation';
+      const result = editingItem 
+        ? await API.put(`/api/navigation/${editingItem.id}`, formData)
+        : await API.post('/api/navigation', formData);
       
-      const response = await fetch(url, {
-        method: editingItem ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
+      if (result.success) {
         fetchNavItems();
         setShowModal(false);
         resetForm();
+        alert(editingItem ? 'Navigation item updated successfully!' : 'Navigation item created successfully!');
+      } else {
+        alert('Failed to save navigation item: ' + result.error);
       }
     } catch (error) {
       console.error('Error:', error);
+      alert('Failed to save navigation item. Please try again.');
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure?')) return;
+    if (!window.confirm('Are you sure you want to delete this navigation item?')) return;
     try {
-      const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/navigation/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      fetchNavItems();
+      const result = await API.delete(`/api/navigation/${id}`);
+      if (result.success) {
+        fetchNavItems();
+        alert('Navigation item deleted successfully!');
+      } else {
+        alert('Failed to delete navigation item: ' + result.error);
+      }
     } catch (error) {
       console.error('Error:', error);
+      alert('Failed to delete navigation item. Please try again.');
     }
   };
 
@@ -165,52 +163,50 @@ export default function ManageNavigation() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg w-full max-w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="p-6">
               <h2 className="text-xl font-bold mb-4" style={{ color: API.color1 }}>
                 {editingItem ? 'Edit Menu Item' : 'Add Menu Item'}
               </h2>
               <form onSubmit={handleSubmit}>
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
-                    <input type="text" value={formData.label} onChange={(e) => setFormData({ ...formData, label: e.target.value })} className="w-full px-3 py-2 border rounded-lg" required />
+                    <input type="text" value={formData.label} onChange={(e) => setFormData({ ...formData, label: e.target.value })} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500" required />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Path</label>
-                    <input type="text" value={formData.path} onChange={(e) => setFormData({ ...formData, path: e.target.value })} className="w-full px-3 py-2 border rounded-lg" placeholder="/about" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
-                      <input type="number" value={formData.displayOrder} onChange={(e) => setFormData({ ...formData, displayOrder: parseInt(e.target.value) })} className="w-full px-3 py-2 border rounded-lg" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Icon</label>
-                      <input type="text" value={formData.icon} onChange={(e) => setFormData({ ...formData, icon: e.target.value })} className="w-full px-3 py-2 border rounded-lg" placeholder="icon-name" />
-                    </div>
+                    <input type="text" value={formData.path} onChange={(e) => setFormData({ ...formData, path: e.target.value })} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500" placeholder="/about" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Children (JSON)</label>
-                    <textarea value={formData.children} onChange={(e) => setFormData({ ...formData, children: e.target.value })} className="w-full px-3 py-2 border rounded-lg font-mono text-sm" rows="3" placeholder='[{"label":"Sub Item","path":"/path"}]' />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
+                    <input type="number" value={formData.displayOrder} onChange={(e) => setFormData({ ...formData, displayOrder: parseInt(e.target.value) })} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500" />
                   </div>
-                  <div className="flex gap-4">
-                    <label className="flex items-center">
-                      <input type="checkbox" checked={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} className="mr-2" />
-                      <span className="text-sm">Active</span>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Icon</label>
+                    <input type="text" value={formData.icon} onChange={(e) => setFormData({ ...formData, icon: e.target.value })} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500" placeholder="icon-name" />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Children (JSON) - Optional submenu items</label>
+                    <textarea value={formData.children} onChange={(e) => setFormData({ ...formData, children: e.target.value })} className="w-full px-3 py-2 border rounded-lg font-mono text-sm focus:ring-2 focus:ring-green-500" rows="4" placeholder='[{"label":"Sub Item","path":"/path"}]' />
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <label className="flex items-center cursor-pointer">
+                      <input type="checkbox" checked={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} className="mr-2 h-5 w-5 text-green-600 focus:ring-green-500 rounded" />
+                      <span className="text-sm font-medium">Active</span>
                     </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" checked={formData.isExternal} onChange={(e) => setFormData({ ...formData, isExternal: e.target.checked })} className="mr-2" />
-                      <span className="text-sm">External Link</span>
+                    <label className="flex items-center cursor-pointer">
+                      <input type="checkbox" checked={formData.isExternal} onChange={(e) => setFormData({ ...formData, isExternal: e.target.checked })} className="mr-2 h-5 w-5 text-green-600 focus:ring-green-500 rounded" />
+                      <span className="text-sm font-medium">External Link</span>
                     </label>
                   </div>
                 </div>
-                <div className="flex gap-2 mt-6">
-                  <button type="submit" className="px-4 py-2 text-white rounded-lg" style={{ backgroundColor: API.color1 }}>
-                    {editingItem ? 'Update' : 'Create'}
+                <div className="flex gap-3 mt-6 pt-6 border-t">
+                  <button type="submit" className="px-6 py-2.5 text-white rounded-lg hover:opacity-90 transition-opacity font-medium" style={{ backgroundColor: API.color1 }}>
+                    {editingItem ? 'Update Menu Item' : 'Create Menu Item'}
                   </button>
-                  <button type="button" onClick={() => { setShowModal(false); resetForm(); }} className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg">
+                  <button type="button" onClick={() => { setShowModal(false); resetForm(); }} className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium">
                     Cancel
                   </button>
                 </div>

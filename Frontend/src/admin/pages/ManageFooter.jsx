@@ -161,17 +161,17 @@ export default function ManageFooter() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg w-full max-w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="p-6">
               <h2 className="text-xl font-bold mb-4" style={{ color: API.color1 }}>
                 {editingItem ? 'Edit Footer Item' : 'Add Footer Item'}
               </h2>
               <form onSubmit={handleSubmit}>
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
-                    <select value={formData.section} onChange={(e) => setFormData({ ...formData, section: e.target.value })} className="w-full px-3 py-2 border rounded-lg">
+                    <select value={formData.section} onChange={(e) => setFormData({ ...formData, section: e.target.value })} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500">
                       <option value="about">About</option>
                       <option value="quickLinks">Quick Links</option>
                       <option value="contact">Contact</option>
@@ -180,32 +180,32 @@ export default function ManageFooter() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                    <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-3 py-2 border rounded-lg" required />
+                    <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500" required />
                   </div>
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
-                    <textarea value={formData.content} onChange={(e) => setFormData({ ...formData, content: e.target.value })} className="w-full px-3 py-2 border rounded-lg" rows="4" />
+                    <textarea value={formData.content} onChange={(e) => setFormData({ ...formData, content: e.target.value })} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500" rows="4" />
                   </div>
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Links (JSON format)</label>
-                    <textarea value={formData.links} onChange={(e) => setFormData({ ...formData, links: e.target.value })} className="w-full px-3 py-2 border rounded-lg font-mono text-sm" rows="3" placeholder='[{"label":"Home","url":"/"}]' />
+                    <textarea value={formData.links} onChange={(e) => setFormData({ ...formData, links: e.target.value })} className="w-full px-3 py-2 border rounded-lg font-mono text-sm focus:ring-2 focus:ring-green-500" rows="3" placeholder='[{"label":"Home","url":"/"}]' />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
-                    <input type="number" value={formData.displayOrder} onChange={(e) => setFormData({ ...formData, displayOrder: parseInt(e.target.value) })} className="w-full px-3 py-2 border rounded-lg" />
+                    <input type="number" value={formData.displayOrder} onChange={(e) => setFormData({ ...formData, displayOrder: parseInt(e.target.value) })} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500" />
                   </div>
-                  <div>
-                    <label className="flex items-center">
-                      <input type="checkbox" checked={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} className="mr-2" />
-                      <span className="text-sm">Active</span>
+                  <div className="flex items-center">
+                    <label className="flex items-center cursor-pointer">
+                      <input type="checkbox" checked={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} className="mr-2 h-5 w-5 text-green-600 focus:ring-green-500 rounded" />
+                      <span className="text-sm font-medium">Active</span>
                     </label>
                   </div>
                 </div>
-                <div className="flex gap-2 mt-6">
-                  <button type="submit" className="px-4 py-2 text-white rounded-lg" style={{ backgroundColor: API.color1 }}>
-                    {editingItem ? 'Update' : 'Create'}
+                <div className="flex gap-3 mt-6 pt-6 border-t">
+                  <button type="submit" className="px-6 py-2.5 text-white rounded-lg hover:opacity-90 transition-opacity font-medium" style={{ backgroundColor: API.color1 }}>
+                    {editingItem ? 'Update Footer Item' : 'Create Footer Item'}
                   </button>
-                  <button type="button" onClick={() => { setShowModal(false); resetForm(); }} className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg">
+                  <button type="button" onClick={() => { setShowModal(false); resetForm(); }} className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium">
                     Cancel
                   </button>
                 </div>

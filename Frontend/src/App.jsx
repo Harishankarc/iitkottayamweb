@@ -75,6 +75,14 @@ import ManagePageContent from './admin/pages/ManagePageContent';
 import ManageContentBlocks from './admin/pages/ManageContentBlocks';
 import ManagePages from './admin/pages/ManagePages';
 import VisualPageEditor from './admin/pages/VisualPageEditor';
+import ManageAdministration from './admin/pages/ManageAdministration';
+import ManageHOD from './admin/pages/ManageHOD';
+import ManageTechnicalStaff from './admin/pages/ManageTechnicalStaff';
+import ManageSupportStaff from './admin/pages/ManageSupportStaff';
+import ManageResearchScholars from './admin/pages/ManageResearchScholars';
+import ManageBTechStudents from './admin/pages/ManageBTechStudents';
+import ManageMTechStudents from './admin/pages/ManageMTechStudents';
+import ManageGenderIndex from './admin/pages/ManageGenderIndex';
 import LMSLinks from './screens/footer/lmsLinks';
 import IDY2022 from './screens/footer/idy-2022';
 import SiteMap from './screens/footer/siteMap';
@@ -118,6 +126,14 @@ function App() {
             <Route path="page-content" element={<ManagePageContent />} />
             <Route path="content-blocks" element={<ManageContentBlocks />} />
             <Route path="visual-editor" element={<VisualPageEditor />} />
+            <Route path="administration" element={<ManageAdministration />} />
+            <Route path="hod" element={<ManageHOD />} />
+            <Route path="technical-staff" element={<ManageTechnicalStaff />} />
+            <Route path="support-staff" element={<ManageSupportStaff />} />
+            <Route path="research-scholars" element={<ManageResearchScholars />} />
+            <Route path="btech-students" element={<ManageBTechStudents />} />
+            <Route path="mtech-students" element={<ManageMTechStudents />} />
+            <Route path="gender-index" element={<ManageGenderIndex />} />
             <Route path="settings" element={<ManageSiteSettings />} />
           </Route>
 

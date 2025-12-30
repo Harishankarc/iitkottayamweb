@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, Eye, EyeOff, LogIn } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, LogIn, Home } from 'lucide-react';
 import API from '../api/api';
 
 export default function Login() {
@@ -62,8 +62,26 @@ export default function Login() {
          }}>
       
       {/* Login Card */}
-      <div className="max-w-md w-full space-y-8 bg-white rounded-2xl shadow-2xl p-8 md:p-12">
+      <div className="max-w-md w-full space-y-8 bg-white rounded-2xl shadow-2xl p-8 md:p-12 relative">
         
+        {/* Back to Home Button */}
+        <button
+          onClick={() => navigate('/')}
+          className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-white rounded-lg transition-all duration-200 hover:scale-105"
+          style={{
+            background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = `linear-gradient(135deg, ${API.color1} 0%, ${API.color2} 100%)`;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)';
+          }}
+        >
+          <Home className="h-4 w-4" />
+          <span>Back</span>
+        </button>
+
         {/* Header */}
         <div className="text-center">
           <div className="mx-auto h-16 w-16 rounded-full flex items-center justify-center mb-4" 

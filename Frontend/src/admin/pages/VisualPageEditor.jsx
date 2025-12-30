@@ -21,6 +21,56 @@ export default function VisualPageEditor() {
   const [showBlockPanel, setShowBlockPanel] = useState(true);
   const [editingContent, setEditingContent] = useState(null);
 
+  // Define all available pages
+  const AVAILABLE_PAGES = [
+    { category: 'Institute & General', pages: [
+      { pageName: 'homepage', pageTitle: 'Homepage' },
+      { pageName: 'why-iiitk', pageTitle: 'Why IIIT Kottayam' },
+      { pageName: 'about', pageTitle: 'About' },
+      { pageName: 'admissions', pageTitle: 'Admissions' },
+      { pageName: 'academics', pageTitle: 'Academics' },
+      { pageName: 'research-groups', pageTitle: 'Research Groups' },
+      { pageName: 'placements', pageTitle: 'Placements' },
+      { pageName: 'nirf', pageTitle: 'NIRF' },
+      { pageName: 'governance', pageTitle: 'Governance' },
+      { pageName: 'scholarships', pageTitle: 'Scholarships' }
+    ]},
+    { category: 'Courses', pages: [
+      { pageName: 'btech-cse', pageTitle: 'B.Tech CSE' },
+      { pageName: 'btech-ece', pageTitle: 'B.Tech ECE' },
+      { pageName: 'btech-cybersecurity', pageTitle: 'B.Tech Cybersecurity' },
+      { pageName: 'btech-ai-ds', pageTitle: 'B.Tech AI & Data Science' }
+    ]},
+    { category: 'Facilities', pages: [
+      { pageName: 'hostel', pageTitle: 'Hostel' },
+      { pageName: 'gym', pageTitle: 'Gymnasium' },
+      { pageName: 'internet', pageTitle: 'Internet' },
+      { pageName: 'campus-network', pageTitle: 'Campus Network' },
+      { pageName: 'medical-centre', pageTitle: 'Medical Centre' },
+      { pageName: 'student-mess', pageTitle: 'Student Mess' },
+      { pageName: 'security', pageTitle: 'Security' },
+      { pageName: 'sports', pageTitle: 'Sports' },
+      { pageName: 'bank-atm', pageTitle: 'Bank/ATM' }
+    ]},
+    { category: 'IIC & Clubs', pages: [
+      { pageName: 'innovation-cell', pageTitle: 'Innovation Cell' },
+      { pageName: 'cultural-club', pageTitle: 'Cultural Club' },
+      { pageName: 'technical-club', pageTitle: 'Technical Club' },
+      { pageName: 'sports-club', pageTitle: 'Sports Club' },
+      { pageName: 'fdp-webinars', pageTitle: 'FDP & Webinars' },
+      { pageName: 'trendles-club', pageTitle: 'Trendles Club' },
+      { pageName: 'cyber-security-club', pageTitle: 'Cyber Security Club' },
+      { pageName: 'mind-quest', pageTitle: 'Mind Quest' },
+      { pageName: 'ieee-student-branch', pageTitle: 'IEEE Student Branch' },
+      { pageName: 'acm', pageTitle: 'ACM Student Chapter' }
+    ]},
+    { category: 'Others', pages: [
+      { pageName: 'gallery', pageTitle: 'Gallery' },
+      { pageName: 'campus-life', pageTitle: 'Campus Life' },
+      { pageName: 'contact', pageTitle: 'Contact' }
+    ]}
+  ];
+
   useEffect(() => {
     fetchPages();
   }, []);
@@ -428,10 +478,14 @@ export default function VisualPageEditor() {
               onChange={(e) => setSelectedPage(e.target.value)}
               className="px-4 py-2 border-2 border-gray-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white hover:border-gray-400 transition-colors"
             >
-              {pages.map(page => (
-                <option key={page.pageName} value={page.pageName}>
-                  {page.pageTitle}
-                </option>
+              {AVAILABLE_PAGES.map(group => (
+                <optgroup key={group.category} label={group.category}>
+                  {group.pages.map(page => (
+                    <option key={page.pageName} value={page.pageName}>
+                      {page.pageTitle}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </div>

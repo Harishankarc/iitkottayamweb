@@ -20,7 +20,7 @@ export function usePageContent(pageName) {
 
     try {
       // Fetch page metadata
-      const pageResponse = await API.get(`/api/page-contents?pageName=${pageName}`);
+      const pageResponse = await API.get(`/api/pages/${pageName}`);
       if (pageResponse.success && pageResponse.data.data && pageResponse.data.data.length > 0) {
         const page = pageResponse.data.data[0];
         setPageContent(page);
