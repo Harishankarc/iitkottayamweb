@@ -25,7 +25,7 @@ export default function ManageAnnouncements() {
   const fetchAnnouncements = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/announcements', {
+      const response = await fetch(`${API.baseURL}/api/announcements`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -42,8 +42,8 @@ export default function ManageAnnouncements() {
     try {
       const token = localStorage.getItem('token');
       const url = editingItem 
-        ? `http://localhost:5000/api/announcements/${editingItem.id}`
-        : 'http://localhost:5000/api/announcements';
+        ? `${API.baseURL}/api/announcements/${editingItem.id}`
+        : `${API.baseURL}/api/announcements`;
       
       const response = await fetch(url, {
         method: editingItem ? 'PUT' : 'POST',
@@ -69,7 +69,7 @@ export default function ManageAnnouncements() {
     
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/announcements/${id}`, {
+      await fetch(`${API.baseURL}/api/announcements/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

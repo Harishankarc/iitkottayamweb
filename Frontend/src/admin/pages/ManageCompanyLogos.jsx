@@ -26,7 +26,7 @@ export default function ManageCompanyLogos() {
   const fetchLogos = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/company-logos', {
+      const response = await fetch(`${API.baseURL}/api/company-logos`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -43,8 +43,8 @@ export default function ManageCompanyLogos() {
     try {
       const token = localStorage.getItem('token');
       const url = editingItem 
-        ? `http://localhost:5000/api/company-logos/${editingItem.id}`
-        : 'http://localhost:5000/api/company-logos';
+        ? `${API.baseURL}/api/company-logos/${editingItem.id}`
+        : `${API.baseURL}/api/company-logos`;
       
       const response = await fetch(url, {
         method: editingItem ? 'PUT' : 'POST',
@@ -69,7 +69,7 @@ export default function ManageCompanyLogos() {
     if (!window.confirm('Are you sure?')) return;
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/company-logos/${id}`, {
+      await fetch(`${API.baseURL}/api/company-logos/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

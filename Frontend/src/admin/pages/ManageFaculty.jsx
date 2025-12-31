@@ -29,7 +29,7 @@ export default function ManageFaculty() {
   const fetchFaculty = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/faculty', {
+      const response = await fetch(`${API.baseURL}/api/faculty`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -46,8 +46,8 @@ export default function ManageFaculty() {
     try {
       const token = localStorage.getItem('token');
       const url = editingItem 
-        ? `http://localhost:5000/api/faculty/${editingItem.id}`
-        : 'http://localhost:5000/api/faculty';
+        ? `${API.baseURL}/api/faculty/${editingItem.id}`
+        : `${API.baseURL}/api/faculty`;
       
       const response = await fetch(url, {
         method: editingItem ? 'PUT' : 'POST',
@@ -73,7 +73,7 @@ export default function ManageFaculty() {
     
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/faculty/${id}`, {
+      await fetch(`${API.baseURL}/api/faculty/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

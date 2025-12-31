@@ -36,7 +36,7 @@ export default function ImageUploader({
     formData.append('folder', folder);
 
     try {
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch(`${API.baseURL}/api/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`

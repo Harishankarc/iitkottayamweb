@@ -11,7 +11,7 @@ export default function Media() {
     useEffect(() => {
         const fetchMedia = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/media');
+                const response = await fetch(`${API.baseURL}/api/media`);
                 const data = await response.json();
                 
                 if (data.success) {

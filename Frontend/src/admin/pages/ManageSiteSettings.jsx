@@ -22,7 +22,7 @@ export default function ManageSiteSettings() {
   const fetchSettings = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/site-settings', {
+      const response = await fetch(`${API.baseURL}/api/site-settings`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -39,8 +39,8 @@ export default function ManageSiteSettings() {
     try {
       const token = localStorage.getItem('token');
       const url = editingItem 
-        ? `http://localhost:5000/api/site-settings/id/${editingItem.id}`
-        : 'http://localhost:5000/api/site-settings';
+        ? `${API.baseURL}/api/site-settings/id/${editingItem.id}`
+        : `${API.baseURL}/api/site-settings`;
       
       const response = await fetch(url, {
         method: editingItem ? 'PUT' : 'POST',
@@ -65,7 +65,7 @@ export default function ManageSiteSettings() {
     if (!window.confirm('Are you sure?')) return;
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/site-settings/id/${id}`, {
+      await fetch(`${API.baseURL}/api/site-settings/id/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

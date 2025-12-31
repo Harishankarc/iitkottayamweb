@@ -29,7 +29,7 @@ export default function ManagePlacements() {
   const fetchPlacements = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/placements', {
+      const response = await fetch(`${API.baseURL}/api/placements`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -46,8 +46,8 @@ export default function ManagePlacements() {
     try {
       const token = localStorage.getItem('token');
       const url = editingItem 
-        ? `http://localhost:5000/api/placements/${editingItem.id}`
-        : 'http://localhost:5000/api/placements';
+        ? `${API.baseURL}/api/placements/${editingItem.id}`
+        : `${API.baseURL}/api/placements`;
       
       const response = await fetch(url, {
         method: editingItem ? 'PUT' : 'POST',
@@ -73,7 +73,7 @@ export default function ManagePlacements() {
     
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/placements/${id}`, {
+      await fetch(`${API.baseURL}/api/placements/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

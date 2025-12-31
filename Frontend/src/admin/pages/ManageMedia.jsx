@@ -26,7 +26,7 @@ export default function ManageMedia() {
   const fetchMedia = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/media', {
+      const response = await fetch(`${API.baseURL}/api/media`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -43,8 +43,8 @@ export default function ManageMedia() {
     try {
       const token = localStorage.getItem('token');
       const url = editingItem 
-        ? `http://localhost:5000/api/media/${editingItem.id}`
-        : 'http://localhost:5000/api/media';
+        ? `${API.baseURL}/api/media/${editingItem.id}`
+        : `${API.baseURL}/api/media`;
       
       const response = await fetch(url, {
         method: editingItem ? 'PUT' : 'POST',
@@ -70,7 +70,7 @@ export default function ManageMedia() {
     
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/media/${id}`, {
+      await fetch(`${API.baseURL}/api/media/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

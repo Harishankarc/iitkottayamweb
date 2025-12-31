@@ -52,7 +52,7 @@ export default function MultiImageUploader({
         formData.append('image', file);
         formData.append('folder', folder);
 
-        const response = await fetch('http://localhost:5000/api/upload', {
+        const response = await fetch(`${API.baseURL}/api/upload`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`

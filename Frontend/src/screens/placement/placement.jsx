@@ -12,7 +12,7 @@ export default function Placement() {
     useEffect(() => {
         const fetchPlacements = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/placements');
+                const response = await fetch(`${API.baseURL}/api/placements`);
                 const data = await response.json();
                 
                 if (data.success) {
@@ -30,7 +30,7 @@ export default function Placement() {
                 }
                 
                 // Fetch company logos for sponsors
-                const companiesRes = await fetch('http://localhost:5000/api/company-logos');
+                const companiesRes = await fetch(`${API.baseURL}/api/company-logos`);
                 const companiesData = await companiesRes.json();
                 if (companiesData.success) {
                     const formattedSponsors = companiesData.data

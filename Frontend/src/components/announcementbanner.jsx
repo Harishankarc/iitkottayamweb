@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../context/createContext';
+import API from '../api/api';
 
 export default function AnnouncementBanner() {
   const [isPaused, setIsPaused] = useState(false);
@@ -11,7 +12,7 @@ export default function AnnouncementBanner() {
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/announcements');
+        const response = await fetch(`${API.baseURL}/api/announcements`);
         const data = await response.json();
         
         if (data.success && data.data.length > 0) {

@@ -33,7 +33,7 @@ const HomePage = () => {
     const fetchData = async () => {
       try {
         // Fetch News
-        const newsRes = await fetch('http://localhost:5000/api/news');
+        const newsRes = await fetch(`${API.baseURL}/api/news`);
         const newsData = await newsRes.json();
         if (newsData.success) {
           const formattedNews = newsData.data
@@ -49,7 +49,7 @@ const HomePage = () => {
         }
 
         // Fetch Events
-        const eventsRes = await fetch('http://localhost:5000/api/events');
+        const eventsRes = await fetch(`${API.baseURL}/api/events`);
         const eventsData = await eventsRes.json();
         if (eventsData.success) {
           const formattedEvents = eventsData.data
@@ -64,14 +64,14 @@ const HomePage = () => {
         }
 
         // Fetch Company Logos
-        const companiesRes = await fetch('http://localhost:5000/api/company-logos');
+        const companiesRes = await fetch(`${API.baseURL}/api/company-logos`);
         const companiesData = await companiesRes.json();
         if (companiesData.success) {
           setCompanyList(companiesData.data.filter(item => item.isActive));
         }
 
         // Fetch Faculty
-        const facultyRes = await fetch('http://localhost:5000/api/faculty');
+        const facultyRes = await fetch(`${API.baseURL}/api/faculty`);
         const facultyData = await facultyRes.json();
         if (facultyData.success) {
           const formattedFaculty = facultyData.data
@@ -89,14 +89,14 @@ const HomePage = () => {
         }
 
         // Fetch NIRF Rankings
-        const nirfRes = await fetch('http://localhost:5000/api/nirf?year=2025');
+        const nirfRes = await fetch(`${API.baseURL}/api/nirf?year=2025`);
         const nirfData = await nirfRes.json();
         if (nirfData.success) {
           setNIRF_Ranking(nirfData.data.filter(item => item.isPublished));
         }
 
         // Fetch Hero Sliders
-        const slidersRes = await fetch('http://localhost:5000/api/hero-sliders');
+        const slidersRes = await fetch(`${API.baseURL}/api/hero-sliders`);
         const slidersData = await slidersRes.json();
         if (slidersData.success) {
           const formattedSliders = slidersData.data
@@ -115,20 +115,52 @@ const HomePage = () => {
         }
 
         // Fetch Page Content
-        const pageRes = await fetch('http://localhost:5000/api/pages/homepage');
+        const pageRes = await fetch(`${API.baseURL}/api/pages/homepage`);
         const pageData = await pageRes.json();
         if (pageData.success) {
           setPageContent(pageData.data);
         }
 
         // Fetch Content Blocks
-        const blocksRes = await fetch('http://localhost:5000/api/content-blocks/page/homepage');
+        const blocksRes = await fetch(`${API.baseURL}/api/content-blocks/page/homepage`);
         const blocksData = await blocksRes.json();
         if (blocksData.success) {
           setContentBlocks(blocksData.data || []);
         }
 
+
       } catch (error) {
+        // Fallback to default data if API fails
+        setNewsList([
+          { title: 'IIIT Kottayam achieves 95% placements!', date: '2025-06-01', isNew: true, link: '#' },
+          { title: 'Admissions Open for 2025 Batch', date: '2025-05-15', isNew: false, link: '#' },
+          { title: 'New Research Center Inaugurated', date: '2025-04-20', isNew: false, link: '#' },
+          { title: 'IIITK signs MoU with Tech Giant', date: '2025-03-10', isNew: false, link: '#' },
+          { title: 'Convocation 2025 Announced', date: '2025-02-28', isNew: false, link: '#' }
+        ]);
+        setEventsList([
+          { image: img1, title: 'Tech Fest 2025', link: '#' },
+          { image: img2, title: 'Alumni Meet', link: '#' },
+          { image: img3, title: 'Research Symposium', link: '#' },
+          { image: img1, title: 'Sports Day', link: '#' }
+        ]);
+        setCompanyList([
+          { name: 'Google', logo: img1 },
+          { name: 'Microsoft', logo: img2 },
+          { name: 'Amazon', logo: img3 }
+        ]);
+        setFacultyList([
+          { name: 'Dr. A. Kumar', designation: 'Professor', department: 'CSE', specialization: 'AI', image: img1, link: '#' },
+          { name: 'Dr. B. Singh', designation: 'Associate Prof.', department: 'ECE', specialization: 'VLSI', image: img2, link: '#' },
+          { name: 'Dr. C. Rao', designation: 'Assistant Prof.', department: 'Maths', specialization: 'Statistics', image: img3, link: '#' }
+        ]);
+        setHeroSliders([
+          { image: img1, title: 'Default Slider 1', link: '#' },
+          { image: img2, title: 'Default Slider 2', link: '#' },
+          { image: img3, title: 'Default Slider 3', link: '#' }
+        ]);
+        setPageContent(null);
+        setContentBlocks([]);
         console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
@@ -381,7 +413,14 @@ const HomePage = () => {
             <section>
               <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Recruitment Partners</h3>
               <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 p-8 rounded-xl shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}> 
-                {companyList.map((c, idx) => (
+                {[...companyList,
+                  { name: 'TCS', logo: img1, link: '#' },
+                  { name: 'Infosys', logo: img2, link: '#' },
+                  { name: 'Wipro', logo: img3, link: '#' },
+                  { name: 'Capgemini', logo: img1, link: '#' },
+                  { name: 'Cognizant', logo: img2, link: '#' },
+                  { name: 'Deloitte', logo: img3, link: '#' }
+                ].map((c, idx) => (
                   <a 
                     key={idx} 
                     href={c.link} 
@@ -399,15 +438,17 @@ const HomePage = () => {
               </div>
             </section>
 
-            {/* Placement Highlights - FULL WIDTH */}
-            <section>
-              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Placement Highlights</h3>
+            {/* Placement Highlights & Upcoming Events - 2 COLUMN GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Placement Highlights - LEFT 50% */}
               <div className={`rounded-xl overflow-hidden shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                <div className="p-6 grid md:grid-cols-2 gap-6 items-center">
-                  <div>
-                    <img src={placementdetailimg} alt="Placements" className="rounded-lg shadow-md w-full object-cover" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 border-b" style={{ borderColor: `${color1}30` }}>
+                  <h3 className="text-lg font-bold" style={{ color: color1 }}>Placement Highlights</h3>
+                </div>
+                <div className="p-4">
+                  {/* Vertical Bar Chart Styled Like the Provided Image */}
+                  {/* Vertical Bar Chart - Full Height */}
+                  <div className="h-64 md:h-80 lg:h-96 flex flex-col justify-end">
                     {(() => {
                       const statsBlock = contentBlocks.find(b => b.blockId === 'homepage-placement-stats');
                       const stats = statsBlock?.content?.statistics || 
@@ -417,48 +458,68 @@ const HomePage = () => {
                         { label: 'Companies Visited', value: '100+' },
                         { label: 'Placement Rate', value: '95%' }
                       ];
-                      return stats.map((stat, i) => (
-                        <div key={i} className={`p-6 rounded-xl text-center ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                          <div className={`text-sm font-bold mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{stat.label}</div>
-                          <div className="text-4xl font-extrabold" style={{ color: color1 }}>{stat.value}</div>
+                      const getBarValue = (val) => {
+                        if (typeof val === 'string') {
+                          const num = parseFloat(val.replace(/[^\d.]/g, ''));
+                          return isNaN(num) ? 0 : num;
+                        }
+                        return typeof val === 'number' ? val : 0;
+                      };
+                      const max = Math.max(...stats.map(s => getBarValue(s.value)));
+                      const barColors = [
+                        '#1e88e5', // blue
+                        '#fbc02d', // yellow (highlight)
+                        '#1e88e5', // blue
+                        '#1e88e5'  // blue
+                      ];
+                      const yTicks = [];
+                      const yMax = Math.max(100, Math.ceil(max / 10) * 10);
+                      for (let i = 0; i <= yMax; i += 10) yTicks.push(i);
+                      return (
+                        <div className="flex w-full items-end h-full relative">
+                          {/* Y-axis ticks */}
+                          <div className="flex flex-col justify-between h-full mr-2 text-xs text-gray-400 absolute left-0 top-0 z-10" style={{height:'100%',width:'2.5rem'}}>
+                            {yTicks.slice().reverse().map((tick, i) => (
+                              <div key={i} style={{height:`calc(100%/${yTicks.length})`}} className="flex items-center justify-end pr-1" >{tick}%</div>
+                            ))}
+                          </div>
+                          {/* Bars */}
+                          <div className="flex-1 flex justify-around items-end w-full ml-10 h-full">
+                            {stats.map((stat, i) => {
+                              const val = getBarValue(stat.value);
+                              const percent = stat.label.toLowerCase().includes('rate')
+                                ? parseFloat(val) || 0
+                                : yMax > 0 ? (val / yMax) * 100 : 0;
+                              return (
+                                <div key={i} className="flex flex-col items-center w-20 h-full justify-end">
+                                  {/* Value on top */}
+                                  <span className="mb-1 text-sm font-bold" style={{ color: barColors[i] }}>{stat.value}</span>
+                                  {/* Bar */}
+                                  <div className="w-10 rounded-t-md rounded-b-sm flex items-end justify-center transition-all duration-700" style={{ height: `calc(${percent}% - 2rem)`, background: barColors[i], minHeight: '10px', maxHeight: '100%' }}></div>
+                                  {/* Label below */}
+                                  <span className="mt-2 text-xs text-center font-medium" style={{ color: darkMode ? '#E5E7EB' : '#222' }}>{stat.label}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                      ));
+                      );
                     })()}
                   </div>
-                </div>
-                <div className="p-4 text-center border-t" style={{ borderColor: `${color1}30` }}>
-                  <a href="/placement" className="inline-block px-6 py-3 text-sm rounded-lg font-semibold shadow-md transition-all hover:scale-105" style={{ backgroundColor: color1, color: 'white' }}>
-                    View Complete Placement Report →
-                  </a>
+                  <div className="mt-3 text-center">
+                    <a href="/placement" className="inline-block px-4 py-1.5 text-xs rounded-lg font-semibold shadow-md transition-all hover:scale-105" style={{ backgroundColor: color1, color: 'white' }}>
+                      View Complete Placement Report →
+                    </a>
+                  </div>
                 </div>
               </div>
-            </section>
 
-            {/* Upcoming Events & Quick Links - 2 COLUMN GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Upcoming Events */}
+              {/* Upcoming Events - RIGHT 50% */}
               <div className={`rounded-xl overflow-hidden shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <div className="p-4 border-b" style={{ borderColor: `${color1}30` }}>
-                  <h5 className="font-bold text-lg" style={{ color: color1 }}>Upcoming Events</h5>
+                  <h3 className="text-xl font-bold" style={{ color: color1 }}>Upcoming Events</h3>
                 </div>
                 <EventSlider events={eventsList} darkMode={darkMode} color1={color1} />
-              </div>
-
-              {/* Quick Links */}
-              <div className={`rounded-xl p-6 shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                <h5 className="font-bold text-lg mb-4" style={{ color: color1 }}>Quick Access</h5>
-                <div className="grid grid-cols-2 gap-3">
-                  {['Admissions', 'Academics', 'Departments', 'Research', 'Placements', 'Alumni'].map((link, idx) => (
-                    <a 
-                      key={idx} 
-                      href="#" 
-                      className={`text-sm font-semibold p-3 rounded-lg transition-all hover:scale-105 text-center shadow-md`} 
-                      style={{ backgroundColor: `${color1}15`, color: color1 }}
-                    >
-                      {link}
-                    </a>
-                  ))}
-                </div>
               </div>
             </div>
       </main>
@@ -644,16 +705,11 @@ const FacultyCarousel = ({ faculty, darkMode, color1, color2 }) => {
       <div ref={scrollRef} className="flex gap-3 p-4 overflow-x-hidden" style={{ scrollBehavior: 'auto' }}>
         {duplicatedFaculty.map((member, index) => (
           <div key={index} className={`flex-shrink-0 w-52 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 shadow-md ${darkMode ? 'bg-gray-700' : 'bg-white'}`}>
-            <div className="relative h-60 overflow-hidden">
-              <img src={member.image} alt={member.name} className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-
-              <div className="absolute bottom-0 left-0 right-0 p-3">
-                <h3 className="text-white text-sm font-bold mb-1 leading-tight">{member.name}</h3>
-                <p className="text-gray-200 text-xs mb-1">{member.designation}</p>
-                <span className="text-[10px] px-2 py-1 rounded-md inline-block" style={{ backgroundColor: color1, color: '#fff' }}>{member.department}</span>
-                <p className="text-gray-300 text-xs italic mt-1.5">{member.specialization}</p>
-              </div>
+            <div className="relative h-60 flex flex-col justify-center items-center p-4">
+              <h3 className="text-lg font-bold mb-1 leading-tight" style={{ color: color1 }}>{member.name}</h3>
+              <p className="text-xs mb-1" style={{ color: darkMode ? '#E5E7EB' : '#111827' }}>{member.designation}</p>
+              <span className="text-[10px] px-2 py-1 rounded-md inline-block mb-1" style={{ backgroundColor: color1, color: '#fff' }}>{member.department}</span>
+              <p className="text-xs italic" style={{ color: darkMode ? '#A0AEC0' : '#4B5563' }}>{member.specialization}</p>
             </div>
             <div className={`p-2.5 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
               <a href={member.link} className="w-full block text-center text-xs font-semibold rounded-md py-1.5" style={{ backgroundColor: darkMode ? color1 : color2, color: darkMode ? '#fff' : color1, border: `2px solid ${color1}` }}>
@@ -681,10 +737,10 @@ const EventSlider = ({ events, darkMode, color1 }) => {
 
   return (
     <div className="relative group">
-      <div className="relative overflow-hidden" style={{ height: 280 }}> 
+      <div className="relative overflow-hidden" style={{ height: 320 }}>
         {events.map((ev, i) => (
           <div key={i} className={`absolute inset-0 transition-all duration-700 ease-in-out ${i === currentIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}>
-            <img src={ev.image} alt={ev.title} className="w-full h-full object-cover" />
+            <img src={ev.image} alt={ev.title} className="w-full h-full object-cover" style={{height: '100%', maxHeight: 320}} />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
             <div className="absolute bottom-3 left-3 right-3 text-sm">
               <a href={ev.link} className="text-white font-semibold block">{ev.title}</a>

@@ -113,7 +113,7 @@ export default function Gallery() {
   useEffect(() => {
     const fetchGallery = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/gallery');
+        const response = await fetch(`${API.baseURL}/api/gallery`);
         const data = await response.json();
         
         if (data.success) {

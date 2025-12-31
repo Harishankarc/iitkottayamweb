@@ -28,7 +28,7 @@ export default function ManageGallery() {
   const fetchGallery = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/gallery', {
+      const response = await fetch(`${API.baseURL}/api/gallery`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -45,8 +45,8 @@ export default function ManageGallery() {
     try {
       const token = localStorage.getItem('token');
       const url = editingItem 
-        ? `http://localhost:5000/api/gallery/${editingItem.id}`
-        : 'http://localhost:5000/api/gallery';
+        ? `${API.baseURL}/api/gallery/${editingItem.id}`
+        : `${API.baseURL}/api/gallery`;
       
       const response = await fetch(url, {
         method: editingItem ? 'PUT' : 'POST',
@@ -72,7 +72,7 @@ export default function ManageGallery() {
     
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/gallery/${id}`, {
+      await fetch(`${API.baseURL}/api/gallery/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

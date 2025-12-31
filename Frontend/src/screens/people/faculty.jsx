@@ -174,7 +174,7 @@ export default function Faculty() {
   useEffect(() => {
     const fetchFaculty = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/faculty');
+        const response = await fetch(`${API.baseURL}/api/faculty`);
         const data = await response.json();
         
         if (data.success) {

@@ -28,7 +28,7 @@ export default function ManageEvents() {
   const fetchEvents = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/events', {
+      const response = await fetch(`${API.baseURL}/api/events`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -45,8 +45,8 @@ export default function ManageEvents() {
     try {
       const token = localStorage.getItem('token');
       const url = editingItem 
-        ? `http://localhost:5000/api/events/${editingItem.id}`
-        : 'http://localhost:5000/api/events';
+        ? `${API.baseURL}/api/events/${editingItem.id}`
+        : `${API.baseURL}/api/events`;
       
       const response = await fetch(url, {
         method: editingItem ? 'PUT' : 'POST',
@@ -72,7 +72,7 @@ export default function ManageEvents() {
     
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:5000/api/events/${id}`, {
+      await fetch(`${API.baseURL}/api/events/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

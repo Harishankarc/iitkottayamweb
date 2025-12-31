@@ -25,7 +25,7 @@ export default function ManagePages() {
   const fetchPages = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/pages', {
+      const response = await fetch(`${API.baseURL}/api/pages`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -42,8 +42,8 @@ export default function ManagePages() {
     try {
       const token = localStorage.getItem('token');
       const url = editingPage 
-        ? `http://localhost:5000/api/pages/${editingPage.id}`
-        : 'http://localhost:5000/api/pages';
+        ? `${API.baseURL}/api/pages/${editingPage.id}`
+        : `${API.baseURL}/api/pages`;
       
       const response = await fetch(url, {
         method: editingPage ? 'PUT' : 'POST',
