@@ -28,7 +28,7 @@ const demoCompanies = [
   },
   {
     name: 'NVIDIA',
-    logo: 'https://companieslogo.com/img/orig/NVDA-2b729ebe.png',
+    logo: 'https://static.vecteezy.com/system/resources/previews/019/909/411/original/nvidia-transparent-nvidia-free-free-png.png',
     link: 'https://www.nvidia.com',
     category: 'recruitment',
     displayOrder: 4,

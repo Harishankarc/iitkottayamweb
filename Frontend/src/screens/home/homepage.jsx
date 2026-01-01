@@ -214,7 +214,7 @@ const HomePage = () => {
                 {newsList.slice(0, 5).map((n, i) => (
                   <a 
                     key={i} 
-                    href={n.link} 
+                    href="/" 
                     className={`block p-4 rounded-lg transition-all hover:shadow-lg relative border-l-4 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
                     style={{ borderLeftColor: n.isNew ? '#fbbf24' : color1 }}
                   >
@@ -254,7 +254,7 @@ const HomePage = () => {
                 {newsList.slice(0, 5).map((n, i) => (
                   <a 
                     key={i} 
-                    href={n.link} 
+                    href="/" 
                     className={`block p-4 rounded-xl transition-all hover:shadow-xl group ${darkMode ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-white/50 hover:bg-white'}`}
                     style={{ border: `1px solid ${darkMode ? '#374151' : '#E5E7EB'}` }}
                   >
@@ -274,6 +274,7 @@ const HomePage = () => {
                             <span className="text-[9px] font-bold px-2 py-1 rounded-full" style={{ backgroundColor: '#8b5cf6', color: '#fff' }}>
                                LATEST
                             </span>
+                            
                           )}
                         </div>
                       </div>
@@ -301,7 +302,7 @@ const HomePage = () => {
               {newsList.slice(0, 5).map((n, i) => (
                 <a 
                   key={i} 
-                  href={n.link} 
+                  href="/" 
                   className={`block rounded-lg transition-all hover:shadow-md ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-white'}`}
                 >
                   <div className="flex gap-3 p-3">
@@ -380,7 +381,7 @@ const HomePage = () => {
                      pageContent?.sections?.find(s => s.id === 'vision')?.content || 
                      '"Generating knowledge for the future" — aspiring to be a top-tier, research-driven organization in IT and allied fields.'}
                   </p>
-                  <a href="#" className="text-sm font-semibold hover:underline" style={{ color: color1 }}>Read Strategic Plan →</a>
+                  <a href="/" className="text-sm font-semibold hover:underline" style={{ color: color1 }}>Read Strategic Plan →</a>
                 </div>
                 <div className="p-6 md:p-8">
                   <h4 className="text-2xl font-bold mb-3">🎯 Mission</h4>
@@ -398,48 +399,6 @@ const HomePage = () => {
               </div>
             </section>
             
-            {/* Distinguished Faculty - FULL WIDTH */}
-            <section>
-              <div className="flex items-center justify-between mb-4 px-1">
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-bold" style={{ color: color1 }}>Distinguished Faculty</h3>
-                <a href="/people/faculty" style={{ color: color1 }} className="text-sm font-semibold hover:underline">View all faculty →</a>
-              </div>
-              <div className={`rounded-xl overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl border`} style={{ borderColor: color1 + '30' }}>
-                <FacultyCarousel faculty={facultyList} darkMode={darkMode} color1={color1} color2={color2} />
-              </div>
-            </section>
-
-            {/* Recruitment Partners - FULL WIDTH */}
-            <section>
-              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Recruitment Partners</h3>
-              <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 p-8 rounded-xl shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}> 
-                {companyList
-                  .filter(c => {
-                    const featuredCompanies = ['samsung', 'google', 'tcs', 'cognizant', 'amazon', 'lg', 'oracle', 'accenture', 'flipkart', 'uber', 'ibm'];
-                    return c.category === 'recruitment' && featuredCompanies.includes(c.name.toLowerCase());
-                  })
-                  .map((c, idx) => (
-                  <a 
-                    key={idx} 
-                    href={c.link} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className={`p-5 rounded-lg flex flex-col items-center gap-3 text-center transition-all hover:scale-110 hover:shadow-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`} 
-                    style={{ border: `1px solid ${darkMode ? '#374151' : `${color1}22`}` }}
-                  >
-                    <div className="h-28 w-28 flex items-center justify-center p-3 rounded-lg" style={{ backgroundColor: `${color1}10` }}>
-                      <img 
-                        src={API.getImageUrl(c.logo)} 
-                        alt={c.name} 
-                        className="max-h-24 max-w-24 object-contain"
-                      />
-                    </div>
-                    <div className="text-sm font-semibold leading-tight line-clamp-2" style={{ color: darkMode ? '#E5E7EB' : '#111827' }}>{c.name}</div>
-                  </a>
-                ))}
-              </div>
-            </section>
-
             {/* Placement Highlights & Upcoming Events - 2 COLUMN GRID */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Placement Highlights - LEFT 50% */}
@@ -451,7 +410,7 @@ const HomePage = () => {
                   {/* Vertical Bar Chart Styled Like the Provided Image */}
                   {/* Vertical Bar Chart - Full Height */}
                   {/* Vertical Bar Chart - Full Height */}
-                  <div className="h-64 md:h-80 lg:h-96 flex flex-col justify-end">
+                  <div className="h-56 flex flex-col justify-end">
                     {(() => {
                       let stats = [];
                       try {
@@ -516,7 +475,7 @@ const HomePage = () => {
                     })()}
                   </div>
                   <div className="mt-3 text-center">
-                    <a href="/placement" className="inline-block px-4 py-1.5 text-xs rounded-lg font-semibold shadow-md transition-all hover:scale-105" style={{ backgroundColor: color1, color: 'white' }}>
+                    <a href="/" className="inline-block px-4 py-1.5 text-xs rounded-lg font-semibold shadow-md transition-all hover:scale-105" style={{ backgroundColor: color1, color: 'white' }}>
                       View Complete Placement Report →
                     </a>
                   </div>
@@ -531,38 +490,49 @@ const HomePage = () => {
                 <EventSlider events={eventsList} darkMode={darkMode} color1={color1} />
               </div>
             </div>
-      </main>
 
-      {/* ------------------------------------------------------------- */}
-      {/* FOOTER CTA                              */}
-      {/* ------------------------------------------------------------- */}
-      <footer className={`mt-3 py-4 ${darkMode ? 'bg-gray-800' : 'bg-white'} border-t`} style={{ borderTopColor: color1 }}>
-        <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-3">
-          <div>
-            <div className="text-base md:text-lg font-bold" style={{ color: color1 }}>Stay Connected</div>
-            <div className="text-xs text-gray-400">Subscribe for the latest news and updates from IIIT Kottayam.</div>
-          </div>
-          <div className="flex gap-0 w-full sm:w-auto sm:min-w-[280px] md:min-w-[350px] lg:min-w-[400px]">
-            <input 
-              type="email" 
-              placeholder="Enter email address" 
-              className="px-3 py-2 text-xs rounded-l-md flex-1 border focus:ring-2" 
-              style={{ 
-                borderColor: darkMode ? '#374151' : '#E5E7EB', 
-                backgroundColor: darkMode ? '#111827' : '#fff', 
-                color: darkMode ? '#fff' : '#000', 
-                outlineColor: color1 
-              }} 
-            />
-            <button 
-              className="px-4 py-2 text-xs rounded-r-md font-semibold transition-transform hover:scale-[1.02] hover:opacity-90" 
-              style={{ backgroundColor: color1, color: '#fff' }}
-            >
-              Subscribe
-            </button>
-          </div>
-        </div>
-      </footer>
+            {/* Recruitment Partners - FULL WIDTH */}
+            <section>
+              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Recruitment Partners</h3>
+              <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 p-8 rounded-xl shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}> 
+                {companyList
+                  .filter(c => {
+                    const featuredCompanies = ['samsung', 'google', 'tcs', 'cognizant', 'amazon', 'lg', 'oracle', 'accenture', 'flipkart', 'uber', 'ibm', 'nvidia'];
+                    return c.category === 'recruitment' && featuredCompanies.includes(c.name.toLowerCase());
+                  })
+                  .map((c, idx) => (
+                  <a 
+                    key={idx} 
+                    href={c.link} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className={`p-5 rounded-lg flex flex-col items-center gap-3 text-center transition-all hover:scale-110 hover:shadow-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`} 
+                    style={{ border: `1px solid ${darkMode ? '#374151' : `${color1}22`}` }}
+                  >
+                    <div className="h-28 w-28 flex items-center justify-center p-3 rounded-lg" style={{ backgroundColor: `${color1}10` }}>
+                      <img 
+                        src={API.getImageUrl(c.logo)} 
+                        alt={c.name} 
+                        className="max-h-24 max-w-24 object-contain"
+                      />
+                    </div>
+                    <div className="text-sm font-semibold leading-tight line-clamp-2" style={{ color: darkMode ? '#E5E7EB' : '#111827' }}>{c.name}</div>
+                  </a>
+                ))}
+              </div>
+            </section>
+
+            {/* Distinguished Faculty - FULL WIDTH */}
+            <section>
+              <div className="flex items-center justify-between mb-4 px-1">
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-bold" style={{ color: color1 }}>Distinguished Faculty</h3>
+                <a href="/" style={{ color: color1 }} className="text-sm font-semibold hover:underline">View all faculty →</a>
+              </div>
+              <div className={`rounded-xl overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl border`} style={{ borderColor: color1 + '30' }}>
+                <FacultyCarousel faculty={facultyList} darkMode={darkMode} color1={color1} color2={color2} />
+              </div>
+            </section>
+      </main>
     </div>
   );
 };
@@ -644,7 +614,7 @@ const HeroSlider = ({ events, color1 }) => {
             {/* Read More Button */}
             <div className="pt-4">
               <a
-                href={events[currentIndex]?.link || '#'}
+                href="/"
                 className="inline-block px-8 py-3 text-sm md:text-base font-bold text-white uppercase tracking-wider border-2 border-white hover:bg-white hover:text-black transition-all duration-300"
                 style={{ borderColor: color1 }}
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = color1; e.currentTarget.style.borderColor = color1; }}
@@ -746,13 +716,13 @@ const EventSlider = ({ events, darkMode, color1 }) => {
 
   return (
     <div className="relative group">
-      <div className="relative overflow-hidden" style={{ height: 320 }}>
+      <div className="relative overflow-hidden" style={{ height: 280 }}>
         {events.map((ev, i) => (
           <div key={i} className={`absolute inset-0 transition-all duration-700 ease-in-out ${i === currentIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}>
-            <img src={ev.image} alt={ev.title} className="w-full h-full object-cover" style={{height: '100%', maxHeight: 320}} />
+            <img src={ev.image} alt={ev.title} className="w-full h-full object-cover" style={{height: '100%', maxHeight: 280}} />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
             <div className="absolute bottom-3 left-3 right-3 text-sm">
-              <a href={ev.link} className="text-white font-semibold block">{ev.title}</a>
+              <a href="/" className="text-white font-semibold block">{ev.title}</a>
             </div>
           </div>
         ))}
@@ -777,7 +747,7 @@ const EventSlider = ({ events, darkMode, color1 }) => {
             />
           ))}
         </div>
-        <a href="#" className="text-xs font-semibold" style={{ color: color1 }}>Gallery</a>
+        <a href="/" className="text-xs font-semibold" style={{ color: color1 }}>Gallery</a>
       </div>
     </div>
   );

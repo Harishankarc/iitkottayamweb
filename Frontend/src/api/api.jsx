@@ -2,8 +2,8 @@ class API {
   static color1 = '#239244'; // Main Dark Green
   static color2 = '#e8f5f0'; // Light Mint Background
   static color3 = '#F1F3F3'; // Light Gray Background
-  static baseURL = 'http://localhost:5000';
-  // static baseURL = 'https://nodejs-production-0f39.up.railway.app';
+  // static baseURL = 'http://localhost:5000';
+  static baseURL = 'https://nodejs-production-0f39.up.railway.app';
 
   // Helper function to get full image URL
   static getImageUrl(imagePath) {
