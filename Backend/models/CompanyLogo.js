@@ -20,7 +20,7 @@ const CompanyLogo = sequelize.define('CompanyLogo', {
     allowNull: true
   },
   category: {
-    type: DataTypes.ENUM('incubation', 'collaboration', 'placement', 'partner'),
+    type: DataTypes.ENUM('incubation', 'collaboration', 'placement', 'recruitment', 'partner'),
     defaultValue: 'partner'
   },
   displayOrder: {

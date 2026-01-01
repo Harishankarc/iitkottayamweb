@@ -33,14 +33,10 @@ export default function Placement() {
                 const companiesRes = await fetch(`${API.baseURL}/api/company-logos`);
                 const companiesData = await companiesRes.json();
                 if (companiesData.success) {
-                    const formattedSponsors = companiesData.data
-                        .filter(item => item.isActive)
-                        .map(item => ({
-                            name: item.name,
-                            location: item.description || 'India',
-                            logo: item.logo || item.name.toLowerCase()
-                        }));
-                    setSponsors(formattedSponsors);
+                    const recruitmentCompanies = companiesData.data
+                        .filter(item => item.isActive && item.category === 'recruitment')
+                        .sort((a, b) => a.displayOrder - b.displayOrder);
+                    setSponsors(recruitmentCompanies);
                 }
             } catch (error) {
                 console.error('Error fetching placement data:', error);
@@ -152,15 +148,18 @@ export default function Placement() {
                     <div className="mt-12">
                         <div className="text-center mb-6">
                             <h2 className={`text-xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                                Our Internship Sponsors/Recruiters
+                                Our Recruitment Partners
                             </h2>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                             {sponsors.map((sponsor, index) => (
-                                <div 
+                                <a 
                                     key={index}
-                                    className={`rounded-lg border p-6 transition-all duration-300 ${
+                                    href={sponsor.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`rounded-lg border p-5 transition-all duration-300 flex flex-col items-center gap-3 text-center ${
                                         darkMode 
                                             ? 'bg-gray-800 border-gray-700 hover:border-gray-600' 
                                             : 'bg-white border-gray-200 hover:border-gray-300'
@@ -169,32 +168,30 @@ export default function Placement() {
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.borderColor = api.color1;
                                         e.currentTarget.style.boxShadow = `0 0 15px ${api.color1}25`;
-                                        e.currentTarget.style.transform = 'translateY(-2px)';
+                                        e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
                                     }}
                                     onMouseLeave={(e) => {
                                         e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
                                         e.currentTarget.style.boxShadow = 'none';
-                                        e.currentTarget.style.transform = 'translateY(0)';
+                                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
                                     }}
                                 >
-                                    <div className="flex items-center gap-4">
-                                        {/* Logo Placeholder */}
-                                        <div className={`w-16 h-16 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                                            darkMode ? 'bg-gray-700' : 'bg-gray-100'
-                                        }`}>
-                                            <Building2 className="w-8 h-8" style={{ color: api.color1 }} />
-                                        </div>
-                                        
-                                        <div className="flex-1">
-                                            <h3 className={`font-bold text-sm mb-1 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                                                {sponsor.name}
-                                            </h3>
-                                            <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                {sponsor.location}
-                                            </p>
-                                        </div>
+                                    {/* Logo */}
+                                    <div className={`w-24 h-24 rounded-lg flex items-center justify-center p-3 ${
+                                        darkMode ? 'bg-gray-700' : 'bg-gray-50'
+                                    }`} style={{ backgroundColor: `${api.color1}10` }}>
+                                        <img 
+                                            src={API.getImageUrl(sponsor.logo)} 
+                                            alt={sponsor.name}
+                                            className="max-h-20 max-w-20 object-contain"
+                                        />
                                     </div>
-                                </div>
+                                    
+                                    {/* Company Name */}
+                                    <h3 className={`font-semibold text-sm leading-tight line-clamp-2 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                                        {sponsor.name}
+                                    </h3>
+                                </a>
                             ))}
                         </div>
                     </div>

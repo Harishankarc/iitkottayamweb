@@ -19,8 +19,8 @@ class API {
       return `${this.baseURL}${imagePath}`;
     }
     
-    // Otherwise, assume it's a relative path from uploads
-    return `${this.baseURL}/uploads/${imagePath}`;
+    // Otherwise, assume it's a relative path from uploads/images
+    return `${this.baseURL}/uploads/images/${imagePath}`;
   }
 
   // Helper function to get auth headers

@@ -413,14 +413,12 @@ const HomePage = () => {
             <section>
               <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Recruitment Partners</h3>
               <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 p-8 rounded-xl shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}> 
-                {[...companyList,
-                  { name: 'TCS', logo: img1, link: '#' },
-                  { name: 'Infosys', logo: img2, link: '#' },
-                  { name: 'Wipro', logo: img3, link: '#' },
-                  { name: 'Capgemini', logo: img1, link: '#' },
-                  { name: 'Cognizant', logo: img2, link: '#' },
-                  { name: 'Deloitte', logo: img3, link: '#' }
-                ].map((c, idx) => (
+                {companyList
+                  .filter(c => {
+                    const featuredCompanies = ['samsung', 'google', 'tcs', 'cognizant', 'amazon', 'lg', 'oracle', 'accenture', 'flipkart', 'uber', 'ibm'];
+                    return c.category === 'recruitment' && featuredCompanies.includes(c.name.toLowerCase());
+                  })
+                  .map((c, idx) => (
                   <a 
                     key={idx} 
                     href={c.link} 
@@ -430,7 +428,11 @@ const HomePage = () => {
                     style={{ border: `1px solid ${darkMode ? '#374151' : `${color1}22`}` }}
                   >
                     <div className="h-28 w-28 flex items-center justify-center p-3 rounded-lg" style={{ backgroundColor: `${color1}10` }}>
-                      <img src={API.getImageUrl(c.logo)} alt={c.name} className="max-h-24 max-w-24 object-contain" />
+                      <img 
+                        src={API.getImageUrl(c.logo)} 
+                        alt={c.name} 
+                        className="max-h-24 max-w-24 object-contain"
+                      />
                     </div>
                     <div className="text-sm font-semibold leading-tight line-clamp-2" style={{ color: darkMode ? '#E5E7EB' : '#111827' }}>{c.name}</div>
                   </a>
@@ -448,16 +450,23 @@ const HomePage = () => {
                 <div className="p-4">
                   {/* Vertical Bar Chart Styled Like the Provided Image */}
                   {/* Vertical Bar Chart - Full Height */}
+                  {/* Vertical Bar Chart - Full Height */}
                   <div className="h-64 md:h-80 lg:h-96 flex flex-col justify-end">
                     {(() => {
-                      const statsBlock = contentBlocks.find(b => b.blockId === 'homepage-placement-stats');
-                      const stats = statsBlock?.content?.statistics || 
-                                   pageContent?.sections?.find(s => s.id === 'placement-stats')?.statistics || [
-                        { label: 'Highest Package', value: '45 LPA' },
-                        { label: 'Avg. Package', value: '14 LPA' },
-                        { label: 'Companies Visited', value: '100+' },
-                        { label: 'Placement Rate', value: '95%' }
-                      ];
+                      let stats = [];
+                      try {
+                        const statsBlock = contentBlocks.find(b => b.blockId === 'homepage-placement-stats');
+                        stats = statsBlock?.content?.statistics || 
+                          pageContent?.sections?.find(s => s.id === 'placement-stats')?.statistics || [];
+                      } catch (e) { stats = []; }
+                      if (!stats || stats.length === 0) {
+                        stats = [
+                          { label: 'Highest Package', value: '45 LPA' },
+                          { label: 'Avg. Package', value: '14 LPA' },
+                          { label: 'Companies Visited', value: '100+' },
+                          { label: 'Placement Rate', value: '95%' }
+                        ];
+                      }
                       const getBarValue = (val) => {
                         if (typeof val === 'string') {
                           const num = parseFloat(val.replace(/[^\d.]/g, ''));
@@ -698,23 +707,23 @@ const FacultyCarousel = ({ faculty, darkMode, color1, color2 }) => {
     return () => clearInterval(intervalId);
   }, [isPaused]);
 
-  const duplicatedFaculty = [...faculty, ...faculty];
+  const duplicatedFaculty = (faculty && faculty.length > 0 ? [...faculty, ...faculty] : [
+    { name: 'Dr. A. Kumar', designation: 'Professor', department: 'CSE', specialization: 'AI', image: img1, link: '#' },
+    { name: 'Dr. B. Singh', designation: 'Associate Prof.', department: 'ECE', specialization: 'VLSI', image: img2, link: '#' },
+    { name: 'Dr. C. Rao', designation: 'Assistant Prof.', department: 'Maths', specialization: 'Statistics', image: img3, link: '#' }
+  ]);
 
   return (
     <div onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)} className="relative">
       <div ref={scrollRef} className="flex gap-3 p-4 overflow-x-hidden" style={{ scrollBehavior: 'auto' }}>
         {duplicatedFaculty.map((member, index) => (
           <div key={index} className={`flex-shrink-0 w-52 rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 shadow-md ${darkMode ? 'bg-gray-700' : 'bg-white'}`}>
-            <div className="relative h-60 flex flex-col justify-center items-center p-4">
-              <h3 className="text-lg font-bold mb-1 leading-tight" style={{ color: color1 }}>{member.name}</h3>
-              <p className="text-xs mb-1" style={{ color: darkMode ? '#E5E7EB' : '#111827' }}>{member.designation}</p>
-              <span className="text-[10px] px-2 py-1 rounded-md inline-block mb-1" style={{ backgroundColor: color1, color: '#fff' }}>{member.department}</span>
-              <p className="text-xs italic" style={{ color: darkMode ? '#A0AEC0' : '#4B5563' }}>{member.specialization}</p>
-            </div>
-            <div className={`p-2.5 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-              <a href={member.link} className="w-full block text-center text-xs font-semibold rounded-md py-1.5" style={{ backgroundColor: darkMode ? color1 : color2, color: darkMode ? '#fff' : color1, border: `2px solid ${color1}` }}>
-                View Profile
-              </a>
+            <div className="relative flex flex-col items-center justify-center p-3 py-4">
+              <img src={member.image} alt={member.name} className="w-36 h-36 object-cover rounded-md border-2 mb-1" style={{ borderColor: color1 }} />
+              <h3 className="text-base font-bold mb-0 leading-tight text-center" style={{ color: color1 }}>{member.name}</h3>
+              <p className="text-xs mb-0" style={{ color: darkMode ? '#E5E7EB' : '#111827' }}>{member.designation}</p>
+              <span className="text-[10px] px-2 py-0.5 rounded-md inline-block mb-0" style={{ backgroundColor: color1, color: '#fff' }}>{member.department}</span>
+              <p className="text-[10px] italic" style={{ color: darkMode ? '#A0AEC0' : '#4B5563' }}>{member.specialization}</p>
             </div>
           </div>
         ))}

@@ -139,31 +139,21 @@ async function seedDatabase() {
         experience: 15,
         researchInterests: ["Cloud Computing", "IoT", "Distributed Systems"],
         publications: [],
-        isActive: true
+        isActive: true,
+        photo: "facultyimg1.jpg"
       },
       {
-        name: "Dr. Ebin Deni Raj",
+        name: "Dr. Bakkyaraj T",
         designation: "Assistant Professor",
         department: "Computer Science and Engineering",
-        email: "ebin@iiitkottayam.ac.in",
+        email: "bakkyaraj@iiitkottayam.ac.in",
         qualification: "Ph.D. in Computer Science",
-        specialization: "Biomedical AI, Machine Learning",
-        experience: 8,
-        researchInterests: ["Biomedical AI", "Deep Learning", "Healthcare Analytics"],
-        publications: [],
-        isActive: true
-      },
-      {
-        name: "Dr. Jayakrushna Sahoo",
-        designation: "Assistant Professor",
-        department: "Computer Science and Engineering",
-        email: "jayakrushna@iiitkottayam.ac.in",
-        qualification: "Ph.D. in Computer Science",
-        specialization: "Machine Learning, Data Science",
+        specialization: "Parallel Computing, Algorithms",
         experience: 10,
-        researchInterests: ["Machine Learning", "Data Mining", "Pattern Recognition"],
+        researchInterests: ["Parallel Computing", "Algorithms"],
         publications: [],
-        isActive: true
+        isActive: true,
+        photo: "facultyimg2.jpg"
       },
       {
         name: "Dr. Panchami V",
@@ -175,34 +165,76 @@ async function seedDatabase() {
         experience: 7,
         researchInterests: ["Blockchain", "Cryptography", "Network Security"],
         publications: [],
-        isActive: true
+        isActive: true,
+        photo: "facultyimg3.jpg"
       },
       {
-        name: "Dr. Bala S",
-        designation: "Assistant Professor",
+        name: "Prof Ashok S",
+        designation: "Professor",
         department: "Electronics and Communication Engineering",
-        email: "bala@iiitkottayam.ac.in",
+        email: "ashok@iiitkottayam.ac.in",
         qualification: "Ph.D. in ECE",
-        specialization: "VLSI Design, Embedded Systems",
-        experience: 9,
-        researchInterests: ["VLSI", "Embedded Systems", "Digital Design"],
+        specialization: "Signal Processing, Communication",
+        experience: 20,
+        researchInterests: ["Signal Processing", "Communication"],
         publications: [],
-        isActive: true
+        isActive: true,
+        photo: "facultyimg4.jpg"
       },
       {
-        name: "Dr. Victor Paul",
+        name: "Dr. Ebin Deni Raj",
         designation: "Assistant Professor",
         department: "Computer Science and Engineering",
-        email: "victor@iiitkottayam.ac.in",
-        qualification: "Ph.D. in Data Analytics",
-        specialization: "Data Analytics, Big Data",
-        experience: 6,
-        researchInterests: ["Big Data", "Data Analytics", "Business Intelligence"],
+        email: "ebin@iiitkottayam.ac.in",
+        qualification: "Ph.D. in Computer Science",
+        specialization: "Biomedical AI, Machine Learning",
+        experience: 8,
+        researchInterests: ["Biomedical AI", "Deep Learning", "Healthcare Analytics"],
         publications: [],
-        isActive: true
+        isActive: true,
+        photo: "facultyimg5.jpg"
+      },
+      {
+        name: "Dr. Dhanyamol M V",
+        designation: "Assistant Professor",
+        department: "Computer Science and Engineering",
+        email: "dhanyamol@iiitkottayam.ac.in",
+        qualification: "Ph.D. in Computer Science",
+        specialization: "Data Science, AI",
+        experience: 9,
+        researchInterests: ["Data Science", "AI"],
+        publications: [],
+        isActive: true,
+        photo: "facultyimg6.jpg"
+      },
+      {
+        name: "Dr. Amit Kumar Roy",
+        designation: "Assistant Professor",
+        department: "Mathematics",
+        email: "amitkumar@iiitkottayam.ac.in",
+        qualification: "Ph.D. in Mathematics",
+        specialization: "Applied Mathematics, Optimization",
+        experience: 11,
+        researchInterests: ["Applied Mathematics", "Optimization"],
+        publications: [],
+        isActive: true,
+        photo: "facultyimg7.jpg"
+      },
+      {
+        name: "Dr. Jayakrushna Sahoo",
+        designation: "Assistant Professor",
+        department: "Computer Science and Engineering",
+        email: "jayakrushna@iiitkottayam.ac.in",
+        qualification: "Ph.D. in Computer Science",
+        specialization: "Machine Learning, Data Science",
+        experience: 10,
+        researchInterests: ["Machine Learning", "Data Mining", "Pattern Recognition"],
+        publications: [],
+        isActive: true,
+        photo: "facultyimg8.jpg"
       }
     ]);
-    console.log('✅ Added 6 faculty members\n');
+    console.log('✅ Added 8 faculty members\n');
 
     // Seed Students
     console.log('🎓 Seeding Students...');

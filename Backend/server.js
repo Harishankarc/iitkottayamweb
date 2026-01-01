@@ -34,13 +34,16 @@ import contentBlockRoutes from './routes/contentBlockRoutes.js';
 import footerRoutes from './routes/footerRoutes.js';
 import navigationRoutes from './routes/navigationRoutes.js';
 import peopleRoutes from './routes/peopleRoutes.js';
-import companyRoutes from './routes/companyRoutes.js';
+import companyLogoRoutes from './routes/companyLogoRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(helmet()); // Security headers
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: false, // Disable CSP for development
+})); // Security headers
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true
@@ -49,9 +52,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev')); // Logging
 
-// Serve static files from uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/images', express.static(path.join(__dirname, 'uploads/images')));
+// Serve static files from uploads directory with CORS headers
+app.use('/uploads', cors(), express.static(path.join(__dirname, 'uploads')));
+app.use('/images', cors(), express.static(path.join(__dirname, 'uploads/images')));
 
 // Rate limiting - relaxed for development
 const limiter = rateLimit({
@@ -88,7 +91,7 @@ app.use('/api/content-blocks', contentBlockRoutes);
 app.use('/api/footer', footerRoutes);
 app.use('/api/navigation', navigationRoutes);
 app.use('/api/people', peopleRoutes);
-app.use('/api/company-logos', companyRoutes);
+app.use('/api/company-logos', companyLogoRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
