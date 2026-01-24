@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Wifi, Server, MonitorSmartphone, Shield, Globe, Zap, HardDrive, Cpu } from 'lucide-react';
@@ -7,6 +7,66 @@ export default function Internet() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
   const color2 = API.color2;
+  const [internetData, setInternetData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchInternetData = async () => {
+      try {
+        setError(null);
+        const response = await API.get('/api/facilities/slug/internet');
+        setInternetData(response.data);
+      } catch (error) {
+        console.error('Error fetching internet data:', error);
+        setError('Failed to load internet facilities information. Please try again later.');
+        setInternetData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInternetData();
+  }, []);
+
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    API.get('/api/facilities/slug/internet')
+      .then((response) => {
+        setInternetData(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching internet data:', error);
+        setError('Failed to load internet facilities information. Please try again later.');
+        setInternetData(null);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: color1 }}></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="max-w-2xl mx-auto px-6 py-20 text-center">
+          <p className={`text-lg mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{error}</p>
+          <button
+            onClick={handleRetry}
+            className="px-6 py-3 rounded-lg text-white font-medium transition-all duration-300 hover:shadow-lg"
+            style={{ backgroundColor: color1 }}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Computer Labs Data
   const computerLabs = [

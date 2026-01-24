@@ -1,5 +1,6 @@
 import News from '../models/News.js';
 import { Op } from 'sequelize';
+import { getLangFromHeader, translateRow } from '../utils/translation.js';
 
 // @desc    Get all news
 // @route   GET /api/news
@@ -7,6 +8,7 @@ import { Op } from 'sequelize';
 export const getAllNews = async (req, res, next) => {
   try {
     const { category, page = 1, limit = 10 } = req.query;
+    const lang = getLangFromHeader(req);
     
     const where = { isPublished: true };
     if (category) {
@@ -22,12 +24,23 @@ export const getAllNews = async (req, res, next) => {
       order: [['publishedDate', 'DESC']]
     });
 
+    // Translate each news item
+    const translatedRows = await Promise.all(
+      rows.map(item => translateRow(
+        'news',
+        item.id,
+        item.toJSON(),
+        ['title', 'content', 'excerpt'],
+        lang
+      ))
+    );
+
     res.json({
       success: true,
       count,
       totalPages: Math.ceil(count / limit),
       currentPage: parseInt(page),
-      data: rows
+      data: translatedRows
     });
   } catch (error) {
     next(error);

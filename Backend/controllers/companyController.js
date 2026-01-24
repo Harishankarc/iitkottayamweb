@@ -1,16 +1,29 @@
 import Company from '../models/Company.js';
+import { getLangFromHeader, translateRow } from '../utils/translation.js';
 
 // Get all companies
 export const getAllCompanies = async (req, res) => {
   try {
+    const lang = getLangFromHeader(req);
     const companies = await Company.findAll({
       where: { isActive: true },
       order: [['displayOrder', 'ASC'], ['name', 'ASC']]
     });
     
+    // Translate each company
+    const translatedCompanies = await Promise.all(
+      companies.map(company => translateRow(
+        'companies',
+        company.id,
+        company.toJSON(),
+        ['name', 'description'],
+        lang
+      ))
+    );
+    
     res.json({
       success: true,
-      data: companies
+      data: translatedCompanies
     });
   } catch (error) {
     console.error('Error fetching companies:', error);

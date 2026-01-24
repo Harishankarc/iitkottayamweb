@@ -7,38 +7,7 @@ import {
   Sparkles,
   GraduationCap,
   ArrowRight,
-  Plus,
   Edit2,
-  ShieldCheck,
-  BookOpenText,
-  Lightbulb,
-  CheckCircle2,
-  BarChart3,
-  BrainCircuit,
-  Lock,
-  Network,
-  Cloud,
-  TowerControl,
-  Microscope,
-  Settings,
-  TrendingUp,
-  Dna,
-  Monitor,
-  Camera,
-  Rocket,
-  Building,
-  Trophy,
-  Image,
-  Video,
-  FileText,
-  Globe,
-  Briefcase,
-  Smile,
-  PersonStanding,
-  Dumbbell,
-  Volleyball,
-  Drama,
-  Palette
 } from 'lucide-react';
 
 
@@ -58,56 +27,6 @@ export default function WhyIIIT() {
   // Check if we have dynamic content
   const hasDynamicContent = contentBlocks && contentBlocks.length > 0;
   const visibleBlocks = hasDynamicContent ? getVisibleBlocks(contentBlocks) : [];
-
-  // Data for Research Groups
-  const researchGroups = [
-    { name: 'Data Science Research Group', desc: 'Advanced data analytics and modelling', icon: <BarChart3 /> },
-    { name: 'Big data & ML Research Group', desc: 'Machine learning algorithms and big data', icon: <BrainCircuit /> },
-    { name: 'Cyber Security Research Group', desc: 'Cutting-edge techniques for securing systems', icon: <Lock /> },
-    { name: 'Network Science Research Group', desc: 'Study of complex networks and applications', icon: <Network /> },
-    { name: 'IoT Cloud Research Group', desc: 'Integrating IoT with cloud computing', icon: <Cloud /> },
-    { name: 'Intelligent IoT Research Group', desc: 'Developing intelligent IoT systems', icon: <Lightbulb /> },
-    { name: 'Smart Wireless Inter-Networking', desc: 'Advanced wireless communication', icon: <TowerControl /> },
-    { name: 'I2CS - Intelligent Integrated Circuits', desc: 'Development of smart integrated circuits', icon: <Microscope /> },
-    { name: 'Computational Engineering', desc: 'Computational methods and data modelling', icon: <Settings /> },
-    { name: 'Data Analytics and Business Decisions', desc: 'Data analytics for business strategies', icon: <TrendingUp /> },
-    { name: 'Bio-Medical Informatics & Genomics', desc: 'Informatics in biomedical research', icon: <Dna /> },
-    { name: 'FACTS-H Lab', desc: 'Human-computer interaction & smart systems', icon: <Monitor /> },
-    { name: 'ASPIRE Group', desc: 'AI-powered signal and image processing', icon: <Camera /> }
-  ];
-
-  // Data for Incubation Centers
-  const incubationCenters = [
-    {
-      title: 'Atal Incubation Centre (AIC)',
-      subtitle: 'Atal Innovation Mission',
-      desc: 'A flagship initiative under the Atal Innovation Mission, supported by the Government of India, offering state-of-the-art infrastructure and a vast network of industry experts.',
-      icon: <Rocket className="w-10 h-10" style={{ color: color1 }} />
-    },
-    {
-      title: 'MSME Business Incubation Centre',
-      subtitle: 'Ministry of MSME',
-      desc: 'Supported by the Ministry of MSME, this center is dedicated to promoting and assisting small and medium enterprises with tailored incubation services and financial resources.',
-      icon: <Building className="w-10 h-10" style={{ color: color1 }} />
-    },
-    {
-      title: 'Gyaan Innovation Lab',
-      subtitle: 'Innovation Hub',
-      desc: 'Focuses on promoting creativity and innovation among students and faculty by providing access to cutting-edge technologies and supporting interdisciplinary projects.',
-      icon: <Lightbulb className="w-10 h-10" style={{ color: color1 }} />
-    }
-  ];
-
-  // Data for Holistic Development
-  const activities = [
-    { label: 'Yoga', icon: <PersonStanding className="w-4 h-4" /> },
-    { label: 'Gymnasium', icon: <Dumbbell className="w-4 h-4" /> },
-    { label: 'Sports', icon: <Volleyball className="w-4 h-4" /> },
-    { label: 'Competitions', icon: <Trophy className="w-4 h-4" /> },
-    { label: 'Cultural', icon: <Drama className="w-4 h-4" /> },
-    { label: 'Creative Arts', icon: <Palette className="w-4 h-4" /> }
-  ];
-
   return (
     <>
       <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
@@ -139,22 +58,6 @@ export default function WhyIIIT() {
                   {renderContentBlock(block, { darkMode, color1, color2 })}
                 </div>
               ))}
-              
-              {/* Admin Edit Link */}
-              {localStorage.getItem('token') && (
-                <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-800 mb-2">
-                    <strong>Admin:</strong> You're logged in. You can edit this page content.
-                  </p>
-                  <Link
-                    to={`/admin/content-blocks?page=why-iiitk`}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                    Edit Page Content
-                  </Link>
-                </div>
-              )}
             </div>
           ) : (
             <>
@@ -218,18 +121,6 @@ export default function WhyIIIT() {
             </>
           )}
         </main>
-
-        {/* Floating Admin Edit Button */}
-        {isAdmin && (
-          <Link
-            to={`/admin/content-blocks?page=why-iiitk`}
-            className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 transition-all duration-300 group"
-            title="Edit Page Content"
-          >
-            <Edit2 className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
-            <span className="font-semibold">Edit Page</span>
-          </Link>
-        )}
       </div>
     </>
   );

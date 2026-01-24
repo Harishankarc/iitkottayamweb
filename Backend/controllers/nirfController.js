@@ -1,4 +1,5 @@
 import NIRF from '../models/NIRF.js';
+import { getLangFromHeader, translateRow } from '../utils/translation.js';
 
 // @desc    Get all NIRF rankings
 // @route   GET /api/nirf
@@ -6,6 +7,7 @@ import NIRF from '../models/NIRF.js';
 export const getNIRFRankings = async (req, res, next) => {
   try {
     const { year } = req.query;
+    const lang = getLangFromHeader(req);
     const where = { isPublished: true };
 
     if (year) where.year = year;
@@ -14,11 +16,22 @@ export const getNIRFRankings = async (req, res, next) => {
       where,
       order: [['year', 'DESC'], ['rank', 'ASC']]
     });
+    
+    // Translate each ranking
+    const translatedRankings = await Promise.all(
+      rankings.map(ranking => translateRow(
+        'nirf',
+        ranking.id,
+        ranking.toJSON(),
+        ['category', 'description'],
+        lang
+      ))
+    );
 
     res.json({
       success: true,
-      count: rankings.length,
-      data: rankings
+      count: translatedRankings.length,
+      data: translatedRankings
     });
   } catch (error) {
     next(error);

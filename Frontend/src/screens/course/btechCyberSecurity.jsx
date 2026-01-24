@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
@@ -19,9 +19,43 @@ export default function BTechCyberSecurity() {
   const color1 = API.color1; // #239244 (Dark Green)
   const color2 = API.color2; // #e8f5f0 (Light Mint)
   const color3 = API.color3; // #F1F3F3 (Light Gray)
+  const [feeStructure, setFeeStructure] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // --- Reusable Data for Fee Tables ---
-  const feeStructure = [
+  useEffect(() => {
+    const fetchCourseData = async () => {
+      try {
+        setError(null);
+        const response = await API.get('/api/courses/slug/btech-cyber-security');
+        setFeeStructure(response.data?.feeStructure || []);
+      } catch (error) {
+        console.error('Error fetching course data:', error);
+        setError('Failed to load course information. Please try again later.');
+        setFeeStructure([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCourseData();
+  }, []);
+
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    API.get('/api/courses/slug/btech-cyber-security')
+      .then((response) => {
+        setFeeStructure(response.data?.feeStructure || []);
+      })
+      .catch((error) => {
+        console.error('Error fetching course data:', error);
+        setError('Failed to load course information. Please try again later.');
+        setFeeStructure([]);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  const defaultFeeStructure = [
     {
       details: 'Tuition Fee',
       sem1: '1,45,200/-', sem2: '1,45,200/-', sem3: '1,45,200/-', sem4: '1,45,200/-',
@@ -79,64 +113,33 @@ export default function BTechCyberSecurity() {
     },
   ];
   
-  // DASA Fee structure
-  const dasaFeeStructure = [
-    {
-      details: 'Tuition Fee',
-      sem1: '1,45,200/-', sem2: '1,45,200/-', sem3: '1,45,200/-', sem4: '1,45,200/-',
-      sem5: '1,45,200/-', sem6: '1,45,200/-', sem7: '1,45,200/-', sem8: '1,45,200/-',
-    },
-    {
-      details: 'Hostel/Facility maintenance fee',
-      sem1: '34,000/-', sem2: '34,000/-', sem3: '37,500/-', sem4: '37,500/-',
-      sem5: '41,250/-', sem6: '41,250/-', sem7: '45,500/-', sem8: '45,500/-',
-    },
-    {
-      details: 'Mess Advance',
-      sem1: '30,750/-', sem2: '30,750/-', sem3: '33,825/-', sem4: '33,825/-',
-      sem5: '37,250/-', sem6: '37,250/-', sem7: '40,975/-', sem8: '40,975/-',
-    },
-    {
-      details: 'Medical Insurance',
-      sem1: '1300/-', sem2: '-', sem3: '1300/-', sem4: '-',
-      sem5: '1300/-', sem6: '-', sem7: '1300/-', sem8: '-',
-    },
-    {
-      details: 'Mess Equipment Maintenance Fee',
-      sem1: '300/-', sem2: '-', sem3: '300/-', sem4: '-',
-      sem5: '300/-', sem6: '-', sem7: '300/-', sem8: '-',
-    },
-    {
-      details: 'Sports Equipment Maintenance Fee',
-      sem1: '300/-', sem2: '-', sem3: '300/-', sem4: '-',
-      sem5: '300/-', sem6: '-', sem7: '300/-', sem8: '-',
-    },
-    {
-      details: 'Club Activities',
-      sem1: '300/-', sem2: '-', sem3: '300/-', sem4: '-',
-      sem5: '300/-', sem6: '-', sem7: '300/-', sem8: '-',
-    },
-    {
-      details: 'Caution Deposit (One Time Fee)',
-      sem1: '13,000/-', sem2: '-', sem3: '-', sem4: '-',
-      sem5: '-', sem6: '-', sem7: '-', sem8: '-',
-    },
-    {
-      details: 'Convocation Fee (One-Time Fee)',
-      sem1: '-', sem2: '-', sem3: '-', sem4: '-',
-      sem5: '-', sem6: '-', sem7: '5000/-', sem8: '-',
-    },
-    {
-      details: 'Sports (One time Fee)',
-      sem1: '1100/-', sem2: '-', sem3: '-', sem4: '-',
-      sem5: '-', sem6: '-', sem7: '-', sem8: '-',
-    },
-    {
-      details: 'Mess (One time Fee)',
-      sem1: '1100/-', sem2: '-', sem3: '-', sem4: '-',
-      sem5: '-', sem6: '-', sem7: '-', sem8: '-',
-    },
-  ];
+  const displayFeeStructure = feeStructure.length > 0 ? feeStructure : defaultFeeStructure;
+  const dasaFeeStructure = [...displayFeeStructure];
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: color1 }}></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="text-center p-8">
+          <p className={`text-lg mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{error}</p>
+          <button
+            onClick={handleRetry}
+            className="px-6 py-2 rounded-lg text-white font-medium transition-colors"
+            style={{ backgroundColor: color1 }}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // --- Reusable Helper Components ---
 

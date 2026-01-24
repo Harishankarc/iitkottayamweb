@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Search, GraduationCap, ChevronLeft, ChevronRight, Award, BookOpen } from 'lucide-react';
@@ -54,45 +54,23 @@ export default function ResearchScholars() {
   const color2 = API.color2;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBatch, setSelectedBatch] = useState('2025');
+  const [scholarsData, setScholarsData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Research Scholars Data
-  const scholarsData = [
-    // 2025 Batch
-    { id: 1, name: 'Nair S Rajlaxmi', type: 'EXTERNAL REGISTRANTS', batch: '2025' },
-    { id: 2, name: 'Lekshmi A C', type: 'SELF-FINANCING (FULL-TIME)', batch: '2025' },
-    { id: 3, name: 'Siddhanthapu Srinivasu', type: 'EXTERNAL REGISTRANTS', batch: '2025' },
-    { id: 4, name: 'Pretty Joy', type: 'SCHOLARSHIP HOLDER(FULL-TIME)', batch: '2025' },
-    { id: 5, name: 'Surag Sunil', type: 'SCHOLARSHIP HOLDERS (FULL-TIME)', batch: '2025' },
-    { id: 6, name: 'Sreelakshmi. P', type: 'SCHOLARSHIP HOLDER(FULL-TIME)', batch: '2025' },
-    { id: 7, name: 'Sreedevi R', type: 'EXTERNAL REGISTRANTS', batch: '2025' },
-    { id: 8, name: 'Hridya K S', type: 'EXTERNAL REGISTRANTS', batch: '2025' },
-    { id: 9, name: 'Aswathy P', type: 'EXTERNAL REGISTRANTS', batch: '2025' },
-    { id: 10, name: 'Navneeth Sreenivasan', type: 'SELF-FINANCING (FULL-TIME)', batch: '2025' },
-    { id: 11, name: 'Vimal Vinod', type: 'EXTERNAL REGISTRANTS', batch: '2025' },
-    { id: 12, name: 'Remya Paul', type: 'SELF-FINANCING (FULL-TIME)', batch: '2025' },
-    { id: 13, name: 'Garikipati Sivannarayana', type: 'EXTERNAL REGISTRANTS', batch: '2025' },
-    { id: 14, name: 'M.V.P.Umamaheswara Rao', type: 'EXTERNAL REGISTRANTS', batch: '2025' },
-    { id: 15, name: 'Meagan Mathew', type: 'SELF-FINANCING (FULL-TIME)', batch: '2025' },
-    { id: 16, name: 'Lisa Varghese', type: 'SELF-FINANCING (FULL-TIME)', batch: '2025' },
-    { id: 17, name: 'Merin Philip', type: 'EXTERNAL REGISTRANTS', batch: '2025' },
-    { id: 18, name: 'Sanjana Peter', type: 'EXTERNAL REGISTRANTS', batch: '2025' },
-    { id: 19, name: 'Sherin KP', type: 'SELF-FINANCING (FULL-TIME)', batch: '2025' },
-    { id: 20, name: 'Gayathri T', type: 'SELF-FINANCING (FULL-TIME)', batch: '2025' },
-    { id: 21, name: 'Naeema Nazar', type: 'EXTERNAL REGISTRANTS', batch: '2025' },
-
-    // 2024 Batch
-    { id: 22, name: 'Arun Kumar R', type: 'SCHOLARSHIP HOLDER(FULL-TIME)', batch: '2024' },
-    { id: 23, name: 'Divya S', type: 'SELF-FINANCING (FULL-TIME)', batch: '2024' },
-    { id: 24, name: 'Rajesh M', type: 'EXTERNAL REGISTRANTS', batch: '2024' },
-    { id: 25, name: 'Priya Nair', type: 'SCHOLARSHIP HOLDER(FULL-TIME)', batch: '2024' },
-    { id: 26, name: 'Karthik V', type: 'SELF-FINANCING (FULL-TIME)', batch: '2024' },
-
-    // 2023 Batch
-    { id: 27, name: 'Sneha Reddy', type: 'EXTERNAL REGISTRANTS', batch: '2023' },
-    { id: 28, name: 'Vikram Singh', type: 'SCHOLARSHIP HOLDER(FULL-TIME)', batch: '2023' },
-    { id: 29, name: 'Anjali Menon', type: 'SELF-FINANCING (FULL-TIME)', batch: '2023' },
-    { id: 30, name: 'Rahul Sharma', type: 'EXTERNAL REGISTRANTS', batch: '2023' },
-  ];
+  useEffect(() => {
+    const fetchScholars = async () => {
+      try {
+        const response = await API.get('/api/students?program=Ph.D');
+        setScholarsData(response.data || []);
+      } catch (error) {
+        console.error('Error fetching research scholars:', error);
+        setScholarsData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchScholars();
+  }, []);
 
   // Available batches
   const batches = ['2025', '2024', '2023', '2022', '2021'];

@@ -45,9 +45,10 @@ export default function ImageUploader({
       });
       
       const data = await response.json();
+      console.log('Upload Response:', data);
       
       if (data.success) {
-        onChange(data.imageUrl);
+        onChange(data.data.url);
       } else {
         alert(data.message || 'Failed to upload image');
       }

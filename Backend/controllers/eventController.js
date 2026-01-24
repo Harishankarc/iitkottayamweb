@@ -1,5 +1,6 @@
 import Event from '../models/Event.js';
 import { Op } from 'sequelize';
+import { getLangFromHeader, translateRow } from '../utils/translation.js';
 
 // @desc    Get all events
 // @route   GET /api/events
@@ -7,6 +8,7 @@ import { Op } from 'sequelize';
 export const getAllEvents = async (req, res, next) => {
   try {
     const { page = 1, limit = 10, upcoming } = req.query;
+    const lang = getLangFromHeader(req);
     
     const where = { isPublished: true };
     
@@ -23,12 +25,23 @@ export const getAllEvents = async (req, res, next) => {
       order: [['startDate', 'DESC']]
     });
 
+    // Translate each event
+    const translatedRows = await Promise.all(
+      rows.map(item => translateRow(
+        'events',
+        item.id,
+        item.toJSON(),
+        ['title', 'description', 'venue', 'organizer'],
+        lang
+      ))
+    );
+
     res.json({
       success: true,
       count,
       totalPages: Math.ceil(count / limit),
       currentPage: parseInt(page),
-      data: rows
+      data: translatedRows
     });
   } catch (error) {
     next(error);

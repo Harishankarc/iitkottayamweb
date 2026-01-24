@@ -8,6 +8,71 @@ import img3 from '../../assets/images/img3.jpg';
 import { useTheme } from "../../context/createContext.jsx";
 import AnnouncementBanner from "../../components/announcementbanner.jsx";
 
+// Translation helper - fetches translations from backend
+const useTranslation = () => {
+  const [translations, setTranslations] = useState({});
+  const language = localStorage.getItem('language') || 'en';
+
+  useEffect(() => {
+    // Fetch translations for static text
+    const fetchTranslations = async () => {
+      if (language === 'en') {
+        // No translation needed for English
+        setTranslations({});
+        return;
+      }
+
+      try {
+        console.log('Fetching translations for language:', language);
+        const response = await API.post('/api/translate-bulk', {
+          texts: [
+            'Latest News & Updates',
+            'Announcements',
+            'Campus Updates',
+            'Quick Updates',
+            'Our Core Values',
+            'Vision',
+            'Mission',
+            'Placement Highlights',
+            'Upcoming Events',
+            'Recruitment Partners',
+            'Distinguished Faculty',
+            'View all faculty →',
+            'NIRF Rankings (2025)',
+            'All Rankings',
+            'Loading...',
+            'items',
+            'Highest Package',
+            'Avg. Package',
+            'Companies Visited'
+          ],
+          targetLang: language
+        });
+
+        console.log('Translation API Response:', response);
+
+        if (response.success && response.data?.data?.translations) {
+          const translationMap = {};
+          response.data.data.translations.forEach((item) => {
+            translationMap[item.originalText] = item.translatedText;
+          });
+          console.log('Translation Map:', translationMap);
+          setTranslations(translationMap);
+        }
+      } catch (error) {
+        console.error('Translation fetch error:', error);
+        setTranslations({});
+      }
+    };
+
+    fetchTranslations();
+  }, [language]);
+
+  const t = (text) => translations[text] || text;
+  
+  return { t, language };
+};
+
 // =================================================================
 //                    HOMEPAGE COMPONENT
 // =================================================================
@@ -16,6 +81,7 @@ const HomePage = () => {
   const { darkMode } = useTheme();
   const color1 = API.color1; // Primary Accent Color
   const color2 = API.color2; // Secondary Accent Color
+  const { t } = useTranslation(); // Translation function
 
   // --- State for Dynamic Data ---
   const [newsList, setNewsList] = useState([]);
@@ -33,11 +99,14 @@ const HomePage = () => {
     const fetchData = async () => {
       try {
         // Fetch News
-        const newsRes = await fetch(`${API.baseURL}/api/news`);
-        const newsData = await newsRes.json();
+        const newsRes = await API.get('/api/news');
+        const newsData = newsRes;
         if (newsData.success) {
-          const formattedNews = newsData.data
-            .filter(item => item.isPublished)
+          console.log('Fetched News:', newsData.data);
+          // Handle both nested data.data and direct data arrays
+          const newsArray = Array.isArray(newsData.data?.data) ? newsData.data.data : 
+                           Array.isArray(newsData.data) ? newsData.data : [];
+          const formattedNews = newsArray
             .slice(0, 5)
             .map(item => ({
               title: item.title,
@@ -45,36 +114,44 @@ const HomePage = () => {
               isNew: new Date(item.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
               link: `/news/${item.id}`
             }));
+            console.log('Fetched News:', formattedNews);
           setNewsList(formattedNews);
         }
 
         // Fetch Events
-        const eventsRes = await fetch(`${API.baseURL}/api/events`);
-        const eventsData = await eventsRes.json();
+        const eventsRes = await API.get('/api/events');
+        const eventsData = eventsRes;
+        console.log('Events Raw Response:', eventsData);
         if (eventsData.success) {
-          const formattedEvents = eventsData.data
-            .filter(item => item.isPublished)
+          const eventsArray = eventsData.data.data || eventsData.data || [];
+          console.log('Events Array:', eventsArray);
+          const formattedEvents = eventsArray
+            .filter(item => {
+              console.log(`Event "${item.title}" - Published: ${item.isPublished}`);
+              return item.isPublished;
+            })
             .slice(0, 4)
             .map(item => ({
               image: API.getImageUrl(item.image) || img1,
               title: item.title,
               link: `/events/${item.id}`
             }));
+          console.log('Formatted Events:', formattedEvents);
           setEventsList(formattedEvents);
         }
 
         // Fetch Company Logos
-        const companiesRes = await fetch(`${API.baseURL}/api/company-logos`);
-        const companiesData = await companiesRes.json();
+        const companiesRes = await API.get('/api/company-logos');
+        const companiesData = companiesRes;
         if (companiesData.success) {
-          setCompanyList(companiesData.data.filter(item => item.isActive));
+          setCompanyList(companiesData.data.data.filter(item => item.isActive));
         }
 
         // Fetch Faculty
-        const facultyRes = await fetch(`${API.baseURL}/api/faculty`);
-        const facultyData = await facultyRes.json();
+        const facultyRes = await API.get('/api/faculty');
+        const facultyData = facultyRes;
         if (facultyData.success) {
-          const formattedFaculty = facultyData.data
+          const formattedFaculty = facultyData.data.data
             .filter(item => item.isActive)
             .slice(0, 8)
             .map(item => ({
@@ -89,78 +166,92 @@ const HomePage = () => {
         }
 
         // Fetch NIRF Rankings
-        const nirfRes = await fetch(`${API.baseURL}/api/nirf?year=2025`);
-        const nirfData = await nirfRes.json();
+        const nirfRes = await API.get('/api/nirf?year=2025');
+        const nirfData = nirfRes;
         if (nirfData.success) {
-          setNIRF_Ranking(nirfData.data.filter(item => item.isPublished));
+          setNIRF_Ranking(nirfData.data.data.filter(item => item.isPublished));
         }
 
         // Fetch Hero Sliders
-        const slidersRes = await fetch(`${API.baseURL}/api/hero-sliders`);
-        const slidersData = await slidersRes.json();
+        const slidersRes = await API.get('/api/hero-sliders');
+        const slidersData = slidersRes;
+        console.log('Hero Sliders Raw Response:', slidersData);
         if (slidersData.success) {
-          const formattedSliders = slidersData.data
+          const slidersArray = slidersData.data.data || slidersData.data || [];
+          console.log('Hero Sliders Array:', slidersArray);
+          const formattedSliders = slidersArray
             .filter(item => item.isActive)
-            .map(item => ({
-              image: API.getImageUrl(item.image) || img1,
-              title: item.title,
-              link: item.buttonLink || '#'
-            }));
+            .map(item => {
+              const imageUrl = API.getImageUrl(item.image);
+              console.log(`Slider "${item.title}" - Original: ${item.image}, Formatted: ${imageUrl}`);
+              return {
+                image: imageUrl || img1,
+                title: item.title,
+                link: item.buttonLink || '#'
+              };
+            });
+          console.log('Formatted Hero Sliders:', formattedSliders);
           setHeroSliders(formattedSliders.length > 0 ? formattedSliders : [
             { image: img1, title: "Default Slider 1", link: "#" },
             { image: img2, title: "Default Slider 2", link: "#" },
             { image: img3, title: "Default Slider 3", link: "#" }
           ]);
-          setEventsList(prev => prev.length > 0 ? prev : formattedSliders);
         }
 
-        // Fetch Page Content
-        const pageRes = await fetch(`${API.baseURL}/api/pages/homepage`);
-        const pageData = await pageRes.json();
-        if (pageData.success) {
-          setPageContent(pageData.data);
+        // Fetch Page Content (optional - just for metadata)
+        try {
+          const pageRes = await API.get('/api/pages/homepage');
+          if (pageRes?.success && pageRes?.data) {
+            setPageContent(pageRes.data);
+          }
+        } catch (error) {
+          console.log('Page metadata not found, using defaults');
         }
 
-        // Fetch Content Blocks
-        const blocksRes = await fetch(`${API.baseURL}/api/content-blocks/page/homepage`);
-        const blocksData = await blocksRes.json();
-        if (blocksData.success) {
-          setContentBlocks(blocksData.data || []);
+        // Fetch Content Blocks (MAIN CONTENT SOURCE)
+        const blocksRes = await API.get('/api/content-blocks/page/homepage');
+        console.log('Content Blocks Response:', blocksRes);
+        if (blocksRes?.success && blocksRes?.data) {
+          const blocks = blocksRes.data.data || blocksRes.data || [];
+          console.log('Content Blocks Loaded:', blocks);
+          console.log('Vision Block:', blocks.find(b => b.blockId === 'homepage-vision'));
+          console.log('Mission Block:', blocks.find(b => b.blockId === 'homepage-mission'));
+          setContentBlocks(blocks);
         }
 
 
       } catch (error) {
         // Fallback to default data if API fails
-        setNewsList([
-          { title: 'IIIT Kottayam achieves 95% placements!', date: '2025-06-01', isNew: true, link: '#' },
-          { title: 'Admissions Open for 2025 Batch', date: '2025-05-15', isNew: false, link: '#' },
-          { title: 'New Research Center Inaugurated', date: '2025-04-20', isNew: false, link: '#' },
-          { title: 'IIITK signs MoU with Tech Giant', date: '2025-03-10', isNew: false, link: '#' },
-          { title: 'Convocation 2025 Announced', date: '2025-02-28', isNew: false, link: '#' }
-        ]);
-        setEventsList([
-          { image: img1, title: 'Tech Fest 2025', link: '#' },
-          { image: img2, title: 'Alumni Meet', link: '#' },
-          { image: img3, title: 'Research Symposium', link: '#' },
-          { image: img1, title: 'Sports Day', link: '#' }
-        ]);
-        setCompanyList([
-          { name: 'Google', logo: img1 },
-          { name: 'Microsoft', logo: img2 },
-          { name: 'Amazon', logo: img3 }
-        ]);
-        setFacultyList([
-          { name: 'Dr. A. Kumar', designation: 'Professor', department: 'CSE', specialization: 'AI', image: img1, link: '#' },
-          { name: 'Dr. B. Singh', designation: 'Associate Prof.', department: 'ECE', specialization: 'VLSI', image: img2, link: '#' },
-          { name: 'Dr. C. Rao', designation: 'Assistant Prof.', department: 'Maths', specialization: 'Statistics', image: img3, link: '#' }
-        ]);
-        setHeroSliders([
-          { image: img1, title: 'Default Slider 1', link: '#' },
-          { image: img2, title: 'Default Slider 2', link: '#' },
-          { image: img3, title: 'Default Slider 3', link: '#' }
-        ]);
-        setPageContent(null);
-        setContentBlocks([]);
+        // setNewsList([
+        //   { title: 'IIIT Kottayam achieves 95% placements!', date: '2025-06-01', isNew: true, link: '#' },
+        //   { title: 'Admissions Open for 2025 Batch', date: '2025-05-15', isNew: false, link: '#' },
+        //   { title: 'New Research Center Inaugurated', date: '2025-04-20', isNew: false, link: '#' },
+        //   { title: 'IIITK signs MoU with Tech Giant', date: '2025-03-10', isNew: false, link: '#' },
+        //   { title: 'Convocation 2025 Announced', date: '2025-02-28', isNew: false, link: '#' }
+        // ]);
+        // setEventsList([
+        //   { image: img1, title: 'Tech Fest 2025', link: '#' },
+        //   { image: img2, title: 'Alumni Meet', link: '#' },
+        //   { image: img3, title: 'Research Symposium', link: '#' },
+        //   { image: img1, title: 'Sports Day', link: '#' }
+        // ]);
+        // setCompanyList([
+        //   { name: 'Google', logo: img1 },
+        //   { name: 'Microsoft', logo: img2 },
+        //   { name: 'Amazon', logo: img3 }
+        // ]);
+        // setFacultyList([
+        //   { name: 'Dr. A. Kumar', designation: 'Professor', department: 'CSE', specialization: 'AI', image: img1, link: '#' },
+        //   { name: 'Dr. B. Singh', designation: 'Associate Prof.', department: 'ECE', specialization: 'VLSI', image: img2, link: '#' },
+        //   { name: 'Dr. C. Rao', designation: 'Assistant Prof.', department: 'Maths', specialization: 'Statistics', image: img3, link: '#' }
+        // ]);
+        // setHeroSliders([
+        //   { image: img1, title: 'Default Slider 1', link: '#' },
+        //   { image: img2, title: 'Default Slider 2', link: '#' },
+        //   { image: img3, title: 'Default Slider 3', link: '#' }
+        // ]);
+        // setPageContent(null);
+        // setContentBlocks([]);
         console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
@@ -190,7 +281,7 @@ const HomePage = () => {
       {/* HERO SECTION (UPDATED)                      */}
       {/* ------------------------------------------------------------- */}
       <header className="relative overflow-hidden">
-        <HeroSlider events={eventsList} darkMode={darkMode} color1={color1} />
+        <HeroSlider events={heroSliders} darkMode={darkMode} color1={color1} />
         {/* Yellow strip removed as requested */}
       </header>
 
@@ -198,7 +289,7 @@ const HomePage = () => {
       {/* LATEST NEWS SECTION - FULL WIDTH WITH 3 DIFFERENT DESIGNS     */}
       {/* ------------------------------------------------------------- */}
       <section className="mx-auto py-4 px-4 sm:px-6 md:px-8 max-w-screen-2xl">
-        <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Latest News & Updates</h3>
+        <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>{t('Latest News & Updates')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           
           {/* News Box 1 - Left Accent Bar Design */}
@@ -208,7 +299,7 @@ const HomePage = () => {
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: color1 }}>
                   <span className="text-xl">📢</span>
                 </div>
-                <h4 className="font-bold text-lg" style={{ color: color1 }}>Announcements</h4>
+                <h4 className="font-bold text-lg" style={{ color: color1 }}>{t('Announcements')}</h4>
               </div>
               <div className="space-y-3 h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                 {newsList.slice(0, 5).map((n, i) => (
@@ -246,7 +337,7 @@ const HomePage = () => {
                   <span className="text-xl">📰</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-lg" style={{ color: color1 }}>Campus Updates</h4>
+                  <h4 className="font-bold text-lg" style={{ color: color1 }}>{t('Campus Updates')}</h4>
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                 </div>
               </div>
@@ -292,10 +383,10 @@ const HomePage = () => {
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white" style={{ background: `linear-gradient(135deg, ${color1}, ${color2})` }}>
                   <span className="text-xl">⚡</span>
                 </div>
-                <h4 className="font-bold text-lg" style={{ color: color1 }}>Quick Updates</h4>
+                <h4 className="font-bold text-lg" style={{ color: color1 }}>{t('Quick Updates')}</h4>
               </div>
               <span className={`text-xs font-bold px-2 py-1 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} style={{ color: color1 }}>
-                {newsList.length} items
+                {newsList.length} {t('items')}
               </span>
             </div>
             <div className="space-y-2 h-[400px] overflow-y-auto pr-2 custom-scrollbar">
@@ -372,19 +463,18 @@ const HomePage = () => {
             
             {/* Vision & Mission - FULL WIDTH */}
             <section>
-              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Our Core Values</h3>
+              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>{t('Our Core Values')}</h3>
               <div className={`grid grid-cols-1 md:grid-cols-2 shadow-xl overflow-hidden rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <div className={`p-6 md:p-8 border-r-0 md:border-r-2`} style={{ borderColor: color1 + '30' }}>
-                  <h4 className="text-2xl font-bold mb-3">🎯 Vision</h4>
-                  <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-relaxed mb-3 text-base`}>
-                    {contentBlocks.find(b => b.blockId === 'homepage-vision')?.content?.text || 
-                     pageContent?.sections?.find(s => s.id === 'vision')?.content || 
+                  <h4 className="text-2xl font-bold mb-3">🎯 {t('Vision')}</h4>
+                  <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-relaxed text-base`}>
+                    {contentBlocks.find(b => b.blockId === 'homepage-vision')?.content?.description || 
+                     contentBlocks.find(b => b.blockId === 'homepage-vision')?.content?.text || 
                      '"Generating knowledge for the future" — aspiring to be a top-tier, research-driven organization in IT and allied fields.'}
                   </p>
-                  <a href="/" className="text-sm font-semibold hover:underline" style={{ color: color1 }}>Read Strategic Plan →</a>
                 </div>
                 <div className="p-6 md:p-8">
-                  <h4 className="text-2xl font-bold mb-3">🎯 Mission</h4>
+                  <h4 className="text-2xl font-bold mb-3">🎯 {t('Mission')}</h4>
                   <ul className={`list-disc pl-5 ${darkMode ? 'text-gray-300' : 'text-gray-600'} space-y-2 text-base`}>
                     {(contentBlocks.find(b => b.blockId === 'homepage-mission')?.content?.items || 
                       pageContent?.sections?.find(s => s.id === 'mission')?.items || [
@@ -404,7 +494,7 @@ const HomePage = () => {
               {/* Placement Highlights - LEFT 50% */}
               <div className={`rounded-xl overflow-hidden shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <div className="p-3 border-b" style={{ borderColor: `${color1}30` }}>
-                  <h3 className="text-lg font-bold" style={{ color: color1 }}>Placement Highlights</h3>
+                  <h3 className="text-lg font-bold" style={{ color: color1 }}>{t('Placement Highlights')}</h3>
                 </div>
                 <div className="p-4">
                   {/* Vertical Bar Chart Styled Like the Provided Image */}
@@ -415,8 +505,8 @@ const HomePage = () => {
                       let stats = [];
                       try {
                         const statsBlock = contentBlocks.find(b => b.blockId === 'homepage-placement-stats');
-                        stats = statsBlock?.content?.statistics || 
-                          pageContent?.sections?.find(s => s.id === 'placement-stats')?.statistics || [];
+                        // Use stats array from content (correct field name)
+                        stats = statsBlock?.content?.stats || statsBlock?.content?.statistics || [];
                       } catch (e) { stats = []; }
                       if (!stats || stats.length === 0) {
                         stats = [
@@ -474,18 +564,13 @@ const HomePage = () => {
                       );
                     })()}
                   </div>
-                  <div className="mt-3 text-center">
-                    <a href="/" className="inline-block px-4 py-1.5 text-xs rounded-lg font-semibold shadow-md transition-all hover:scale-105" style={{ backgroundColor: color1, color: 'white' }}>
-                      View Complete Placement Report →
-                    </a>
-                  </div>
                 </div>
               </div>
 
               {/* Upcoming Events - RIGHT 50% */}
               <div className={`rounded-xl overflow-hidden shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <div className="p-4 border-b" style={{ borderColor: `${color1}30` }}>
-                  <h3 className="text-xl font-bold" style={{ color: color1 }}>Upcoming Events</h3>
+                  <h3 className="text-xl font-bold" style={{ color: color1 }}>{t('Upcoming Events')}</h3>
                 </div>
                 <EventSlider events={eventsList} darkMode={darkMode} color1={color1} />
               </div>
@@ -493,7 +578,7 @@ const HomePage = () => {
 
             {/* Recruitment Partners - FULL WIDTH */}
             <section>
-              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Recruitment Partners</h3>
+              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>{t('Recruitment Partners')}</h3>
               <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 p-8 rounded-xl shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}> 
                 {companyList
                   .filter(c => {
@@ -525,8 +610,8 @@ const HomePage = () => {
             {/* Distinguished Faculty - FULL WIDTH */}
             <section>
               <div className="flex items-center justify-between mb-4 px-1">
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-bold" style={{ color: color1 }}>Distinguished Faculty</h3>
-                <a href="/" style={{ color: color1 }} className="text-sm font-semibold hover:underline">View all faculty →</a>
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-bold" style={{ color: color1 }}>{t('Distinguished Faculty')}</h3>
+                <a href="/people/faculty" style={{ color: color1 }} className="text-sm font-semibold hover:underline">{t('View all faculty →')}</a>
               </div>
               <div className={`rounded-xl overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl border`} style={{ borderColor: color1 + '30' }}>
                 <FacultyCarousel faculty={facultyList} darkMode={darkMode} color1={color1} color2={color2} />
@@ -610,19 +695,6 @@ const HeroSlider = ({ events, color1 }) => {
             <p className="text-gray-300 text-lg md:text-xl max-w-2xl font-light">
               Generating knowledge for the future through research and innovation.
             </p>
-
-            {/* Read More Button */}
-            <div className="pt-4">
-              <a
-                href="/"
-                className="inline-block px-8 py-3 text-sm md:text-base font-bold text-white uppercase tracking-wider border-2 border-white hover:bg-white hover:text-black transition-all duration-300"
-                style={{ borderColor: color1 }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = color1; e.currentTarget.style.borderColor = color1; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.borderColor = 'white'; }}
-              >
-                Read More
-              </a>
-            </div>
           </div>
         </div>
       </div>

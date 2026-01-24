@@ -11,7 +11,39 @@ import img2 from '../assets/images/img2.jpg';
 import img3 from '../assets/images/img3.jpg';
 import AnnouncementBanner from "./announcementbanner";
 
+// Translation helper
+const useTranslation = () => {
+  const [translations, setTranslations] = useState({});
+  const language = localStorage.getItem('language') || 'en';
+
+  useEffect(() => {
+    const fetchTranslations = async () => {
+      if (language === 'en') return;
+      try {
+        const response = await API.post('/api/translate-bulk', {
+          texts: ['HOME', 'WEBMAIL', 'INTRANET', 'TELEPHONE DIRECTORY', 'NIWAHIKA', 'RTI', 'IMS', 'LOGIN'],
+          targetLang: language
+        });
+        if (response.success && response.data?.data?.translations) {
+          const translationMap = {};
+          response.data.data.translations.forEach(t => {
+            translationMap[t.originalText] = t.translatedText;
+          });
+          setTranslations(translationMap);
+        }
+      } catch (error) {
+        console.error('Translation error:', error);
+      }
+    };
+    fetchTranslations();
+  }, [language]);
+
+  const t = (text) => translations[text] || text;
+  return { t };
+};
+
 export default function NavBar() {
+  const { t } = useTranslation();
   const {
     darkMode,
     toggleDarkMode,
@@ -94,6 +126,7 @@ export default function NavBar() {
   // Function to trigger Google Translate
   const changeLanguage = (lang) => {
     setLanguage(lang);
+
     
     // Map display names to Google Translate language codes
     const langMap = {
@@ -104,8 +137,12 @@ export default function NavBar() {
     
     const langCode = langMap[lang];
     
+    localStorage.setItem('language', langCode);
+    
     if (!isGoogleTranslateReady) {
       console.warn('Google Translate is not ready yet');
+      // Reload page even if Google Translate is not ready
+      window.location.reload();
       return;
     }
     
@@ -116,6 +153,11 @@ export default function NavBar() {
       selectElement.dispatchEvent(new Event('change'));
       console.log('Language changed to:', langCode);
     }
+    
+    // Reload page to apply translations
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   return (
@@ -126,28 +168,28 @@ export default function NavBar() {
           {/* All items on right side */}
           <div className="flex items-center gap-3 md:gap-4">
             <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors">
-              HOME
+              {t('HOME')}
             </a>
             <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors">
-              WEBMAIL
+              {t('WEBMAIL')}
             </a>
             <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors">
-              INTRANET
+              {t('INTRANET')}
             </a>
             <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden md:block">
-              TELEPHONE DIRECTORY
+              {t('TELEPHONE DIRECTORY')}
             </a>
             <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden lg:block">
-              NIWAHIKA
+              {t('NIWAHIKA')}
             </a>
             <a href="/rti" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden lg:block">
-              RTI
+              {t('RTI')}
             </a>
             <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden lg:block">
-              IMS
+              {t('IMS')}
             </a>
             <a href="/login" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden xl:block">
-              LOGIN
+              {t('LOGIN')}
             </a>
 
             {/* Separator */}

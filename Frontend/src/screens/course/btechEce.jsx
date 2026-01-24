@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
@@ -21,9 +21,43 @@ export default function BTechECE() {
   const color1 = API.color1; // #239244 (Dark Green)
   const color2 = API.color2; // #e8f5f0 (Light Mint)
   const color3 = API.color3; // #F1F3F3 (Light Gray)
+  const [feeStructure, setFeeStructure] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // --- Reusable Data for Fee Tables (Same as BTechCSE per screenshot) ---
-  const feeStructure = [
+  useEffect(() => {
+    const fetchCourseData = async () => {
+      try {
+        setError(null);
+        const response = await API.get('/api/courses/slug/btech-ece');
+        setFeeStructure(response.data?.feeStructure || []);
+      } catch (error) {
+        console.error('Error fetching course data:', error);
+        setError('Failed to load course information. Please try again later.');
+        setFeeStructure([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCourseData();
+  }, []);
+
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    API.get('/api/courses/slug/btech-ece')
+      .then((response) => {
+        setFeeStructure(response.data?.feeStructure || []);
+      })
+      .catch((error) => {
+        console.error('Error fetching course data:', error);
+        setError('Failed to load course information. Please try again later.');
+        setFeeStructure([]);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  const defaultFeeStructure = [
     {
       details: 'Tuition Fee',
       sem1: '1,45,200/-', sem2: '1,45,200/-', sem3: '1,45,200/-', sem4: '1,45,200/-',
@@ -80,9 +114,35 @@ export default function BTechECE() {
       sem5: '-', sem6: '-', sem7: '-', sem8: '-',
     },
   ];
+
   
-  // DASA Fee structure (based on screenshot, it's identical to the first table)
-  const dasaFeeStructure = [...feeStructure];
+  const displayFeeStructure = feeStructure.length > 0 ? feeStructure : defaultFeeStructure;
+  const dasaFeeStructure = [...displayFeeStructure];
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: color1 }}></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="text-center p-8">
+          <p className={`text-lg mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{error}</p>
+          <button
+            onClick={handleRetry}
+            className="px-6 py-2 rounded-lg text-white font-medium transition-colors"
+            style={{ backgroundColor: color1 }}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // --- Reusable Helper Components ---
 

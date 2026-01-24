@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Mail, Phone } from 'lucide-react';
 import API from '../../api/api';
 import ImageUploader from '../components/ImageUploader';
-import { hodData } from '../../data/peopleData';
 
 export default function ManageHOD() {
   const [people, setPeople] = useState([]);
@@ -31,23 +30,10 @@ export default function ManageHOD() {
   const fetchPeople = async () => {
     try {
       const response = await API.get('/people/type/hod');
-      const apiData = response.data || [];
-      const hardcodedWithIds = hodData.map((item, index) => ({
-        ...item,
-        id: -(index + 1),
-        isActive: true,
-        isHardcoded: true
-      }));
-      setPeople([...apiData, ...hardcodedWithIds]);
+      setPeople(response.data || []);
     } catch (error) {
       console.error('Error fetching HOD:', error);
-      const hardcodedWithIds = hodData.map((item, index) => ({
-        ...item,
-        id: -(index + 1),
-        isActive: true,
-        isHardcoded: true
-      }));
-      setPeople(hardcodedWithIds);
+      setPeople([]);
     } finally {
       setLoading(false);
     }

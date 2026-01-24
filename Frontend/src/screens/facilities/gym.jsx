@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Dumbbell, Heart, Users, Clock, Trophy, Zap, Camera, Activity } from 'lucide-react';
@@ -73,6 +73,73 @@ export default function Gym() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
   const color2 = API.color2;
+  const [gymData, setGymData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchGymData = async () => {
+      try {
+        setError(null);
+        const response = await API.get('/api/facilities/slug/gym');
+        if (response.data) {
+          setGymData(response.data);
+        } else {
+          setError('Gym information not available at the moment.');
+        }
+      } catch (error) {
+        console.error('Error fetching gym data:', error);
+        setError('Failed to load gym information. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchGymData();
+  }, []);
+
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    API.get('/api/facilities/slug/gym')
+      .then((response) => {
+        if (response.data) {
+          setGymData(response.data);
+        } else {
+          setError('Gym information not available at the moment.');
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching gym data:', error);
+        setError('Failed to load gym information. Please try again later.');
+      })
+      .finally(() => setLoading(false));
+  };
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: color1 }}></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="max-w-2xl mx-auto px-6 py-20 text-center">
+          <p className={`text-lg mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{error}</p>
+          <button
+            onClick={handleRetry}
+            className="px-6 py-3 rounded-lg text-white font-medium transition-all duration-300 hover:shadow-lg"
+            style={{ backgroundColor: color1 }}
+          >
+            Try Again
+          </button>
+          <p className={`text-sm mt-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Our gym facilities are available on campus. For more information, please contact the sports department.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Gym equipment data
   const gymEquipment = [

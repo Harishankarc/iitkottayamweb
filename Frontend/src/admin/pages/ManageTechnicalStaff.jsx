@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Mail, Phone } from 'lucide-react';
 import API from '../../api/api';
 import ImageUploader from '../components/ImageUploader';
-import { technicalStaffData } from '../../data/peopleData';
 
 export default function ManageTechnicalStaff() {
   const [people, setPeople] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -30,24 +30,15 @@ export default function ManageTechnicalStaff() {
 
   const fetchPeople = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const response = await API.get('/people/type/technical-staff');
       const apiData = response.data || [];
-      const hardcodedWithIds = technicalStaffData.map((item, index) => ({
-        ...item,
-        id: -(index + 1),
-        isActive: true,
-        isHardcoded: true
-      }));
-      setPeople([...apiData, ...hardcodedWithIds]);
+      setPeople(apiData);
     } catch (error) {
       console.error('Error fetching technical staff:', error);
-      const hardcodedWithIds = technicalStaffData.map((item, index) => ({
-        ...item,
-        id: -(index + 1),
-        isActive: true,
-        isHardcoded: true
-      }));
-      setPeople(hardcodedWithIds);
+      setError('Failed to load technical staff. Please check your connection and try again.');
+      setPeople([]);
     } finally {
       setLoading(false);
     }
@@ -124,6 +115,24 @@ export default function ManageTechnicalStaff() {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: API.color1 }}></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="text-red-600 text-xl mb-4">⚠️ Error</div>
+          <p className="text-gray-700 mb-4">{error}</p>
+          <button
+            onClick={fetchPeople}
+            className="px-4 py-2 text-white rounded-lg hover:opacity-90"
+            style={{ backgroundColor: API.color1 }}
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }

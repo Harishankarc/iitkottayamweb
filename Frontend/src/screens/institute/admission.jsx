@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { GraduationCap, BookOpenText, Microscope, DollarSign, ChevronRight, FileText, Info } from 'lucide-react';
 import { useTheme } from '../../context/createContext.jsx';

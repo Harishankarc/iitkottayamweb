@@ -83,15 +83,10 @@ export default function AdminLayout() {
     },
     {
       id: 'content',
-      label: 'Content Editing',
+      label: 'Content Management',
       icon: FileText,
-      hasDropdown: true,
-      submenu: [
-        { icon: FileText, label: 'Manage Pages', path: '/admin/pages' },
-        { icon: Layout, label: 'Content Blocks', path: '/admin/content-blocks' },
-        { icon: Palette, label: 'Visual Editor', path: '/admin/visual-editor' },
-        { icon: FileText, label: 'Page Content', path: '/admin/page-content' }
-      ]
+      path: '/admin/content-editor',
+      hasDropdown: false
     },
     {
       id: 'institute',
@@ -137,6 +132,7 @@ export default function AdminLayout() {
       icon: Building2,
       hasDropdown: true,
       submenu: [
+        { icon: Building2, label: 'Manage Facilities', path: '/admin/facilities' },
         { icon: ImageIcon, label: 'Gallery', path: '/admin/gallery' }
       ]
     },
@@ -146,6 +142,7 @@ export default function AdminLayout() {
       icon: UsersRound,
       hasDropdown: true,
       submenu: [
+        { icon: UsersRound, label: 'Manage Clubs', path: '/admin/clubs' },
         { icon: Calendar, label: 'Events', path: '/admin/events' }
       ]
     },
@@ -155,6 +152,7 @@ export default function AdminLayout() {
       icon: FileText,
       hasDropdown: true,
       submenu: [
+        { icon: FileText, label: 'Research Activities', path: '/admin/research-activities' },
         { icon: FileText, label: 'Research Publications', path: '/admin/research-publications' }
       ]
     },

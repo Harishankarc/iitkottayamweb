@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Home, Mail, Phone, MapPin, Users, Shield, Wifi, Utensils, Bed, FileText } from 'lucide-react';
@@ -162,115 +162,86 @@ export default function Hostel() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
   const color2 = API.color2;
+  const [hostelData, setHostelData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Hostel Information
-  const hostelInfo = {
-    description: "Separate hostel accommodation is provided for boys and girls. There are six-year hostel for boys and three hostel for girls. All the hostels have common rooms. 24 hour WiFi connectivity and recreational games, where newspapers, magazines and TVs are available. Round the clock water and electricity is provided. Laundry equipments are also available in the hostels."
+  useEffect(() => {
+    const fetchHostelData = async () => {
+      try {
+        setError(null);
+        const response = await API.get('/api/facilities/slug/hostel');
+        setHostelData(response.data);
+      } catch (error) {
+        console.error('Error fetching hostel data:', error);
+        setError('Failed to load hostel information. Please try again later.');
+        setHostelData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHostelData();
+  }, []);
+
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    API.get('/api/facilities/slug/hostel')
+      .then((response) => {
+        setHostelData(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching hostel data:', error);
+        setError('Failed to load hostel information. Please try again later.');
+        setHostelData(null);
+      })
+      .finally(() => setLoading(false));
   };
 
-  // Wardens Data
-  const wardensData = [
-    {
-      id: 1,
-      name: 'Dr Rajkumar P',
-      role: 'Associate Dean (Hostel Affairs & Student Events)',
-      designation: 'Contact Number: +91 482 2202104 | Contact Email: dean.hostel@iiitkottayam.ac.in',
-      image: 'https://placehold.co/80x80/e8f5f0/239244?text=RP',
-      phone: '+91 482 2202104',
-      email: 'dean.hostel@iiitkottayam.ac.in'
-    },
-    {
-      id: 2,
-      name: 'Capt. Bijumon P Nair',
-      role: 'Security Officer',
-      designation: 'Contact Number: +91 9446256196, 04822447273',
-      image: 'https://placehold.co/80x80/e8f5f0/239244?text=BN',
-      phone: '+91 9446256196',
-      email: 'securityofficer@iiitkottayam.ac.in'
-    },
-    {
-      id: 3,
-      name: 'Anoop Kumar T V',
-      role: 'Asst.Registrar | Hostel Manager',
-      designation: 'Mobile: 9447042676 | hostel.in@iiitkottayam.ac.in | Email: aroffice@iiitkottayam.ac.in to the Hostel/campus',
-      image: 'https://placehold.co/80x80/e8f5f0/239244?text=AK',
-      phone: '9447042676',
-      email: 'hostel.in@iiitkottayam.ac.in'
-    },
-    {
-      id: 4,
-      name: 'Dr John Paul Martin',
-      role: 'Faculty in Charge(GIIT) Hostel Coordinator',
-      designation: 'Email: johnpm at iiitkottayam dot ac.in | Mr call on contact number (+ 91 9946332068)at',
-      image: 'https://placehold.co/80x80/e8f5f0/239244?text=JP',
-      phone: '+91 9946332068',
-      email: 'johnpm at iiitkottayam dot ac.in'
-    },
-    {
-      id: 5,
-      name: 'Dr Chullikkattil Padinjarekkutti',
-      role: 'Associate FC',
-      designation: 'Email: chullikkattu at iiitkottayam dot ac.in | Phone: +91 482 2202255',
-      image: 'https://placehold.co/80x80/e8f5f0/239244?text=CP',
-      phone: '+91 482 2202255',
-      email: 'chullikkattu at iiitkottayam dot ac.in'
-    }
-  ];
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: color1 }}></div>
+      </div>
+    );
+  }
 
-  // Halls of Residence Data
-  const hallsData = [
-    {
-      id: 1,
-      name: 'Dr. Rajendra Garge',
-      gender: 'Boys',
-      wardenType: 'Resident Warden',
-      contact: 'No: +91 482-2202218, 9446374928',
-      email: 'muralisridhar.m at iiitkottayam dot ac.in'
-    },
-    {
-      id: 2,
-      name: 'Dr. Elon Vincent George',
-      gender: 'Boys',
-      wardenType: 'Resident Warden',
-      contact: 'No: +91 482-2202235, 9446374929',
-      email: 'elonvincent at iiitkottayam dot ac.in'
-    },
-    {
-      id: 3,
-      name: 'Dr. Alvin P Baby',
-      gender: 'Boys',
-      wardenType: 'Assistant Warden',
-      contact: 'No: +91 482-2202218, 9074476604',
-      email: 'alvinpb at iiitkottayam dot ac.in'
-    },
-    {
-      id: 4,
-      name: 'Dr. Krishnashree P',
-      gender: 'Girls',
-      wardenType: 'Assistant Warden',
-      contact: 'No: +91 482-2202235, 9781823468',
-      email: 'krishnashree at iiitkottayam dot ac.in'
-    },
-    {
-      id: 5,
-      name: 'Gm. Ankit Varadarajulu',
-      gender: 'Boys',
-      wardenType: 'Assistant Warden',
-      contact: 'No: +91 482-2202218, 9087913625',
-      email: 'avaradarajulu at iiitkottayam dot ac.in'
-    },
-    {
-      id: 6,
-      name: 'Dr. Saima Thomas',
-      gender: 'Girls',
-      wardenType: 'Assistant Warden',
-      contact: 'No: +91 482-2202218, 9495682244',
-      email: 'saimathomas at iiitkottayam dot ac.in'
-    }
-  ];
+  if (error) {
+    return (
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="max-w-2xl mx-auto px-6 py-20 text-center">
+          <p className={`text-lg mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{error}</p>
+          <button
+            onClick={handleRetry}
+            className="px-6 py-3 rounded-lg text-white font-medium transition-all duration-300 hover:shadow-lg"
+            style={{ backgroundColor: color1 }}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  // Facilities List
-  const facilities = [
+  if (!hostelData) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <p className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Hostel information not available</p>
+      </div>
+    );
+  }
+
+  const wardensData = hostelData.wardens || [];
+  const hallsData = hostelData.halls || [];
+  const hostelInfo = {
+    description: hostelData.description || 'Hostel information coming soon...'
+  };
+
+  // Facilities List from API or default
+  const facilities = hostelData.amenities?.map((amenity, index) => ({
+    icon: index % 6 === 0 ? Wifi : index % 6 === 1 ? Utensils : index % 6 === 2 ? Home : index % 6 === 3 ? FileText : index % 6 === 4 ? Shield : Bed,
+    text: amenity
+  })) || [
     { icon: Wifi, text: '24-hour WiFi connectivity' },
     { icon: Utensils, text: 'Common dining facilities' },
     { icon: Home, text: 'Recreation rooms with TV' },

@@ -35,11 +35,16 @@ import footerRoutes from './routes/footerRoutes.js';
 import navigationRoutes from './routes/navigationRoutes.js';
 import peopleRoutes from './routes/peopleRoutes.js';
 import companyLogoRoutes from './routes/companyLogoRoutes.js';
+import facilityRoutes from './routes/facilityRoutes.js';
+import researchActivityRoutes from './routes/researchActivityRoutes.js';
+import clubRoutes from './routes/clubRoutes.js';
+import translationRoutes from './routes/translationRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
   contentSecurityPolicy: false, // Disable CSP for development
@@ -55,6 +60,7 @@ app.use(morgan('dev')); // Logging
 // Serve static files from uploads directory with CORS headers
 app.use('/uploads', cors(), express.static(path.join(__dirname, 'uploads')));
 app.use('/images', cors(), express.static(path.join(__dirname, 'uploads/images')));
+
 
 // Rate limiting - relaxed for development
 const limiter = rateLimit({
@@ -92,9 +98,14 @@ app.use('/api/footer', footerRoutes);
 app.use('/api/navigation', navigationRoutes);
 app.use('/api/people', peopleRoutes);
 app.use('/api/company-logos', companyLogoRoutes);
+app.use('/api/facilities', facilityRoutes);
+app.use('/api/research-activities', researchActivityRoutes);
+app.use('/api/clubs', clubRoutes);
+app.use('/api', translationRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
+  console.log(req.headers);
   res.json({ 
     status: 'OK', 
     message: 'IIIT Kottayam API is running',

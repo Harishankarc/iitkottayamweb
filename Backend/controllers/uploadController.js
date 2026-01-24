@@ -1,3 +1,11 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // @desc    Upload image
 // @route   POST /api/upload
 // @access  Private
@@ -20,6 +28,7 @@ export const uploadImage = async (req, res, next) => {
       data: {
         url: fileUrl,
         filename: req.file.filename,
+        originalname: req.file.originalname,
         mimetype: req.file.mimetype,
         size: req.file.size
       }

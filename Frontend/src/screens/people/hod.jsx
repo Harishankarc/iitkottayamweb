@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Mail, Phone, MapPin, Search, GraduationCap, Building2 } from 'lucide-react';
@@ -168,60 +168,33 @@ export default function HeadofDepartment() {
   const color1 = API.color1;
   const color2 = API.color2;
   const [searchTerm, setSearchTerm] = useState('');
+  const [hodData, setHodData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // HOD Data based on the image
-  const hodData = [
-    {
-      id: 1,
-      name: 'Dr. Ananth A',
-      department: 'HOD (Electronics & Communication Eng.)',
-      departmentLink: '#',
-      phones: ['0482-2202176'],
-      email: 'ananth at iiitkottayam dot ac.in',
-      room: 'Room No: AB 208 / AC 313',
-      image: 'https://placehold.co/128x128/e8f5f0/239244?text=AA'
-    },
-    {
-      id: 2,
-      name: 'Dr. Jayakrushna Sahoo',
-      department: 'HOD(Computer Science & Engineering-I)',
-      departmentLink: '#',
-      phones: ['0482-2202190', '0482-2202164'],
-      email: 'jsahoo at iiitkottayam dot ac.in',
-      room: 'Room No: AA 108 / AA 123',
-      image: 'https://placehold.co/128x128/e8f5f0/239244?text=JS'
-    },
-    {
-      id: 3,
-      name: 'Dr. Rubell Marion Lincy G',
-      department: 'HOD(Computer Science & Engineering-2)',
-      departmentLink: '#',
-      phones: ['0482-2202152'],
-      email: 'lincy at iiitkottayam dot ac.in',
-      room: 'Room No: BC 317 / AB 219',
-      image: 'https://placehold.co/128x128/e8f5f0/239244?text=RL'
-    },
-    {
-      id: 4,
-      name: 'Dr. Dhanyamol M V',
-      department: 'HOD (Computational Science & Humanities)',
-      departmentLink: '#',
-      phones: ['0482-2202162'],
-      email: 'dhanya at iiitkottayam dot ac.in',
-      room: 'Room No: BC 316 / AA 119',
-      image: 'https://placehold.co/128x128/e8f5f0/239244?text=DM'
-    },
-    {
-      id: 5,
-      name: 'Dr. Panchami',
-      department: 'HOD (CSE- Cyber Security)',
-      departmentLink: '#',
-      phones: ['0482-2202151'],
-      email: 'panchami036 at iiitkottayam dot ac.in',
-      room: 'Room No: AB 213 / AB 218',
-      image: 'https://placehold.co/128x128/e8f5f0/239244?text=P'
-    },
-  ];
+  useEffect(() => {
+    const fetchHODs = async () => {
+      try {
+        const response = await API.get('/api/people/type/hod');
+        // Transform API response to match component structure
+        const transformedData = (response.data || []).map(person => ({
+          id: person.id,
+          name: person.name,
+          department: person.designation || person.department,
+          phones: person.phone ? [person.phone] : [],
+          email: person.email || '',
+          room: person.room || '',
+          image: person.photo || `https://placehold.co/128x128/e8f5f0/239244?text=${person.name.charAt(0)}`
+        }));
+        setHodData(transformedData);
+      } catch (error) {
+        console.error('Error fetching HOD data:', error);
+        setHodData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHODs();
+  }, []);
 
   // Filtered results based on search term
   const filteredHODs = hodData.filter((hod) => {
@@ -233,6 +206,14 @@ export default function HeadofDepartment() {
       hod.room.toLowerCase().includes(term)
     );
   });
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: color1 }}></div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>

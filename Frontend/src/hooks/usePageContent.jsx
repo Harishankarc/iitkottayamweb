@@ -19,34 +19,27 @@ export function usePageContent(pageName) {
     setError(null);
 
     try {
-      // Fetch page metadata
+      // Fetch page metadata (title, SEO, etc.)
       const pageResponse = await API.get(`/api/pages/${pageName}`);
-      if (pageResponse.success && pageResponse.data.data && pageResponse.data.data.length > 0) {
-        const page = pageResponse.data.data[0];
-        setPageContent(page);
-
-        // Parse content blocks if they exist
-        if (page.contentBlocks) {
-          try {
-            const blocks = typeof page.contentBlocks === 'string' 
-              ? JSON.parse(page.contentBlocks) 
-              : page.contentBlocks;
-            setContentBlocks(Array.isArray(blocks) ? blocks : []);
-          } catch (parseError) {
-            console.error('Error parsing content blocks:', parseError);
-            setContentBlocks([]);
-          }
-        } else {
-          setContentBlocks([]);
-        }
+      if (pageResponse.success && pageResponse.data) {
+        setPageContent(pageResponse.data);
       } else {
-        // Page not found
         setPageContent(null);
+      }
+
+      // Fetch actual content from content_blocks table (ALL content is here now!)
+      const blocksResponse = await API.get(`/api/content-blocks/page/${pageName}`);
+      if (blocksResponse.success && blocksResponse.data) {
+        const blocks = blocksResponse.data;
+        setContentBlocks(Array.isArray(blocks) ? blocks : []);
+      } else {
         setContentBlocks([]);
       }
     } catch (err) {
       console.error('Error fetching page content:', err);
       setError(err.message || 'Failed to load page content');
+      setPageContent(null);
+      setContentBlocks([]);
     } finally {
       setLoading(false);
     }
@@ -84,7 +77,7 @@ export function getBlockBySection(blocks, sectionName) {
  */
 export function getBlocksByType(blocks, blockType) {
   if (!Array.isArray(blocks)) return [];
-  return blocks.filter(block => block.type === blockType);
+  return blocks.filter(block => (block.blockType || block.type) === blockType);
 }
 
 /**
@@ -108,8 +101,9 @@ export function renderContentBlock(block, options = {}) {
 
   const { darkMode = false, color1 = '#239244', color2 = '#e8f5f0' } = options;
   const content = block.content || {};
+  const blockType = block.blockType || block.type; // Support both field names
 
-  switch (block.type) {
+  switch (blockType) {
     case 'hero':
       return (
         <div 
@@ -160,6 +154,14 @@ export function renderContentBlock(block, options = {}) {
         </div>
       );
 
+    case 'text': // For HTML content
+      return (
+        <div 
+          className={`py-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+          dangerouslySetInnerHTML={{ __html: content.text || '' }}
+        />
+      );
+
     case 'image':
       return (
         <div className="py-4">
@@ -177,17 +179,21 @@ export function renderContentBlock(block, options = {}) {
       );
 
     case 'list':
+      const listItems = Array.isArray(content) ? content : (Array.isArray(content.items) ? content.items : []);
       return (
         <div className={`py-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
           {content.title && <h3 className="text-xl font-semibold mb-3">{content.title}</h3>}
-          <ul className="space-y-2">
-            {Array.isArray(content.items) && content.items.map((item, idx) => (
-              <li key={idx} className="flex items-start gap-2">
-                <span style={{ color: color1 }}>✓</span>
-                <span>{item}</span>
-              </li>
+          <div className="flex flex-wrap gap-3">
+            {listItems.map((item, idx) => (
+              <span
+                key={idx}
+                className="px-4 py-2 rounded-xl text-xs font-semibold border-2 hover:shadow-lg hover:scale-105 transition-all duration-300"
+                style={{ backgroundColor: color2, color: color1, borderColor: `${color1}66` }}
+              >
+                {item}
+              </span>
             ))}
-          </ul>
+          </div>
         </div>
       );
 
@@ -196,10 +202,34 @@ export function renderContentBlock(block, options = {}) {
         <div className="py-4">
           <a
             href={content.link || '#'}
-            className="inline-block px-6 py-3 rounded-lg text-white font-semibold"
-            style={{ backgroundColor: color1 }}
+            className="block"
           >
-            {content.text || 'Learn More'}
+            <div 
+              className="rounded-lg p-8 md:p-10 shadow-xl border relative overflow-hidden group transition-all duration-300 hover:shadow-2xl"
+              style={{ backgroundColor: color1, borderColor: color1 }}
+            >
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ backgroundImage: `linear-gradient(to right, ${color1}1A, ${color1}0D)` }}></div>
+              <div className="relative flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
+                    {content.title || content.text || 'Learn More'}
+                  </h3>
+                  {content.description && (
+                    <p className="text-sm md:text-base text-gray-50">
+                      {content.description}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 px-5 py-3 bg-white/20 backdrop-blur-sm rounded-2xl border-2 border-white/40 group-hover:bg-white group-hover:border-white transition-all duration-300 group-hover:scale-110">
+                  <span className="group-hover:text-[#239244] font-bold text-sm transition-colors duration-300 text-white">
+                    {content.buttonText || 'Learn More'}
+                  </span>
+                  <svg className="w-5 h-5 text-white group-hover:text-[#239244] group-hover:translate-x-2 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
           </a>
         </div>
       );

@@ -1,4 +1,5 @@
 import PageContent from '../models/PageContent.js';
+import { getLangFromHeader, translateRow } from '../utils/translation.js';
 
 // @desc    Get all pages
 // @route   GET /api/pages
@@ -6,6 +7,7 @@ import PageContent from '../models/PageContent.js';
 export const getAllPages = async (req, res, next) => {
   try {
     const { category, isPublished } = req.query;
+    const lang = getLangFromHeader(req);
     
     const where = {};
     if (category) where.category = category;
@@ -14,20 +16,31 @@ export const getAllPages = async (req, res, next) => {
 
     const pages = await PageContent.findAll({
       where,
-      order: [['sortOrder', 'ASC'], ['pageName', 'ASC']]
+      order: [['id', 'ASC'], ['pageName', 'ASC']]
     });
+
+    // Translate each page (only metadata fields, content is in content_blocks)
+    const translatedPages = await Promise.all(
+      pages.map(page => translateRow(
+        'page_contents',
+        page.id,
+        page.toJSON(),
+        ['pageTitle', 'metaDescription', 'metaKeywords'],
+        lang
+      ))
+    );
 
     res.json({
       success: true,
-      count: pages.length,
-      data: pages
+      count: translatedPages.length,
+      data: translatedPages
     });
   } catch (error) {
     next(error);
   }
 };
 
-// @desc    Get single page by name
+// @desc    Get single page by slug or name
 // @route   GET /api/pages/:pageName
 // @access  Public
 export const getPageByName = async (req, res, next) => {

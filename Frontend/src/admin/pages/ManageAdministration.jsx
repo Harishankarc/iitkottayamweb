@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Mail, Phone } from 'lucide-react';
 import API from '../../api/api';
 import ImageUploader from '../components/ImageUploader';
-import { administrationData } from '../../data/peopleData';
 
 export default function ManageAdministration() {
   const [people, setPeople] = useState([]);
@@ -31,28 +30,10 @@ export default function ManageAdministration() {
   const fetchPeople = async () => {
     try {
       const response = await API.get('/people/type/administration');
-      const apiData = response.data || [];
-      
-      // Combine API data with hardcoded data
-      // Add hardcoded data with temporary IDs (negative to avoid conflicts)
-      const hardcodedWithIds = administrationData.map((item, index) => ({
-        ...item,
-        id: -(index + 1), // Negative IDs for hardcoded data
-        isActive: true,
-        isHardcoded: true // Flag to identify hardcoded items
-      }));
-      
-      setPeople([...apiData, ...hardcodedWithIds]);
+      setPeople(response.data || []);
     } catch (error) {
       console.error('Error fetching administration:', error);
-      // If API fails, use only hardcoded data
-      const hardcodedWithIds = administrationData.map((item, index) => ({
-        ...item,
-        id: -(index + 1),
-        isActive: true,
-        isHardcoded: true
-      }));
-      setPeople(hardcodedWithIds);
+      setPeople([]);
     } finally {
       setLoading(false);
     }
@@ -75,13 +56,6 @@ export default function ManageAdministration() {
   };
 
   const handleDelete = async (id) => {
-    // Check if it's a hardcoded item
-    const item = people.find(p => p.id === id);
-    if (item?.isHardcoded) {
-      alert('Cannot delete hardcoded data. This is system data from the frontend.');
-      return;
-    }
-    
     if (!window.confirm('Are you sure you want to delete this member?')) return;
     
     try {
@@ -110,12 +84,6 @@ export default function ManageAdministration() {
   };
 
   const openEditModal = (item) => {
-    // Check if it's a hardcoded item
-    if (item.isHardcoded) {
-      alert('Cannot edit hardcoded data. This is read-only system data from the frontend. You can create a new entry instead.');
-      return;
-    }
-    
     setEditingItem(item);
     setFormData({
       name: item.name,

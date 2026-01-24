@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
-import { Trophy, Users, Mail, Target, Dumbbell, Camera, Award } from 'lucide-react';
+import { Trophy, Users, Mail, Target, Dumbbell, Camera, Award, AlertCircle, Loader } from 'lucide-react';
 import API from '../../api/api.jsx';
 
 const MemberCard = ({ name, email, role }) => {
@@ -8,15 +9,15 @@ const MemberCard = ({ name, email, role }) => {
     <div
       className={`p-4 rounded-lg border-2 transition-all duration-300 ${
         darkMode
-          ? `bg-gray-800 border-gray-700 hover:border-${api.color1} hover:shadow-lg`
-          : `bg-white border-gray-200 hover:border-${api.color1} hover:shadow-lg`
+          ? `bg-gray-800 border-gray-700 hover:border-${API.color1} hover:shadow-lg`
+          : `bg-white border-gray-200 hover:border-${API.color1} hover:shadow-lg`
       }`}
       style={{
         borderColor: darkMode ? '#374151' : '#e5e7eb',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = api.color1;
-        e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+        e.currentTarget.style.borderColor = API.color1;
+        e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -59,8 +60,8 @@ const ImageGallery = ({ count = 6 }) => {
             borderColor: darkMode ? '#374151' : '#d1d5db',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = api.color1;
-            e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+            e.currentTarget.style.borderColor = API.color1;
+            e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.borderColor = darkMode ? '#374151' : '#d1d5db';
@@ -76,10 +77,92 @@ const ImageGallery = ({ count = 6 }) => {
 
 export default function SportsClub() {
   const { darkMode } = useTheme();
+  const [clubData, setClubData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const sportsActivities = [
     'Cricket', 'Badminton', 'Football', 'Table Tennis', 'Throwball', 'Volleyball'
   ];
+
+  useEffect(() => {
+    const fetchClubData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch(`${API.baseURL}/api/clubs/slug/sports-club`);
+        const data = await response.json();
+        
+        if (data.success) {
+          setClubData(data.data);
+        } else {
+          setError(data.message || 'Failed to load club data');
+        }
+      } catch (err) {
+        console.error('Error fetching club data:', err);
+        setError('Failed to connect to server. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClubData();
+  }, []);
+
+  const handleRetry = () => {
+    setError(null);
+    setLoading(true);
+    const fetchClubData = async () => {
+      try {
+        const response = await fetch(`${API.baseURL}/api/clubs/slug/sports-club`);
+        const data = await response.json();
+        
+        if (data.success) {
+          setClubData(data.data);
+        } else {
+          setError(data.message || 'Failed to load club data');
+        }
+      } catch (err) {
+        console.error('Error fetching club data:', err);
+        setError('Failed to connect to server. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchClubData();
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="text-center">
+          <Loader className={`w-12 h-12 animate-spin mx-auto mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} style={{ color: API.color1 }} />
+          <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Loading club information...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="text-center max-w-md mx-auto px-6">
+          <AlertCircle className={`w-16 h-16 mx-auto mb-4 ${darkMode ? 'text-red-400' : 'text-red-600'}`} />
+          <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Oops! Something went wrong</h2>
+          <p className={`mb-6 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{error}</p>
+          <button
+            onClick={handleRetry}
+            className="px-6 py-3 rounded-lg text-white font-semibold transition-all duration-300 hover:shadow-lg"
+            style={{ backgroundColor: API.color1 }}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const achievements = [
     {
@@ -191,15 +274,15 @@ export default function SportsClub() {
       {/* Hero Section */}
       <div className={`py-2 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${api.color1}1A`, color: api.color1, borderColor: `${api.color1}66` }}>
-            <Trophy className="w-4 h-4" style={{ color: api.color1 }} />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${API.color1}1A`, color: API.color1, borderColor: `${API.color1}66` }}>
+            <Trophy className="w-4 h-4" style={{ color: API.color1 }} />
             Sports Club
           </div>
           <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-            Sports Club
+            {clubData?.name || 'Sports Club'}
           </h1>
           <p className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            "Sports do not build Character, they Reveal it."
+            {clubData?.description || '"Sports do not build Character, they Reveal it."'}
           </p>
         </div>
       </div>
@@ -216,8 +299,8 @@ export default function SportsClub() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -225,18 +308,33 @@ export default function SportsClub() {
             }}
           >
             <h2 className={`text-2xl font-bold mb-4 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Target size={28} style={{ color: api.color1 }} />
-              About Sports Club
+              <Target size={28} style={{ color: API.color1 }} />
+              About {clubData?.name || 'Sports Club'}
             </h2>
             <p className={`text-base leading-relaxed mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-              Sports Club encourages students to develop their skills in all kinds of sports. The club mainly aims to develop the character of sportsmanship among students. We ensure support mentorship and facilities students need when it comes to sports. Play well and stay healthy because mental strength alone is not enough for an individual to be perfect. Sports and games make you feel excited and brings out the best in you.
+              {clubData?.description || "Sports Club encourages students to develop their skills in all kinds of sports. The club mainly aims to develop the character of sportsmanship among students. We ensure support mentorship and facilities students need when it comes to sports. Play well and stay healthy because mental strength alone is not enough for an individual to be perfect. Sports and games make you feel excited and brings out the best in you."}
             </p>
-            <p className={`text-base leading-relaxed mt-4 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-              <strong>Faculty In-Charge:</strong> Dr. A. Anenth
-            </p>
-            <p className={`text-base leading-relaxed mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-              <strong>Physical Education Instructor:</strong> Mr. Priya Nair K
-            </p>
+            {clubData?.coordinator && (() => {
+              try {
+                const coordinator = typeof clubData.coordinator === 'string' ? JSON.parse(clubData.coordinator) : clubData.coordinator;
+                return (
+                  <>
+                    <p className={`text-base leading-relaxed mt-4 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
+                      <strong>Faculty In-Charge:</strong> {coordinator.name || 'Dr. A. Anenth'}
+                    </p>
+                    <p className={`text-base leading-relaxed mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
+                      <strong>Email:</strong> <a href={`mailto:${coordinator.email}`} style={{ color: API.color1 }} className="hover:underline">{coordinator.email}</a>
+                    </p>
+                  </>
+                );
+              } catch (e) {
+                return (
+                  <p className={`text-base leading-relaxed mt-4 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
+                    <strong>Faculty In-Charge:</strong> Dr. A. Anenth
+                  </p>
+                );
+              }
+            })()}
           </div>
 
           {/* Tagline & Events */}
@@ -248,8 +346,8 @@ export default function SportsClub() {
                 borderColor: darkMode ? '#374151' : '#e5e7eb',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = api.color1;
-                e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+                e.currentTarget.style.borderColor = API.color1;
+                e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -257,7 +355,7 @@ export default function SportsClub() {
               }}
             >
               <h3 className={`text-xl font-bold mb-3 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                <Dumbbell size={24} style={{ color: api.color1 }} />
+                <Dumbbell size={24} style={{ color: API.color1 }} />
                 Tagline
               </h3>
               <p className={`text-base italic ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
@@ -272,8 +370,8 @@ export default function SportsClub() {
                 borderColor: darkMode ? '#374151' : '#e5e7eb',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = api.color1;
-                e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+                e.currentTarget.style.borderColor = API.color1;
+                e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -281,7 +379,7 @@ export default function SportsClub() {
               }}
             >
               <h3 className={`text-xl font-bold mb-3 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                <Trophy size={24} style={{ color: api.color1 }} />
+                <Trophy size={24} style={{ color: API.color1 }} />
                 Sports Activities
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -289,7 +387,7 @@ export default function SportsClub() {
                   <span
                     key={index}
                     className="px-3 py-1 rounded-full text-sm font-medium text-white"
-                    style={{ backgroundColor: api.color1 }}
+                    style={{ backgroundColor: API.color1 }}
                   >
                     {sport}
                   </span>
@@ -306,8 +404,8 @@ export default function SportsClub() {
               borderColor: darkMode ? '#374151' : '#e5e7eb',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = api.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -339,7 +437,7 @@ export default function SportsClub() {
           {/* Mentor */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Users size={28} style={{ color: api.color1 }} />
+              <Users size={28} style={{ color: API.color1 }} />
               Mentor
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
@@ -353,14 +451,14 @@ export default function SportsClub() {
           {/* Achievements in Sports */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Award size={28} style={{ color: api.color1 }} />
+              <Award size={28} style={{ color: API.color1 }} />
               Achievements in Sports
             </h2>
             <div className={`overflow-x-auto rounded-lg border-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
               <table className={`w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <thead>
                   <tr className={`border-b-2 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}
-                      style={{ backgroundColor: `${api.color1}15` }}>
+                      style={{ backgroundColor: `${API.color1}15` }}>
                     <th className={`px-6 py-4 text-left text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       Sl. No.
                     </th>
@@ -403,7 +501,7 @@ export default function SportsClub() {
           {/* Gallery */}
           <div>
             <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Camera size={28} style={{ color: api.color1 }} />
+              <Camera size={28} style={{ color: API.color1 }} />
               Gallery
             </h2>
             <ImageGallery count={12} />

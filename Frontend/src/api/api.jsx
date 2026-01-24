@@ -2,8 +2,8 @@ class API {
   static color1 = '#239244'; // Main Dark Green
   static color2 = '#e8f5f0'; // Light Mint Background
   static color3 = '#F1F3F3'; // Light Gray Background
-  // static baseURL = 'http://localhost:5000';
-  static baseURL = 'https://nodejs-production-0f39.up.railway.app';
+  static baseURL = 'http://localhost:5000';
+  // static baseURL = 'https://nodejs-production-0f39.up.railway.app';
 
   // Helper function to get full image URL
   static getImageUrl(imagePath) {
@@ -28,6 +28,7 @@ class API {
     const token = localStorage.getItem('token');
     return {
       'Content-Type': 'application/json',
+      'X-Language': localStorage.getItem('language') || 'en',
       ...(token && { 'Authorization': `Bearer ${token}` })
     };
   }
@@ -39,8 +40,9 @@ class API {
         const response = await fetch(url, {
           ...options,
           headers: {
-            ...this.getAuthHeaders(),
-            ...options.headers
+             ...this.getAuthHeaders(),
+            ...options.headers,
+           
           }
         });
 
@@ -49,6 +51,7 @@ class API {
         }
 
         const data = await response.json();
+        console.log('API Response:', data);
         return { success: true, data };
       } catch (error) {
         console.error(`Fetch attempt ${i + 1} failed:`, error);

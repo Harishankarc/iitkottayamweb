@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Mail, Phone, MapPin, Search, Heart, Stethoscope, UserCheck, Shield, Award } from 'lucide-react';
@@ -161,65 +161,32 @@ export default function ProfessionalSupportStaff() {
   const color1 = API.color1;
   const color2 = API.color2;
   const [searchTerm, setSearchTerm] = useState('');
+  const [staffData, setStaffData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Professional Support Staff Data
-  const staffData = [
-    {
-      id: 1,
-      name: 'Dr. Rani Stanly',
-      designation: 'Medical Officer',
-      email: 'mo1 at iiitkottayam dot ac.in',
-      phone: '+91 0482-2202132',
-      room: 'Room No: BB 203',
-      image: 'https://placehold.co/110x110/e8f5f0/239244?text=RS'
-    },
-    {
-      id: 2,
-      name: 'Dr. Radhakrishnan Nair',
-      designation: 'Medical Officer',
-      email: 'mo2 at iiitkottayam dot ac.in',
-      phone: '+91 0482-2202132',
-      room: 'Room No: BB 203',
-      image: 'https://placehold.co/110x110/e8f5f0/239244?text=RN'
-    },
-    {
-      id: 3,
-      name: 'Ms. Renjitha T.R',
-      designation: 'Psychologist',
-      email: 'counsellor at iiitkottayam dot ac.in',
-      phone: '+91 0482-2202107',
-      room: 'Room No: AB 209 D',
-      image: 'https://placehold.co/110x110/e8f5f0/239244?text=RT'
-    },
-    {
-      id: 4,
-      name: 'Ms. Priya Mol K',
-      designation: 'Physical Education Instructor',
-      email: 'pet at iiitkottayam dot ac.in',
-      phone: '+91 0482-2202106',
-      room: 'Room No: BD 405',
-      image: 'https://placehold.co/110x110/e8f5f0/239244?text=PM'
-    },
-    {
-      id: 5,
-      name: 'Ms. Sumi',
-      designation: 'Staff Nurse',
-      email: 'nurse at iiitkottayam dot ac.in',
-      phone: '+91 0482-2202108',
-      room: 'Room No: BB 203',
-      image: 'https://placehold.co/110x110/e8f5f0/239244?text=S'
-    },
-    {
-      id: 6,
-      name: 'Ms. Vinduja Vijayan',
-      designation: 'Staff Nurse',
-      email: 'nurse at iiitkottayam dot ac.in',
-      phone: '+91 0482-2202109',
-      room: 'Room No: BB 203',
-      image: 'https://placehold.co/110x110/e8f5f0/239244?text=VV'
-    },
-  ];
-
+  useEffect(() => {
+    const fetchSupportStaff = async () => {
+      try {
+        const response = await API.get('/api/people/type/support-staff');
+        const transformedData = (response.data || []).map(person => ({
+          id: person.id,
+          name: person.name,
+          designation: person.designation || '',
+          email: person.email || '',
+          phone: person.phone || '',
+          room: person.room || '',
+          image: person.photo || `https://placehold.co/110x110/e8f5f0/239244?text=${person.name.charAt(0)}`
+        }));
+        setStaffData(transformedData);
+      } catch (error) {
+        console.error('Error fetching support staff:', error);
+        setStaffData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSupportStaff();
+  }, []);
   // Filtered results based on search term
   const filteredStaff = staffData.filter((staff) => {
     const term = searchTerm.toLowerCase();
@@ -229,6 +196,14 @@ export default function ProfessionalSupportStaff() {
       staff.email.toLowerCase().includes(term)
     );
   });
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: color1 }}></div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>

@@ -3,38 +3,37 @@ import { useTheme } from '../context/createContext';
 import API from '../api/api';
 
 export default function AnnouncementBanner() {
-  const [isPaused, setIsPaused] = useState(false);
   const { darkMode, fontSize } = useTheme();
-  const [announcements, setAnnouncements] = useState([
-    "Loading announcements...",
-  ]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [currentBatch, setCurrentBatch] = useState(0);
+  const [fade, setFade] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const batchSize = 3; // Show 3 announcements at a time to fit screen
 
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
-        const response = await fetch(`${API.baseURL}/api/announcements`);
-        const data = await response.json();
+        setLoading(true);
+        setError(null);
+        const response = await API.get('/api/announcements?limit=10');
         
-        if (data.success && data.data.length > 0) {
-          const activeAnnouncements = data.data
-            .filter(item => item.isActive)
+        if (response.success && response.data?.data?.length > 0) {
+          const activeAnnouncements = response.data.data
             .map(item => item.title);
-          setAnnouncements(activeAnnouncements.length > 0 ? activeAnnouncements : [
-            "Online Admissions 2025",
-            "New Research Facilities Now Open",
-            "Campus Placement Drive 2025"
-          ]);
+          setAnnouncements(activeAnnouncements);
+        } else {
+          setError('No announcements available');
+          setAnnouncements([]);
         }
       } catch (error) {
         console.error('Error fetching announcements:', error);
-        setAnnouncements([
-          "Online Admissions 2025",
-          "New Research Facilities Now Open",
-          "Campus Placement Drive 2025"
-        ]);
+        setError('Failed to load announcements');
+        setAnnouncements([]);
+      } finally {
+        setLoading(false);
       }
     };
-
     fetchAnnouncements();
   }, []);
 
@@ -44,45 +43,99 @@ export default function AnnouncementBanner() {
     return 'text-sm';
   };
 
+  // Announcement cycling with fade effect - cycle through batches
+  useEffect(() => {
+    if (announcements.length === 0) return;
+    const totalBatches = Math.ceil(announcements.length / batchSize);
+    
+    const timer = setTimeout(() => {
+      setFade(true);
+      setTimeout(() => {
+        setCurrentBatch((prev) => (prev + 1) % totalBatches);
+        setFade(false);
+      }, 500); // fade duration
+    }, 7000); // 10 seconds
+    return () => clearTimeout(timer);
+  }, [currentBatch, announcements, batchSize]);
+
+  // Get current batch of announcements
+  const getCurrentBatch = () => {
+    const startIndex = currentBatch * batchSize;
+    const endIndex = startIndex + batchSize;
+    return announcements.slice(startIndex, endIndex);
+  };
+
+  const currentAnnouncements = getCurrentBatch();
+
+  // Show error state
+  if (error) {
+    return (
+      <div
+        className={`relative w-full overflow-hidden border-b-2 h-10 ${darkMode
+            ? 'bg-gradient-to-r from-red-900 via-red-800 to-red-900 border-red-500 text-white'
+            : 'bg-gradient-to-r from-red-100 via-red-200 to-red-100 border-red-400 text-black'
+          }`}
+      >
+        <div className="flex items-center justify-center h-full px-4">
+          <span className="font-medium text-xs sm:text-sm">⚠️ {error}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div
+        className={`relative w-full overflow-hidden border-b-2 h-10 ${darkMode
+            ? 'bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-gray-500 text-white'
+            : 'bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 border-gray-400 text-black'
+          }`}
+      >
+        <div className="flex items-center justify-center h-full px-4">
+          <span className="font-medium text-xs sm:text-sm">Loading announcements...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Hide banner if no announcements
+  if (announcements.length === 0) {
+    return null;
+  }
+
   return (
     <div
-      className={`relative w-full overflow-hidden border-b-2 ${darkMode
+      className={`relative w-full overflow-hidden border-b-2 h-10 ${darkMode
           ? 'bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-yellow-500 text-white'
           : 'bg-gradient-to-r from-gray-100 via-gray-200 to-gray-100 border-yellow-400 text-black'
         }`}
     >
       <style>{`
-        @keyframes scrollLeft {
-          0% {
-            transform: translateX(100%);
-          }
-          100% {
-            transform: translateX(-100%);
-          }
+        .fade-announcement {
+          opacity: 1;
+          transition: opacity 0.5s;
         }
-
-        .animate-scroll {
-          animation: scrollLeft 20s linear infinite;
+        .fade-announcement.fade {
+          opacity: 0;
         }
-
-        .animate-scroll.paused {
-          animation-play-state: paused;
-        }
-
-        .announcement-item {
-          display: inline-flex;
+        .announcement-horizontal {
+          display: flex;
           align-items: center;
+          gap: 1rem;
+          flex-wrap: wrap;
+          justify-content: flex-start;
+        }
+        .announcement-item {
           white-space: nowrap;
         }
       `}</style>
-
-      <div className="flex items-center h-10 md:h-12">
+      <div className="flex items-center h-full">
         {/* ANNOUNCEMENTS Label */}
         <div
-          className={`absolute left-0 z-10 px-3 sm:px-4 md:px-6 h-full flex items-center ${darkMode ? 'bg-black text-white' : 'bg-gray-300 text-black'
-            }`}
+          className={`absolute left-0 z-10 px-3 sm:px-4 md:px-6 h-full flex items-center ${darkMode ? 'bg-black text-white' : 'bg-gray-300 text-black'}`}
         >
-          <span className={`font-bold tracking-wider ${getFontSizeClass()}`}>
+          <span className="font-bold tracking-wider text-xs sm:text-sm">
             <span className="hidden sm:inline">ANNOUNCEMENTS</span>
             <span className="inline sm:hidden">NEWS</span>
           </span>
@@ -93,29 +146,17 @@ export default function AnnouncementBanner() {
               }`}
           ></div>
         </div>
-
-        {/* Scrolling Content Container */}
-        <div
-          className="ml-20 sm:ml-32 md:ml-40 lg:ml-48 flex-1 overflow-hidden"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
-          <div className={`flex ${isPaused ? 'paused' : ''} animate-scroll`}>
-            {[...announcements, ...announcements].map((announcement, index) => (
-              <div key={index} className="announcement-item">
-                <span className={`font-medium px-8 ${getFontSizeClass()}`}>{announcement}</span>
-                <span
-                  className={`text-xl px-4 ${darkMode ? 'text-yellow-500' : 'text-yellow-600'
-                    }`}
-                >
-                  |
-                </span>
-              </div>
+        {/* Horizontal Announcement Container */}
+        <div className="ml-20 sm:ml-32 md:ml-40 lg:ml-48 flex-1 overflow-hidden flex items-center px-2">
+          <div className={`fade-announcement${fade ? ' fade' : ''} announcement-horizontal w-full`}>
+            {currentAnnouncements.slice(0, 3).map((announcement, index) => (
+              <span key={index} className="font-medium text-xs sm:text-sm announcement-item">
+                • {announcement}
+              </span>
             ))}
           </div>
         </div>
       </div>
-
       {/* Bottom accent line */}
       <div
         className={`absolute bottom-0 left-0 right-0 h-0.5 ${darkMode

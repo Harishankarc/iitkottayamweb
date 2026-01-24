@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Mail, Phone, MapPin, Search, Wrench, Users, Code, Settings } from 'lucide-react';
@@ -157,64 +157,32 @@ export default function Technical() {
   const color1 = API.color1;
   const color2 = API.color2;
   const [searchTerm, setSearchTerm] = useState('');
+  const [technicalData, setTechnicalData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Technical Staff Data
-  const technicalData = [
-    {
-      id: 1,
-      name: 'Mr. Siju K. S.',
-      designation: 'Technical Officer',
-      email: 'sijuks at iiitkottayam dot ac.in',
-      phone: '+91 0482-2202121',
-      room: 'IT Center',
-      image: 'https://placehold.co/100x100/e8f5f0/239244?text=SKS'
-    },
-    {
-      id: 2,
-      name: 'Mr. Jithin K C',
-      designation: 'Junior Technician',
-      email: 'jithin at iiitkottayam dot ac.in',
-      phone: '+91 0482-2202113',
-      room: 'Lab Block A',
-      image: 'https://placehold.co/100x100/e8f5f0/239244?text=JKC'
-    },
-    {
-      id: 3,
-      name: 'Mr. Titus J Sam',
-      designation: 'Sr. Computer Programmer',
-      email: 'titusjsam at iiitkottayam dot ac.in',
-      phone: '+91 0482-2202252',
-      room: 'Computer Center',
-      image: 'https://placehold.co/100x100/e8f5f0/239244?text=TJS'
-    },
-    {
-      id: 4,
-      name: 'Ms. Anjaly Subash',
-      designation: 'Junior Technician',
-      email: 'anjalysubash at iiitkottayam dot ac.in',
-      phone: '+91 0482-2202114',
-      room: 'Lab Block B',
-      image: 'https://placehold.co/100x100/e8f5f0/239244?text=AS'
-    },
-    {
-      id: 5,
-      name: 'Ms. Vinaya Balakrishnan',
-      designation: 'Junior Technician (Electronics)',
-      email: 'vinayab at iiitkottayam dot ac.in',
-      phone: '+91 0482-2202345',
-      room: 'Electronics Lab',
-      image: 'https://placehold.co/100x100/e8f5f0/239244?text=VB'
-    },
-    {
-      id: 6,
-      name: 'Ms. Drishya Prasad',
-      designation: 'Junior Technician',
-      email: 'drishyaprasad at iiitkottayam dot ac.in',
-      phone: '+91 0482-2202115',
-      room: 'Lab Block C',
-      image: 'https://placehold.co/100x100/e8f5f0/239244?text=DP'
-    },
-  ];
+  useEffect(() => {
+    const fetchTechnicalStaff = async () => {
+      try {
+        const response = await API.get('/api/people/type/technical-staff');
+        const transformedData = (response.data || []).map(person => ({
+          id: person.id,
+          name: person.name,
+          designation: person.designation || '',
+          email: person.email || '',
+          phone: person.phone || '',
+          room: person.room || '',
+          image: person.photo || `https://placehold.co/100x100/e8f5f0/239244?text=${person.name.charAt(0)}`
+        }));
+        setTechnicalData(transformedData);
+      } catch (error) {
+        console.error('Error fetching technical staff:', error);
+        setTechnicalData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTechnicalStaff();
+  }, []);
 
   // Filtered results based on search term
   const filteredStaff = technicalData.filter((staff) => {
@@ -225,7 +193,13 @@ export default function Technical() {
       staff.email.toLowerCase().includes(term)
     );
   });
-
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: color1 }}></div>
+      </div>
+    );
+  }
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
       {/* Hero Section */}

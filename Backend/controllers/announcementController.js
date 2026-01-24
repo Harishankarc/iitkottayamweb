@@ -1,5 +1,6 @@
 import Announcement from '../models/Announcement.js';
 import { Op } from 'sequelize';
+import { getLangFromHeader, translateRow } from '../utils/translation.js';
 
 // @desc    Get all active announcements
 // @route   GET /api/announcements
@@ -7,6 +8,10 @@ import { Op } from 'sequelize';
 export const getAllAnnouncements = async (req, res, next) => {
   try {
     const now = new Date();
+    const lang = getLangFromHeader(req);
+    const limit = parseInt(req.query.limit) || 10; // Maximum 10 announcements by default
+    
+    console.log('Fetching announcements, language:', lang, 'limit:', limit);
     
     const announcements = await Announcement.findAll({
       where: {
@@ -17,15 +22,42 @@ export const getAllAnnouncements = async (req, res, next) => {
           { endDate: { [Op.gte]: now } }
         ]
       },
-      order: [['priority', 'DESC'], ['startDate', 'DESC']]
+      order: [['priority', 'DESC'], ['startDate', 'DESC']],
+      limit: limit
     });
+
+    console.log(`Found ${announcements.length} active announcements`);
+
+    // Only translate if language is not default (en)
+    if (lang === 'en') {
+      return res.json({
+        success: true,
+        count: announcements.length,
+        data: announcements
+      });
+    }
+
+    // Translate each announcement
+    console.log(`Translating announcements to ${lang}...`);
+    const translatedAnnouncements = await Promise.all(
+      announcements.map(item => translateRow(
+        'announcements',
+        item.id,
+        item.toJSON(),
+        ['title', 'message'],
+        lang
+      ))
+    );
+
+    console.log('Translation complete');
 
     res.json({
       success: true,
-      count: announcements.length,
-      data: announcements
+      count: translatedAnnouncements.length,
+      data: translatedAnnouncements
     });
   } catch (error) {
+    console.error('Error in getAllAnnouncements:', error);
     next(error);
   }
 };

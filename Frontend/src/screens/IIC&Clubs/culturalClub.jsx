@@ -143,6 +143,68 @@ export default function ClubCarnival() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
   const color2 = API.color2;
+  const [clubData, setClubData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchClubData = async () => {
+      try {
+        setError(null);
+        const response = await API.get('/api/clubs/slug/cultural-club');
+        setClubData(response.data);
+      } catch (error) {
+        console.error('Error fetching club data:', error);
+        setError('Failed to load cultural club information. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchClubData();
+  }, []);
+
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    API.get('/api/clubs/slug/cultural-club')
+      .then((response) => {
+        setClubData(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching club data:', error);
+        setError('Failed to load cultural club information. Please try again later.');
+      })
+      .finally(() => setLoading(false));
+  };
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: color1 }}></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="max-w-2xl mx-auto px-6 py-20 text-center">
+          <p className={`text-lg mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{error}</p>
+          <button
+            onClick={handleRetry}
+            className="px-6 py-3 rounded-lg text-white font-medium transition-all duration-300 hover:shadow-lg"
+            style={{ backgroundColor: color1 }}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Parse activities from API if available
+  const apiActivities = clubData?.activities ? (typeof clubData.activities === 'string' ? JSON.parse(clubData.activities) : clubData.activities) : [];
+  const apiCoordinator = clubData?.coordinator ? (typeof clubData.coordinator === 'string' ? JSON.parse(clubData.coordinator) : clubData.coordinator) : null;
 
   // Cultural club FIC
   const culturalFIC = {
@@ -267,11 +329,21 @@ export default function ClubCarnival() {
              onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
              onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}>
           <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
-            About Wildbeats Cultural Club
+            About {clubData?.name || 'Wildbeats Cultural Club'}
           </h2>
           <p className={`text-lg leading-relaxed mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            Wildbeats, the Cultural Club of IIIT Kottayam serves as a hub where students from different backgrounds come together to express themselves through art, music, dance, drama, and more. The Club organizes various events throughout the academic year designed to promote cultural exchange and understanding.
+            {clubData?.description || 'Wildbeats, the Cultural Club of IIIT Kottayam serves as a hub where students from different backgrounds come together to express themselves through art, music, dance, drama, and more. The Club organizes various events throughout the academic year designed to promote cultural exchange and understanding.'}
           </p>
+          {apiActivities.length > 0 && (
+            <div className={`mb-6 p-4 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+              <h3 className={`text-lg font-semibold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Our Activities:</h3>
+              <ul className={`list-disc list-inside space-y-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                {apiActivities.map((activity, index) => (
+                  <li key={index}>{activity}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           <p className={`text-lg leading-relaxed mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
             From traditional festivals and performances showcasing different regions' cultural heritage to workshops that teach students about global cuisines and dance, the club offers a platform for both learning and celebration. Wildbeats nurtures talent and leadership skills among its members, empowering them to organize cultural events and build confidence through public performances.
           </p>

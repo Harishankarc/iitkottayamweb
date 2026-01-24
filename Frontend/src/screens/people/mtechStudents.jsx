@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Search, GraduationCap, ChevronLeft, ChevronRight, Award } from 'lucide-react';
@@ -31,75 +31,23 @@ export default function MTechStudents() {
   const color2 = API.color2;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBatch, setSelectedBatch] = useState('2019');
+  const [studentsData, setStudentsData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // M.Tech Students Data
-  const studentsData = [
-    // 2019 Batch
-    { id: 1, name: 'ABHILASH K', batch: '2019' },
-    { id: 2, name: 'ADARSH KRISHNAN', batch: '2019' },
-    { id: 3, name: 'ANJANA MOL K K', batch: '2019' },
-    { id: 4, name: 'ANJU AUGUSTINE', batch: '2019' },
-    { id: 5, name: 'ANUPAMA SAJI', batch: '2019' },
-    { id: 6, name: 'ARAVIND RAJ M', batch: '2019' },
-    { id: 7, name: 'ARYA KRISHNAN', batch: '2019' },
-    { id: 8, name: 'ATHIRA P', batch: '2019' },
-    { id: 9, name: 'DEVIKA MENON', batch: '2019' },
-    { id: 10, name: 'GEETHU JOSEPH', batch: '2019' },
-    { id: 11, name: 'HAREESH KUMAR', batch: '2019' },
-    { id: 12, name: 'JITHIN JOSE', batch: '2019' },
-    { id: 13, name: 'KAVYA KRISHNA', batch: '2019' },
-    { id: 14, name: 'LAKSHMI PRIYA', batch: '2019' },
-    { id: 15, name: 'MANU KRISHNA', batch: '2019' },
-    { id: 16, name: 'NAVEEN KUMAR', batch: '2019' },
-    { id: 17, name: 'PREETHI PAUL', batch: '2019' },
-    { id: 18, name: 'RAHUL RAJ', batch: '2019' },
-    { id: 19, name: 'SANDEEP KUMAR', batch: '2019' },
-    { id: 20, name: 'SREELAKSHMI S', batch: '2019' },
-
-    // 2020 Batch
-    { id: 21, name: 'ADITHYA NAIR', batch: '2020' },
-    { id: 22, name: 'ANITHA KUMARI', batch: '2020' },
-    { id: 23, name: 'ASHWIN KUMAR', batch: '2020' },
-    { id: 24, name: 'DEEPAK MENON', batch: '2020' },
-    { id: 25, name: 'GAYATRI SURESH', batch: '2020' },
-    { id: 26, name: 'HARITHA MENON', batch: '2020' },
-    { id: 27, name: 'KIRAN KUMAR', batch: '2020' },
-    { id: 28, name: 'MEERA KRISHNAN', batch: '2020' },
-    { id: 29, name: 'NIKHIL VARMA', batch: '2020' },
-    { id: 30, name: 'POOJA SHARMA', batch: '2020' },
-    { id: 31, name: 'RAJESH MENON', batch: '2020' },
-    { id: 32, name: 'SANJAY KUMAR', batch: '2020' },
-
-    // 2021 Batch
-    { id: 33, name: 'ARUN KUMAR R', batch: '2021' },
-    { id: 34, name: 'DIVYA NAIR', batch: '2021' },
-    { id: 35, name: 'GOPAL KRISHNAN', batch: '2021' },
-    { id: 36, name: 'INDIRA MENON', batch: '2021' },
-    { id: 37, name: 'KRISHNA KUMAR', batch: '2021' },
-    { id: 38, name: 'MADHAVI SHARMA', batch: '2021' },
-    { id: 39, name: 'NITHIN RAJ', batch: '2021' },
-    { id: 40, name: 'PRANAV MENON', batch: '2021' },
-    { id: 41, name: 'RADHIKA NAIR', batch: '2021' },
-    { id: 42, name: 'SURESH KUMAR', batch: '2021' },
-
-    // 2022 Batch
-    { id: 43, name: 'AKSHAY KUMAR', batch: '2022' },
-    { id: 44, name: 'BHAVANA MENON', batch: '2022' },
-    { id: 45, name: 'CHETAN KUMAR', batch: '2022' },
-    { id: 46, name: 'DHANYA NAIR', batch: '2022' },
-    { id: 47, name: 'HARI KRISHNAN', batch: '2022' },
-    { id: 48, name: 'KAVITHA SHARMA', batch: '2022' },
-    { id: 49, name: 'LAKSHMAN KUMAR', batch: '2022' },
-    { id: 50, name: 'MAYA MENON', batch: '2022' },
-
-    // 2023 Batch
-    { id: 51, name: 'ARJUN MENON', batch: '2023' },
-    { id: 52, name: 'BINDU KRISHNAN', batch: '2023' },
-    { id: 53, name: 'DEEPA NAIR', batch: '2023' },
-    { id: 54, name: 'GANESH KUMAR', batch: '2023' },
-    { id: 55, name: 'HARINI SHARMA', batch: '2023' },
-    { id: 56, name: 'KARTHIK MENON', batch: '2023' },
-  ];
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const response = await API.get('/api/students?program=M.Tech');
+        setStudentsData(response.data || []);
+      } catch (error) {
+        console.error('Error fetching M.Tech students:', error);
+        setStudentsData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStudents();
+  }, []);
 
   // Available batches
   const batches = ['2019', '2020', '2021', '2022', '2023', '2024'];

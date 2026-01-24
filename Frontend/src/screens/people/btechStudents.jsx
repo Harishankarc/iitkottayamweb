@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Search, GraduationCap, ChevronLeft, ChevronRight, Users } from 'lucide-react';
@@ -31,65 +31,23 @@ export default function BTechStudents() {
   const color2 = API.color2;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBatch, setSelectedBatch] = useState('2015');
+  const [studentsData, setStudentsData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // B.Tech Students Data
-  const studentsData = [
-    // 2015 Batch
-    { id: 1, name: 'A. ADDEPALLI VENKATA MANIKYALA RAO', batch: '2015' },
-    { id: 2, name: 'AKASH TIMMAPURAM', batch: '2015' },
-    { id: 3, name: 'ANIL KUMAR YADAV', batch: '2015' },
-    { id: 4, name: 'ANJU MARY PETER', batch: '2015' },
-    { id: 5, name: 'ANUJ BHATLA', batch: '2015' },
-    { id: 6, name: 'BANAVATH SHIVA SHANTHA MANI', batch: '2015' },
-    { id: 7, name: 'BEVARA RAVI VARMA KUMAR', batch: '2015' },
-    { id: 8, name: 'DARLA PRASHANTH', batch: '2015' },
-    { id: 9, name: 'ESLAVATH RAMYA', batch: '2015' },
-    { id: 10, name: 'ETHAKOTA PAVANSAI', batch: '2015' },
-    { id: 11, name: 'HARSH KUMAR SINGH', batch: '2015' },
-    { id: 12, name: 'JALIBILI PUSHPAK', batch: '2015' },
-    { id: 13, name: 'KALIDINDI ALEKHYA', batch: '2015' },
-    { id: 14, name: 'KODURU JASWANTH KUMAR', batch: '2015' },
-    { id: 15, name: 'KOTLAPUDI JASWANTH', batch: '2015' },
-    { id: 16, name: 'KOVYANA YASHWANT SRIVATSAV', batch: '2015' },
-    { id: 17, name: 'MAROTU RAJESH KUMAR', batch: '2015' },
-    { id: 18, name: 'MEDA RAVALI', batch: '2015' },
-    { id: 19, name: 'MOOD DINESH', batch: '2015' },
-    { id: 20, name: 'MUNJULURI SRIJA ASRITHA', batch: '2015' },
-    { id: 21, name: 'POSIPOGU ANANDA BHARATH', batch: '2015' },
-    { id: 22, name: 'RAJAT KUMAR', batch: '2015' },
-    { id: 23, name: 'SAVIO JOSE', batch: '2015' },
-    { id: 24, name: 'SHIVENDRA SINGH', batch: '2015' },
-
-    // 2016 Batch
-    { id: 25, name: 'ABHISHEK SHARMA', batch: '2016' },
-    { id: 26, name: 'ADITI VERMA', batch: '2016' },
-    { id: 27, name: 'ARAVIND KRISHNAN', batch: '2016' },
-    { id: 28, name: 'DEEPAK KUMAR', batch: '2016' },
-    { id: 29, name: 'KAVYA MENON', batch: '2016' },
-    { id: 30, name: 'PRANAV REDDY', batch: '2016' },
-    { id: 31, name: 'SANJAY PATEL', batch: '2016' },
-    { id: 32, name: 'SNEHA GUPTA', batch: '2016' },
-
-    // 2017 Batch
-    { id: 33, name: 'AMIT SINGH', batch: '2017' },
-    { id: 34, name: 'DIVYA NAIR', batch: '2017' },
-    { id: 35, name: 'KARTHIK IYER', batch: '2017' },
-    { id: 36, name: 'NEHA SHARMA', batch: '2017' },
-    { id: 37, name: 'RAVI KUMAR', batch: '2017' },
-    { id: 38, name: 'SWATI PANDEY', batch: '2017' },
-
-    // 2018 Batch
-    { id: 39, name: 'ARJUN MENON', batch: '2018' },
-    { id: 40, name: 'PRIYA KRISHNAN', batch: '2018' },
-    { id: 41, name: 'ROHIT SHARMA', batch: '2018' },
-    { id: 42, name: 'SAKSHI PATEL', batch: '2018' },
-
-    // 2019 Batch
-    { id: 43, name: 'ANKIT VERMA', batch: '2019' },
-    { id: 44, name: 'MEGHA REDDY', batch: '2019' },
-    { id: 45, name: 'NIKHIL GUPTA', batch: '2019' },
-    { id: 46, name: 'POOJA SINGH', batch: '2019' },
-  ];
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const response = await API.get('/api/students?program=B.Tech');
+        setStudentsData(response.data || []);
+      } catch (error) {
+        console.error('Error fetching B.Tech students:', error);
+        setStudentsData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStudents();
+  }, []);
 
   // Available batches
   const batches = ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022'];

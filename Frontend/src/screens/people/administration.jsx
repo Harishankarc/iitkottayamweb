@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
@@ -292,114 +292,37 @@ export default function Administration() {
   const color2 = API.color2;
   const [activeTab, setActiveTab] = useState('General');
   const [searchTerm, setSearchTerm] = useState('');
+  const [administrationData, setAdministrationData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Data from the screenshot
-  const administrationData = [
-    {
-      name: 'Prof. Prasad Krishna',
-      title: 'Director, NIT Calicut',
-      roles: ['Director (Addl. charge), IIIT Kottayam'],
-      email: 'director@iiitkottayam.ac.in',
-      phone: '+91 0482-2202137 (Office) | +91 0482-2202112 (Office)',
-      room: 'N/A',
-      image: 'https://placehold.co/128x128/e8f5f0/239244?text=PK',
-      category: 'general'
-    },
-    {
-      name: 'Dr. M Radhakrishnan',
-      title: 'Registrar, IIIT Kottayam',
-      roles: ['Former Registrar, IISER-TVM', 'Former Dy. Registrar NIT Calicut'],
-      email: 'registrar@iiitkottayam.ac.in',
-      phone: '+91 0482-2202100',
-      room: 'N/A',
-      image: 'https://placehold.co/128x128/e8f5f0/239244?text=MR',
-      category: 'general'
-    },
-    {
-      name: 'Prof Ashok S',
-      title: 'Adjunct Professor and Professor In-charge (Academics)',
-      roles: ['Former Professor NIT Calicut'],
-      email: 'pic.academics@iiitkottayam.ac.in',
-      phone: '+91 0482-2202132 | +91 0482-2202175(off.)',
-      room: 'Room No: AC 307',
-      image: 'https://placehold.co/128x128/e8f5f0/239244?text=AS',
-      category: 'general'
-    },
-    {
-      name: 'Dr. Ebin Deni Raj',
-      title: 'Associate Dean (Academic Affairs)',
-      roles: [],
-      email: 'ebindeniraj@iiitkottayam.ac.in',
-      phone: '+91 (0) 482-2202195',
-      room: 'Room No: AC 308 / AA 117',
-      image: 'https://placehold.co/128x128/e8f5f0/239244?text=EDR',
-      category: 'general'
-    },
-    {
-      name: 'Dr Divya Sindhu Lekha',
-      title: 'Associate Dean (Academic Affairs-PG)',
-      roles: [],
-      email: 'divyasindhu@iiitkottayam.ac.in',
-      phone: '+91 (0) 482-2202161',
-      room: 'Room No: BD 417 / AA 116',
-      image: 'https://placehold.co/128x128/e8f5f0/239244?text=DSL',
-      category: 'general'
-    },
-    {
-      name: 'Dr. Bakkyaraj T',
-      title: 'Associate Dean (Hostel Affairs & Student Events)',
-      roles: [],
-      email: 'bakkyaraj@iiitkottayam.ac.in',
-      phone: '+91 (0) 482-2202160',
-      room: 'Room No: AB 212 / AA 118',
-      image: 'https://placehold.co/128x128/e8f5f0/239244?text=BT',
-      category: 'general'
-    },
-    {
-      name: 'Dr. J. V. Bibal Benifa',
-      title: 'Associate Dean (Students Welfare & Career Development Services)',
-      roles: [],
-      email: 'benifa@iiitkottayam.ac.in',
-      phone: '+91 (0) 482-2202163',
-      room: 'Room No: BD 416 / AB 216',
-      image: 'https://placehold.co/128x128/e8f5f0/239244?text=JVB',
-      category: 'general'
-    },
-    {
-      name: 'Dr. Ragesh G K',
-      title: 'Associate Dean (Industrial Relations & Funding)',
-      roles: ['Faculty In-Charge (Public Relations & Intellectual Property Rights, Institute Innovation Cell, Gyaan Innovation Lab-IIITK, Certificate Programme)'],
-      email: 'ragesh@iiitkottayam.ac.in',
-      phone: '+91 (0) 482-2202179',
-      room: 'Room No: CAB 103 B',
-      image: 'https://placehold.co/128x128/e8f5f0/239244?text=RGK',
-      category: 'fac-in-charge'
-    },
-  ];
+  // Fetch administration data from API
+  useEffect(() => {
+    const fetchAdministration = async () => {
+      try {
+        const response = await API.get('/api/people/type/administration');
+        if (response.success && response.data) {
+          // Transform API data to match component structure
+          const transformedData = response.data.map(person => ({
+            name: person.name,
+            title: person.designation,
+            roles: person.department ? [person.department] : [],
+            email: person.email || '',
+            phone: person.phone || '',
+            room: person.qualification || 'N/A',
+            image: person.photo || `https://placehold.co/128x128/e8f5f0/239244?text=${person.name.charAt(0)}`,
+            category: 'general'
+          }));
+          setAdministrationData(transformedData);
+        }
+      } catch (error) {
+        console.error('Error fetching administration data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Sample data for Support tab (you can customize this)
-  const supportData = [
-    {
-      name: 'IT Support Team',
-      title: 'Technical Support Officer',
-      roles: ['Network Administration', 'System Maintenance'],
-      email: 'itsupport@iiitkottayam.ac.in',
-      phone: '+91 0482-2202190',
-      room: 'IT Center',
-      image: 'https://placehold.co/128x128/e8f5f0/239244?text=IT',
-      category: 'support'
-    },
-    {
-      name: 'Library Services',
-      title: 'Library In-Charge',
-      roles: ['Digital Resources', 'Library Management'],
-      email: 'library@iiitkottayam.ac.in',
-      phone: '+91 0482-2202191',
-      room: 'Central Library',
-      image: 'https://placehold.co/128x128/e8f5f0/239244?text=LIB',
-      category: 'support'
-    },
-  ];
+    fetchAdministration();
+  }, []);
 
   // Filtered results based on search term
   const filteredResults = administrationData.filter((person) => {

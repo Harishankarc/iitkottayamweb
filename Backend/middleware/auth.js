@@ -52,6 +52,9 @@ export const protect = async (req, res, next) => {
   }
 };
 
+// Alias for backward compatibility
+export const authenticate = protect;
+
 // Check if user has admin role
 export const authorize = (...roles) => {
   return (req, res, next) => {

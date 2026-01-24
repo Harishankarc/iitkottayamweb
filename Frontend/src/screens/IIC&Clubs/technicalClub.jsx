@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
-import { Code2, Users, Mail, Trophy, Lightbulb, Camera } from 'lucide-react';
+import { Code2, Users, Mail, Trophy, Lightbulb, Camera, AlertCircle, Loader } from 'lucide-react';
 import API from '../../api/api.jsx';
 
 const MemberCard = ({ name, email, isCoordinator = false }) => {
@@ -120,6 +121,88 @@ const ImageGallery = ({ count = 6 }) => {
 
 export default function TechnicalClub() {
   const { darkMode } = useTheme();
+  const [clubData, setClubData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchClubData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch(`${API.baseURL}/api/clubs/slug/coding-club`);
+        const data = await response.json();
+        
+        if (data.success) {
+          setClubData(data.data);
+        } else {
+          setError(data.message || 'Failed to load club data');
+        }
+      } catch (err) {
+        console.error('Error fetching club data:', err);
+        setError('Failed to connect to server. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClubData();
+  }, []);
+
+  const handleRetry = () => {
+    setError(null);
+    setLoading(true);
+    const fetchClubData = async () => {
+      try {
+        const response = await fetch(`${API.baseURL}/api/clubs/slug/coding-club`);
+        const data = await response.json();
+        
+        if (data.success) {
+          setClubData(data.data);
+        } else {
+          setError(data.message || 'Failed to load club data');
+        }
+      } catch (err) {
+        console.error('Error fetching club data:', err);
+        setError('Failed to connect to server. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchClubData();
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="text-center">
+          <Loader className={`w-12 h-12 animate-spin mx-auto mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} style={{ color: API.color1 }} />
+          <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Loading club information...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="text-center max-w-md mx-auto px-6">
+          <AlertCircle className={`w-16 h-16 mx-auto mb-4 ${darkMode ? 'text-red-400' : 'text-red-600'}`} />
+          <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Oops! Something went wrong</h2>
+          <p className={`mb-6 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{error}</p>
+          <button
+            onClick={handleRetry}
+            className="px-6 py-3 rounded-lg text-white font-semibold transition-all duration-300 hover:shadow-lg"
+            style={{ backgroundColor: API.color1 }}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -131,10 +214,10 @@ export default function TechnicalClub() {
             Technical Club
           </div>
           <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-            Beta Labs
+            {clubData?.name || 'Beta Labs'}
           </h1>
           <p className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            Inspiring innovation through technical excellence and collaborative learning
+            {clubData?.description || 'Inspiring innovation through technical excellence and collaborative learning'}
           </p>
         </div>
       </div>
@@ -161,17 +244,26 @@ export default function TechnicalClub() {
           >
             <h2 className={`text-2xl font-bold mb-4 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               <Lightbulb size={28} style={{ color: API.color1 }} />
-              About Beta Labs
+              About {clubData?.name || 'Beta Labs'}
             </h2>
             <p className={`text-base leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-              Beta Labs is the students' technical club of IITT Kottayam, intended to increase the interaction of our students with the research world by creating a platform to inspire students and to familiarize them with the booming opportunities around them. Students are updated with the contemporary works of research and technology through group discussions, seminars, and other activities throughout the year. They experience hands-on sessions in the current hot domains of research by working on self-designed projects in small groups. Weekly gatherings are held to analyze and evaluate their progress.
+              {clubData?.description || "Beta Labs is the students' technical club of IITT Kottayam, intended to increase the interaction of our students with the research world by creating a platform to inspire students and to familiarize them with the booming opportunities around them. Students are updated with the contemporary works of research and technology through group discussions, seminars, and other activities throughout the year. They experience hands-on sessions in the current hot domains of research by working on self-designed projects in small groups. Weekly gatherings are held to analyze and evaluate their progress."}
             </p>
             <p className={`text-base leading-relaxed mt-4 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
               <strong>Vision:</strong> The activities of the club motivate self-learning and sharing information amongst peers enabling students to widen the horizon of knowledge whilst sharpening their skills.
             </p>
-            <p className={`text-base leading-relaxed mt-3 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-              <strong>Email:</strong> <a href="mailto:tec.techclub@iittkottayam.ac.in" style={{ color: API.color1 }} className="hover:underline">tec.techclub@iittkottayam.ac.in</a>
-            </p>
+            {clubData?.coordinator && (() => {
+              try {
+                const coordinator = typeof clubData.coordinator === 'string' ? JSON.parse(clubData.coordinator) : clubData.coordinator;
+                return (
+                  <p className={`text-base leading-relaxed mt-3 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
+                    <strong>Email:</strong> <a href={`mailto:${coordinator.email}`} style={{ color: API.color1 }} className="hover:underline">{coordinator.email}</a>
+                  </p>
+                );
+              } catch (e) {
+                return null;
+              }
+            })()}
           </div>
 
           {/* Faculty Coordinators */}

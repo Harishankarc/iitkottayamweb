@@ -262,7 +262,9 @@ export default function ManageFaculty() {
               </div>
               <ImageUploader
                 value={formData.photo || ''}
-                onChange={(url) => setFormData({...formData, photo: url})}
+                onChange={(url) => { 
+                  console.log('Selected Image URL:', url);
+                  setFormData({...formData, photo: url})}}
                 label="Faculty Photo"
                 folder="faculty"
                 aspectRatio="1/1"

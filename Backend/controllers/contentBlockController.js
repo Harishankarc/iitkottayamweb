@@ -1,5 +1,6 @@
 import ContentBlock from '../models/ContentBlock.js';
 import { Op } from 'sequelize';
+import { getLangFromHeader, translateRow } from '../utils/translation.js';
 
 /**
  * Get all blocks for a specific page
@@ -8,6 +9,7 @@ export const getBlocksByPage = async (req, res) => {
   try {
     const { pageName } = req.params;
     const { sectionName, blockType, isVisible } = req.query;
+    const lang = getLangFromHeader(req);
 
     const whereClause = { pageName };
     
@@ -20,9 +22,20 @@ export const getBlocksByPage = async (req, res) => {
       order: [['blockOrder', 'ASC'], ['id', 'ASC']]
     });
 
+    // Translate each block
+    const translatedBlocks = await Promise.all(
+      blocks.map(block => translateRow(
+        'content_blocks',
+        block.id,
+        block.toJSON(),
+        ['content', 'blockLabel', 'blockDescription'],
+        lang
+      ))
+    );
+
     res.json({
       success: true,
-      data: blocks
+      data: translatedBlocks
     });
   } catch (error) {
     console.error('Error fetching blocks:', error);

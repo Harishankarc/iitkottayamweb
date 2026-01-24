@@ -1,4 +1,5 @@
 import Faculty from '../models/Faculty.js';
+import { getLangFromHeader, translateRow } from '../utils/translation.js';
 
 // @desc    Get all faculty
 // @route   GET /api/faculty
@@ -6,6 +7,7 @@ import Faculty from '../models/Faculty.js';
 export const getAllFaculty = async (req, res, next) => {
   try {
     const { department } = req.query;
+    const lang = getLangFromHeader(req);
     
     const where = { isActive: true };
     if (department) {
@@ -16,11 +18,22 @@ export const getAllFaculty = async (req, res, next) => {
       where,
       order: [['name', 'ASC']]
     });
+    
+    // Translate each faculty member
+    const translatedFaculty = await Promise.all(
+      faculty.map(member => translateRow(
+        'faculty',
+        member.id,
+        member.toJSON(),
+        ['name', 'designation', 'department', 'specialization', 'bio'],
+        lang
+      ))
+    );
 
     res.json({
       success: true,
-      count: faculty.length,
-      data: faculty
+      count: translatedFaculty.length,
+      data: translatedFaculty
     });
   } catch (error) {
     next(error);
