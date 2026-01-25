@@ -12,6 +12,7 @@ const BLOCK_TYPES = [
   { value: 'gallery', label: 'Gallery', icon: Image, color: '#ec4899' },
   { value: 'list', label: 'List', icon: List, color: '#6366f1' },
   { value: 'card', label: 'Card', icon: LayoutIcon, color: '#14b8a6' },
+  { value: 'table', label: 'Table', icon: LayoutIcon, color: '#0ea5e9' },
   { value: 'statistics', label: 'Statistics', icon: BarChart3, color: '#239244' },
   { value: 'button', label: 'Button', icon: Settings, color: '#ef4444' },
   { value: 'accordion', label: 'Accordion', icon: List, color: '#a855f7' },
@@ -879,14 +880,26 @@ export default function ManageContentBlocks() {
         return (
           <div className="space-y-4">
             <div>
+              <label className="block text-sm font-medium mb-1">Badge Text</label>
+              <input
+                type="text"
+                value={content.badge || ''}
+                onChange={(e) => updateContent('badge', e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="Established 2015 • Institution of National Importance"
+              />
+              <p className="text-xs text-gray-500 mt-1">Small badge that appears above the title</p>
+            </div>
+            <div>
               <label className="block text-sm font-medium mb-1">Title</label>
               <input
                 type="text"
                 value={content.title || ''}
                 onChange={(e) => updateContent('title', e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg"
-                placeholder="Hero title"
+                placeholder="Why IIIT Kottayam"
               />
+              <p className="text-xs text-gray-500 mt-1">First word will be normal, rest will be in green gradient</p>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Subtitle</label>
@@ -895,7 +908,7 @@ export default function ManageContentBlocks() {
                 value={content.subtitle || ''}
                 onChange={(e) => updateContent('subtitle', e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg"
-                placeholder="Hero subtitle"
+                placeholder="Pioneering excellence in Information Technology education and research"
               />
             </div>
             <div>
@@ -905,7 +918,7 @@ export default function ManageContentBlocks() {
                 onChange={(e) => updateContent('description', e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg"
                 rows="3"
-                placeholder="Hero description"
+                placeholder="Additional description text (optional)"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -933,7 +946,7 @@ export default function ManageContentBlocks() {
             <ImageUploader
               value={content.backgroundImage || ''}
               onChange={(url) => updateContent('backgroundImage', url)}
-              label="Background Image"
+              label="Background Image (Optional)"
               folder="images"
             />
           </div>
@@ -1008,6 +1021,97 @@ export default function ManageContentBlocks() {
                 value={content.icon || ''}
                 onChange={(e) => updateContent('icon', e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg"
+                placeholder="🎯 or 🗄️"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Badge Text (optional)</label>
+              <input
+                type="text"
+                value={content.badge || ''}
+                onChange={(e) => updateContent('badge', e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="Institute Archives"
+              />
+              <p className="text-xs text-gray-500 mt-1">Shows as a badge above the title</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Title</label>
+              <input
+                type="text"
+                value={content.title || ''}
+                onChange={(e) => updateContent('title', e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="Annual Reports or Core Documents"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Items with Links</label>
+              <p className="text-xs text-gray-500 mb-2">
+                Format: <code className="bg-gray-100 px-1 rounded">Text|URL</code> or <code className="bg-gray-100 px-1 rounded">ICON Text|URL</code>
+                <br/>Examples: 
+                <br/>• <code className="bg-gray-100 px-1 rounded">Annual Report 2015-16|https://example.com/report.pdf</code>
+                <br/>• <code className="bg-gray-100 px-1 rounded">SCALES IIIT PPP Act|https://example.com/act.pdf</code>
+              </p>
+              {(content.items || []).map((item, index) => {
+                const [itemText, itemUrl] = typeof item === 'string' && item.includes('|') ? item.split('|') : [item, ''];
+                return (
+                  <div key={index} className="mb-3 p-3 border rounded-lg bg-gray-50">
+                    <div className="flex gap-2 mb-2">
+                      <input
+                        type="text"
+                        value={itemText}
+                        onChange={(e) => {
+                          const newValue = itemUrl ? `${e.target.value}|${itemUrl}` : e.target.value;
+                          updateArrayContent('items', index, newValue);
+                        }}
+                        className="flex-1 px-3 py-2 border rounded-lg bg-white"
+                        placeholder={`Item ${index + 1} text (e.g., Annual Report 2015-16 or SCALES IIIT PPP Act)`}
+                      />
+                      <button
+                        onClick={() => removeArrayItem('items', index)}
+                        className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <span className="text-xs text-gray-600 shrink-0">🔗 Link:</span>
+                      <input
+                        type="text"
+                        value={itemUrl}
+                        onChange={(e) => {
+                          const newValue = e.target.value ? `${itemText}|${e.target.value}` : itemText;
+                          updateArrayContent('items', index, newValue);
+                        }}
+                        className="flex-1 px-3 py-2 text-sm border rounded-lg bg-white"
+                        placeholder="https://example.com/file.pdf (optional)"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+              <button
+                onClick={() => addArrayItem('items')}
+                className="w-full px-3 py-2 border-2 border-dashed rounded-lg hover:bg-gray-50 text-gray-600"
+              >
+                + Add Item
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'heading':
+      case 'paragraph':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Icon (emoji or text)</label>
+              <input
+                type="text"
+                value={content.icon || ''}
+                onChange={(e) => updateContent('icon', e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
                 placeholder="🎯"
               />
             </div>
@@ -1018,51 +1122,45 @@ export default function ManageContentBlocks() {
                 value={content.title || ''}
                 onChange={(e) => updateContent('title', e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg"
-                placeholder="List title"
+                placeholder="Section title"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">List Style</label>
-              <select
-                value={content.listStyle || 'bullet'}
-                onChange={(e) => updateContent('listStyle', e.target.value)}
+              <label className="block text-sm font-medium mb-1">Text</label>
+              <textarea
+                value={content.text || ''}
+                onChange={(e) => updateContent('text', e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg"
-              >
-                <option value="bullet">Bullet Points</option>
-                <option value="numbered">Numbered List</option>
-                <option value="checkmark">Checkmarks</option>
-              </select>
+                rows="5"
+                placeholder="Your content here..."
+              />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Items</label>
-              {(content.items || []).map((item, index) => (
-                <div key={index} className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={item}
-                    onChange={(e) => updateArrayContent('items', index, e.target.value)}
-                    className="flex-1 px-3 py-2 border rounded-lg"
-                    placeholder={`Item ${index + 1}`}
-                  />
-                  <button
-                    onClick={() => removeArrayItem('items', index)}
-                    className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-              <button
-                onClick={() => addArrayItem('items', '')}
-                className="px-4 py-2 text-green-600 border border-green-600 rounded-lg hover:bg-green-50"
-              >
-                + Add Item
-              </button>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Link Text</label>
+                <input
+                  type="text"
+                  value={content.linkText || ''}
+                  onChange={(e) => updateContent('linkText', e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="Read more →"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Link URL</label>
+                <input
+                  type="text"
+                  value={content.link || ''}
+                  onChange={(e) => updateContent('link', e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="/page"
+                />
+              </div>
             </div>
           </div>
         );
 
-      case 'statistics':
+      case 'button':
         return (
           <div className="space-y-4">
             <div>
@@ -1190,6 +1288,125 @@ export default function ManageContentBlocks() {
                 <option value="secondary">Secondary</option>
                 <option value="outline">Outline</option>
               </select>
+            </div>
+          </div>
+        );
+
+      case 'table':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Title</label>
+              <input
+                type="text"
+                value={content.title || ''}
+                onChange={(e) => updateContent('title', e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="Fee Structure"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Subtitle (optional)</label>
+              <input
+                type="text"
+                value={content.subtitle || ''}
+                onChange={(e) => updateContent('subtitle', e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="Initial First Semester Payment"
+              />
+              <p className="text-xs text-gray-500 mt-1">Leave empty for full-width table layout</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Table Headers (comma separated)</label>
+              <input
+                type="text"
+                value={(content.headers || []).join(', ')}
+                onChange={(e) => updateContent('headers', e.target.value.split(',').map(h => h.trim()))}
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="Fee Component, Amount"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Table Rows</label>
+              {(content.rows || []).map((row, rowIndex) => (
+                <div key={rowIndex} className="border rounded-lg p-3 mb-3 bg-gray-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Row {rowIndex + 1}</span>
+                    <button
+                      onClick={() => {
+                        const newRows = [...(content.rows || [])];
+                        newRows.splice(rowIndex, 1);
+                        updateContent('rows', newRows);
+                      }}
+                      className="px-2 py-1 text-red-600 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={row.join(', ')}
+                    onChange={(e) => {
+                      const newRows = [...(content.rows || [])];
+                      newRows[rowIndex] = e.target.value.split(',').map(cell => cell.trim());
+                      updateContent('rows', newRows);
+                    }}
+                    className="w-full px-3 py-2 border rounded-lg bg-white"
+                    placeholder="Cell 1, Cell 2, Cell 3"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Separate cells with commas. Number of cells should match headers.</p>
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  const headerCount = (content.headers || []).length || 2;
+                  const newRow = Array(headerCount).fill('');
+                  updateContent('rows', [...(content.rows || []), newRow]);
+                }}
+                className="w-full px-3 py-2 border-2 border-dashed rounded-lg hover:bg-gray-50 text-gray-600"
+              >
+                + Add Row
+              </button>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Notes (optional)</label>
+              <p className="text-xs text-gray-500 mb-2">Add notes below the table. Use "Text|URL" format for links.</p>
+              {(content.notes || []).map((note, noteIndex) => (
+                <div key={noteIndex} className="border rounded-lg p-3 mb-3 bg-gray-50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-sm font-medium">Note {noteIndex + 1}</span>
+                    <button
+                      onClick={() => {
+                        const newNotes = [...(content.notes || [])];
+                        newNotes.splice(noteIndex, 1);
+                        updateContent('notes', newNotes);
+                      }}
+                      className="px-2 py-1 text-red-600 hover:bg-red-50 rounded ml-auto"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <textarea
+                    value={note}
+                    onChange={(e) => {
+                      const newNotes = [...(content.notes || [])];
+                      newNotes[noteIndex] = e.target.value;
+                      updateContent('notes', newNotes);
+                    }}
+                    className="w-full px-3 py-2 border rounded-lg bg-white"
+                    rows="2"
+                    placeholder="Mode of reporting at the institute: Offline"
+                  />
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  updateContent('notes', [...(content.notes || []), '']);
+                }}
+                className="w-full px-3 py-2 border-2 border-dashed rounded-lg hover:bg-gray-50 text-gray-600"
+              >
+                + Add Note
+              </button>
             </div>
           </div>
         );

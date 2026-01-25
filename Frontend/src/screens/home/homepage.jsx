@@ -89,7 +89,7 @@ const HomePage = () => {
   const [companyList, setCompanyList] = useState([]);
   const [facultyList, setFacultyList] = useState([]);
   const [NIRF_Ranking, setNIRF_Ranking] = useState([]);
-  const [heroSliders, setHeroSliders] = useState([]);
+  const [heroSliders, setHeroSliders] = useState([])
   const [pageContent, setPageContent] = useState(null);
   const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
