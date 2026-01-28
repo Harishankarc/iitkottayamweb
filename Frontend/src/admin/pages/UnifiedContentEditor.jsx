@@ -16,7 +16,8 @@ const BLOCK_TYPES = [
   { value: 'gallery', label: '🎨 Gallery', color: '#ec4899' },
   { value: 'list', label: '📋 List', color: '#6366f1' },
   { value: 'card', label: '🃏 Card', color: '#14b8a6' },
-  { value: 'statistics', label: '📊 Statistics', color: '#239244' },
+  { value: 'table', label: '📊 Table', color: '#06b6d4' },
+  { value: 'statistics', label: '📈 Statistics', color: '#239244' },
   { value: 'button', label: '🔘 Button', color: '#ef4444' }
 ];
 
@@ -674,6 +675,150 @@ export default function UnifiedContentEditor() {
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="🎯"
               />
+            </div>
+          </div>
+        );
+
+      case 'table':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-gray-700">Table Title</label>
+              <input
+                type="text"
+                value={content.title || ''}
+                onChange={(e) => updateContent('title', e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Fee Structure"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-gray-700">Subtitle (Optional)</label>
+              <input
+                type="text"
+                value={content.subtitle || ''}
+                onChange={(e) => updateContent('subtitle', e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Admission 2025"
+              />
+            </div>
+            
+            {/* Table Headers */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-semibold text-gray-700">Table Headers</label>
+                <button
+                  type="button"
+                  onClick={() => addArrayItem('headers', '')}
+                  className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  + Add Header
+                </button>
+              </div>
+              <div className="space-y-2">
+                {(content.headers || []).map((header, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={header}
+                      onChange={(e) => updateArrayContent('headers', index, e.target.value)}
+                      className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder={`Header ${index + 1}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeArrayItem('headers', index)}
+                      className="px-3 py-2 text-red-600 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Table Rows */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-semibold text-gray-700">Table Rows</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const headerCount = (content.headers || []).length;
+                    const newRow = Array(headerCount).fill('');
+                    addArrayItem('rows', newRow);
+                  }}
+                  className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  + Add Row
+                </button>
+              </div>
+              <div className="space-y-3">
+                {(content.rows || []).map((row, rowIndex) => (
+                  <div key={rowIndex} className="border-2 border-gray-200 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-gray-600">Row {rowIndex + 1}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeArrayItem('rows', rowIndex)}
+                        className="text-sm text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${(content.headers || []).length}, 1fr)` }}>
+                      {row.map((cell, cellIndex) => (
+                        <input
+                          key={cellIndex}
+                          type="text"
+                          value={cell}
+                          onChange={(e) => {
+                            const newRows = [...(content.rows || [])];
+                            newRows[rowIndex][cellIndex] = e.target.value;
+                            updateContent('rows', newRows);
+                          }}
+                          className="px-3 py-2 border rounded focus:ring-2 focus:ring-green-500 text-sm"
+                          placeholder={(content.headers || [])[cellIndex] || `Col ${cellIndex + 1}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Notes/Footer */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-semibold text-gray-700">Notes (Optional)</label>
+                <button
+                  type="button"
+                  onClick={() => addArrayItem('notes', '')}
+                  className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  + Add Note
+                </button>
+              </div>
+              <div className="space-y-2">
+                {(content.notes || []).map((note, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={note}
+                      onChange={(e) => updateArrayContent('notes', index, e.target.value)}
+                      className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Note text (use | for links, e.g., Link text|#url)"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeArrayItem('notes', index)}
+                      className="px-3 py-2 text-red-600 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         );

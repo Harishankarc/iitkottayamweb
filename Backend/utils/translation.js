@@ -303,16 +303,19 @@ export async function translateRow(entityType, entityId, row, fieldsToTranslate,
 
   // Build translatable payload
   const translatablePayload = {};
+  const wasStringField = {}; // Track which fields were originally strings
   for (const field of fieldsToTranslate) {
     if (row[field] !== undefined && row[field] !== null) {
       // Parse JSON strings
       if (typeof row[field] === 'string' && (field === 'sections' || field === 'content' || field === 'links')) {
+        wasStringField[field] = true; // Mark as originally a string
         try {
           translatablePayload[field] = JSON.parse(row[field]);
         } catch {
           translatablePayload[field] = row[field];
         }
       } else {
+        wasStringField[field] = false; // Mark as originally an object
         translatablePayload[field] = row[field];
       }
     }
@@ -334,8 +337,8 @@ export async function translateRow(entityType, entityId, row, fieldsToTranslate,
   const result = { ...row };
   for (const field of fieldsToTranslate) {
     if (translatedPayload[field] !== undefined) {
-      // Convert back to JSON string if needed
-      if (typeof row[field] === 'string' && (field === 'sections' || field === 'content' || field === 'links')) {
+      // Convert back to JSON string ONLY if it was originally a string
+      if (wasStringField[field] && (field === 'sections' || field === 'content' || field === 'links')) {
         result[field] = JSON.stringify(translatedPayload[field]);
       } else {
         result[field] = translatedPayload[field];

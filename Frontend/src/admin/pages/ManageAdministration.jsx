@@ -29,8 +29,16 @@ export default function ManageAdministration() {
 
   const fetchPeople = async () => {
     try {
-      const response = await API.get('/people/type/administration');
-      setPeople(response.data || []);
+      const response = await fetch(`${API.baseURL}/api/people/type/administration`);
+      const data = await response.json();
+      console.log('Admin API Response:', data);
+      
+      if (data.success && data.data && Array.isArray(data.data)) {
+        setPeople(data.data);
+      } else {
+        console.error('Invalid response format:', data);
+        setPeople([]);
+      }
     } catch (error) {
       console.error('Error fetching administration:', error);
       setPeople([]);
@@ -43,9 +51,9 @@ export default function ManageAdministration() {
     e.preventDefault();
     try {
       if (editingItem) {
-        await API.put(`/people/${editingItem.id}`, formData);
+        await API.put(`/api/people/${editingItem.id}`, formData);
       } else {
-        await API.post('/people', formData);
+        await API.post('/api/people', formData);
       }
       fetchPeople();
       setShowModal(false);
@@ -59,7 +67,7 @@ export default function ManageAdministration() {
     if (!window.confirm('Are you sure you want to delete this member?')) return;
     
     try {
-      await API.delete(`/people/${id}`);
+      await API.delete(`/api/people/${id}`);
       fetchPeople();
     } catch (error) {
       console.error('Error deleting administration:', error);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Users, TrendingUp, BarChart3, PieChart } from 'lucide-react';
@@ -7,26 +7,77 @@ export default function GenderIndex() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
   const color2 = API.color2;
+  const [content, setContent] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [genderData, setGenderData] = useState({
+    enrolment: { male: 0, female: 0, total: 0 },
+    professional: { male: 0, female: 0, total: 0 }
+  });
 
-  // Gender Index Data
-  const genderData = {
-    enrolment: {
-      male: 753,
-      female: 144,
-      total: 897
-    },
-    professional: {
-      male: 36,
-      female: 27,
-      total: 63
-    }
-  };
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const response = await fetch(`${API.baseURL}/api/content-blocks/page/gender-index`);
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          setContent(data.data);
+          
+          // Extract data from content blocks
+          const tableBlock = data.data.find(block => block.blockType === 'table');
+          if (tableBlock && tableBlock.content) {
+            const tableData = typeof tableBlock.content === 'string' 
+              ? JSON.parse(tableBlock.content) 
+              : tableBlock.content;
+            
+            if (tableData.rows && Array.isArray(tableData.rows)) {
+              // Parse the table data
+              const enrolmentMale = parseInt(tableData.rows.find(r => r[0] === 'Male' && r[1] === 'IIIT Kottayam')?.[2] || 0);
+              const enrolmentFemale = parseInt(tableData.rows.find(r => r[0] === 'Female' && r[1] === 'IIIT Kottayam')?.[2] || 0);
+              const professionalMale = parseInt(tableData.rows.find(r => r[0] === 'Male' && r[1] === 'Professional & Technical')?.[2] || 0);
+              const professionalFemale = parseInt(tableData.rows.find(r => r[0] === 'Female' && r[1] === 'Professional & Technical')?.[2] || 0);
+              
+              setGenderData({
+                enrolment: {
+                  male: enrolmentMale,
+                  female: enrolmentFemale,
+                  total: enrolmentMale + enrolmentFemale
+                },
+                professional: {
+                  male: professionalMale,
+                  female: professionalFemale,
+                  total: professionalMale + professionalFemale
+                }
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching gender index data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchContent();
+  }, []);
 
   // Calculate percentages
-  const enrolmentMalePercent = ((genderData.enrolment.male / genderData.enrolment.total) * 100).toFixed(1);
-  const enrolmentFemalePercent = ((genderData.enrolment.female / genderData.enrolment.total) * 100).toFixed(1);
-  const professionalMalePercent = ((genderData.professional.male / genderData.professional.total) * 100).toFixed(1);
-  const professionalFemalePercent = ((genderData.professional.female / genderData.professional.total) * 100).toFixed(1);
+  const enrolmentMalePercent = genderData.enrolment.total > 0 ? ((genderData.enrolment.male / genderData.enrolment.total) * 100).toFixed(1) : '0.0';
+  const enrolmentFemalePercent = genderData.enrolment.total > 0 ? ((genderData.enrolment.female / genderData.enrolment.total) * 100).toFixed(1) : '0.0';
+  const professionalMalePercent = genderData.professional.total > 0 ? ((genderData.professional.male / genderData.professional.total) * 100).toFixed(1) : '0.0';
+  const professionalFemalePercent = genderData.professional.total > 0 ? ((genderData.professional.female / genderData.professional.total) * 100).toFixed(1) : '0.0';
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: color1 }}></div>
+          <p className={darkMode ? 'text-gray-300' : 'text-gray-600'}>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>

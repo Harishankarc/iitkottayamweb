@@ -39,6 +39,7 @@ import facilityRoutes from './routes/facilityRoutes.js';
 import researchActivityRoutes from './routes/researchActivityRoutes.js';
 import clubRoutes from './routes/clubRoutes.js';
 import translationRoutes from './routes/translationRoutes.js';
+import fdpProgramRoutes from './routes/fdpProgramRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -102,6 +103,7 @@ app.use('/api/facilities', facilityRoutes);
 app.use('/api/research-activities', researchActivityRoutes);
 app.use('/api/clubs', clubRoutes);
 app.use('/api', translationRoutes);
+app.use('/api/fdp-programs', fdpProgramRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

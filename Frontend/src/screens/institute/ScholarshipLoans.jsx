@@ -12,7 +12,7 @@ export default function ScholarshipLoan() {
   const color3 = API.color3;
 
   // Fetch dynamic content from database
-  const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('scholarships');
+  const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('scholarship');
   const visibleBlocks = contentBlocks ? getVisibleBlocks(contentBlocks) : [];
 
   return (

@@ -174,18 +174,27 @@ export default function HeadofDepartment() {
   useEffect(() => {
     const fetchHODs = async () => {
       try {
-        const response = await API.get('/api/people/type/hod');
-        // Transform API response to match component structure
-        const transformedData = (response.data || []).map(person => ({
-          id: person.id,
-          name: person.name,
-          department: person.designation || person.department,
-          phones: person.phone ? [person.phone] : [],
-          email: person.email || '',
-          room: person.room || '',
-          image: person.photo || `https://placehold.co/128x128/e8f5f0/239244?text=${person.name.charAt(0)}`
-        }));
-        setHodData(transformedData);
+        const response = await fetch(`${API.baseURL}/api/people/type/hod`);
+        const data = await response.json();
+        console.log('HOD API Response:', data);
+        
+        if (data.success && data.data && Array.isArray(data.data)) {
+          const transformedData = data.data
+            .filter(person => person.isActive !== false)
+            .map(person => ({
+              id: person.id,
+              name: person.name || 'Unknown',
+              department: person.designation || person.department || 'Department',
+              phones: person.phone ? [person.phone] : [],
+              email: person.email || '',
+              room: person.qualification || person.room || 'N/A',
+              image: API.getImageUrl(person.photo) || `https://placehold.co/128x128/22a05e/ffffff?text=${person.name?.charAt(0) || 'H'}`
+            }));
+          setHodData(transformedData);
+        } else {
+          console.error('Invalid response format:', data);
+          setHodData([]);
+        }
       } catch (error) {
         console.error('Error fetching HOD data:', error);
         setHodData([]);

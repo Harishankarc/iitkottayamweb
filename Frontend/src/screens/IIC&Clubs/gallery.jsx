@@ -107,73 +107,65 @@ export default function Gallery() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
   const color2 = API.color2;
-  const [eventGalleries, setEventGalleries] = useState([]);
+  const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchGallery = async () => {
-      try {
-        const response = await fetch(`${API.baseURL}/api/gallery`);
-        const data = await response.json();
-        
-        if (data.success) {
-          const formattedGallery = data.data
-            .filter(item => item.isPublished)
-            .map(item => ({
-              id: item.id,
-              title: item.title,
-              date: item.eventDate ? new Date(item.eventDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '',
-              description: item.description || '',
-              imageCount: item.images ? JSON.parse(item.images).length : 6,
-              icon: getIconForCategory(item.category)
-            }));
-          setEventGalleries(formattedGallery);
-        }
-      } catch (error) {
-        console.error('Error fetching gallery:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGallery();
+    fetchContent();
   }, []);
 
-  const getIconForCategory = (category) => {
-    const iconMap = {
-      'conference': Award,
-      'sports': Activity,
-      'cultural': Palette,
-      'festival': Users,
-      'celebration': Calendar,
-      'default': Camera
-    };
-    return iconMap[category?.toLowerCase()] || iconMap.default;
+  const fetchContent = () => {
+    setLoading(true);
+    setError(null);
+    API.get('/api/content-blocks/page/gallery')
+      .then((response) => {
+        const blocks = response.data.data || response.data || [];
+        const parsedBlocks = blocks.map(block => ({
+          ...block,
+          content: typeof block.content === 'string' ? JSON.parse(block.content) : block.content
+        }));
+        const visibleBlocks = parsedBlocks.filter(block => block.isVisible);
+        setContentBlocks(visibleBlocks);
+      })
+      .catch((error) => {
+        console.error('Error fetching gallery content:', error);
+        setError('Failed to load gallery content. Please try again later.');
+        setContentBlocks([]);
+      })
+      .finally(() => setLoading(false));
   };
 
-  // Gallery features
-  const galleryFeatures = [
-    {
-      icon: Camera,
-      title: 'Event Photography',
-      description: 'Comprehensive photo documentation of all institute events'
-    },
-    {
-      icon: Calendar,
-      title: 'Timeline Archives',
-      description: 'Chronologically organized galleries from past years'
-    },
-    {
-      icon: Users,
-      title: 'Community Moments',
-      description: 'Capturing memorable moments of our campus community'
-    },
-    {
-      icon: Award,
-      title: 'Achievement Records',
-      description: 'Visual records of competitions and achievements'
-    }
-  ];
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: color1 }}></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="max-w-2xl mx-auto px-6 py-20 text-center">
+          <p className={`text-lg mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{error}</p>
+          <button
+            onClick={fetchContent}
+            className="px-6 py-3 rounded-lg text-white font-medium transition-all duration-300 hover:shadow-lg"
+            style={{ backgroundColor: color1 }}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Filter blocks by type
+  const heroBlock = contentBlocks.find(block => block.blockType === 'hero');
+  const paragraphBlocks = contentBlocks.filter(block => block.blockType === 'paragraph');
+  const listBlocks = contentBlocks.filter(block => block.blockType === 'list');
+  const imageBlocks = contentBlocks.filter(block => block.blockType === 'image');
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
@@ -182,80 +174,103 @@ export default function Gallery() {
         <div className="max-w-7xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
             <Camera className="w-4 h-4" style={{ color: color1 }} />
-            Visual Archive
+            {heroBlock?.content.badge || 'Visual Archive'}
           </div>
           <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-            Photo Gallery
+            {heroBlock?.content.title || 'Photo Gallery'}
           </h1>
           <p className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            Explore memorable moments and events from our vibrant campus life through our comprehensive photo archives.
+            {heroBlock?.content.description || 'Explore memorable moments and events from our vibrant campus life through our comprehensive photo archives.'}
           </p>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="mx-auto py-8 px-6 max-w-full">
-        {/* About Gallery */}
-        <div className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`} 
-             style={{ borderColor: `${color1}20` }} 
-             onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
-             onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}>
-          <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
-            About Our Gallery
-          </h2>
-          <p className={`text-lg leading-relaxed mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            Our photo gallery serves as a visual chronicle of IIIT Kottayam's journey, capturing the essence of academic excellence, cultural diversity, and community spirit. From technical conferences to cultural festivals, every significant moment is preserved for posterity.
-          </p>
+        {/* Dynamic Paragraph Blocks */}
+        {paragraphBlocks.map((block, index) => (
+          <div key={index} className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`} 
+               style={{ borderColor: `${color1}20` }} 
+               onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
+               onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}>
+            <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
+              {block.content.title}
+            </h2>
+            <div 
+              className={`text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+              dangerouslySetInnerHTML={{ __html: block.content.text }}
+            />
+          </div>
+        ))}
 
-          {/* Gallery Features */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {galleryFeatures.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div 
-                  key={index}
-                  className={`flex flex-col items-center text-center p-4 rounded-lg transition-all duration-300 hover:shadow-md ${darkMode ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'}`}
+        {/* Dynamic List Blocks */}
+        {listBlocks.map((block, index) => (
+          <div key={index} className="mb-12">
+            <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
+              {block.content.title}
+            </h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {block.content.items.map((item, itemIndex) => (
+                <div
+                  key={itemIndex}
+                  className={`p-6 rounded-xl transition-all duration-300 hover:shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md border-2`}
+                  style={{ borderColor: `${color1}33` }}
                 >
-                  <div 
-                    className="w-12 h-12 rounded-lg flex items-center justify-center mb-3"
-                    style={{ backgroundColor: `${color1}20` }}
-                  >
-                    <Icon className="w-6 h-6" style={{ color: color1 }} />
+                  <div className="text-center">
+                    <div 
+                      className="w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: `${color1}20` }}
+                    >
+                      <Camera className="w-8 h-8" style={{ color: color1 }} />
+                    </div>
+                    <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {item}
+                    </p>
                   </div>
-                  <h3 className={`text-sm font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {feature.title}
-                  </h3>
-                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {feature.description}
-                  </p>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
-        </div>
+        ))}
 
-        {/* Event Galleries */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
-            Event Galleries
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {eventGalleries.map((event) => (
-              <EventGalleryCard key={event.id} event={event} color1={color1} darkMode={darkMode} />
-            ))}
+        {/* Featured Images Gallery */}
+        {imageBlocks.length > 0 && (
+          <div className={`p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`}
+               style={{ borderColor: `${color1}20` }} 
+               onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
+               onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}>
+            <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
+              Featured Images
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {imageBlocks.map((block, index) => (
+                <div
+                  key={index}
+                  className={`aspect-video rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+                >
+                  <img
+                    src={API.getImageUrl(block.content.url || block.content.src)}
+                    alt={block.content.alt || `Featured image ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.parentElement.innerHTML = `
+                        <div class="w-full h-full flex items-center justify-center border-2 border-dashed" style="border-color: ${color1}40; background-color: ${darkMode ? '#1F2937' : '#F9FAFB'}">
+                          <div class="text-center">
+                            <svg class="w-8 h-8 mx-auto mb-2 opacity-50" style="color: ${color1}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <p class="text-sm" style="color: ${darkMode ? '#9CA3AF' : '#6B7280'}">Featured Image ${index + 1}</p>
+                          </div>
+                        </div>
+                      `;
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-
-        {/* Featured Images */}
-        <div className={`p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`}
-             style={{ borderColor: `${color1}20` }} 
-             onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
-             onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}>
-          <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
-            Featured Images
-          </h2>
-          <FeaturedGallery color1={color1} darkMode={darkMode} />
-        </div>
+        )}
       </div>
     </div>
   );

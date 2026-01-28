@@ -216,10 +216,47 @@ export function renderContentBlock(block, options = {}) {
       );
 
     case 'image':
+      // Handle both single image and image arrays
+      if (content.images && Array.isArray(content.images)) {
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-8">
+            {content.images.map((img, idx) => {
+              // Get image source - check if it's already a full path or needs to be imported from assets
+              let imgSrc = img.url;
+              if (!imgSrc.startsWith('http') && !imgSrc.startsWith('/uploads/')) {
+                // Import from assets folder
+                try {
+                  imgSrc = new URL(`../assets/images/${img.url}`, import.meta.url).href;
+                } catch (e) {
+                  console.error('Error loading image:', img.url, e);
+                  imgSrc = img.url;
+                }
+              }
+              
+              return (
+                <div key={idx} className="relative rounded-lg overflow-hidden shadow-lg">
+                  <img 
+                    src={imgSrc} 
+                    alt={img.alt || `Image ${idx + 1}`} 
+                    className="w-full h-auto object-cover"
+                  />
+                  {img.caption && (
+                    <div className="absolute bottom-0 right-0 bg-black bg-opacity-60 text-white px-4 py-2 text-sm font-medium">
+                      {img.caption}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+      
+      // Single image fallback
       return (
         <div className="py-4">
           <img 
-            src={API.getImageUrl(content.src)} 
+            src={content.src || API.getImageUrl(content.src)} 
             alt={content.alt || 'Image'} 
             className="w-full rounded-lg"
           />

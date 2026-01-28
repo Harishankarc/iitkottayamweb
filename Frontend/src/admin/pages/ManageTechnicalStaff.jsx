@@ -32,9 +32,15 @@ export default function ManageTechnicalStaff() {
     try {
       setLoading(true);
       setError(null);
-      const response = await API.get('/people/type/technical-staff');
-      const apiData = response.data || [];
-      setPeople(apiData);
+      const response = await fetch(`${API.baseURL}/api/people/type/technical-staff`);
+      const data = await response.json();
+      console.log('Technical Staff API Response:', data);
+      if (data.success && data.data && Array.isArray(data.data)) {
+        setPeople(data.data);
+      } else {
+        console.error('Invalid response format:', data);
+        setPeople([]);
+      }
     } catch (error) {
       console.error('Error fetching technical staff:', error);
       setError('Failed to load technical staff. Please check your connection and try again.');
@@ -48,9 +54,9 @@ export default function ManageTechnicalStaff() {
     e.preventDefault();
     try {
       if (editingItem) {
-        await API.put(`/people/${editingItem.id}`, formData);
+        await API.put(`/api/people/${editingItem.id}`, formData);
       } else {
-        await API.post('/people', formData);
+        await API.post('/api/people', formData);
       }
       fetchPeople();
       setShowModal(false);
@@ -64,7 +70,7 @@ export default function ManageTechnicalStaff() {
     if (!window.confirm('Are you sure you want to delete this staff member?')) return;
     
     try {
-      await API.delete(`/people/${id}`);
+      await API.delete(`/api/people/${id}`);
       fetchPeople();
     } catch (error) {
       console.error('Error deleting technical staff:', error);

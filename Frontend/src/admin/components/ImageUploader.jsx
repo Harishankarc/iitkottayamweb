@@ -36,6 +36,9 @@ export default function ImageUploader({
     formData.append('folder', folder);
 
     try {
+      console.log('Uploading to:', `${API.baseURL}/api/upload`);
+      console.log('Token:', localStorage.getItem('token') ? 'Present' : 'Missing');
+      
       const response = await fetch(`${API.baseURL}/api/upload`, {
         method: 'POST',
         headers: {
@@ -44,17 +47,21 @@ export default function ImageUploader({
         body: formData
       });
       
+      console.log('Response status:', response.status);
       const data = await response.json();
       console.log('Upload Response:', data);
       
-      if (data.success) {
+      if (response.ok && data.success) {
         onChange(data.data.url);
+        alert('Image uploaded successfully!');
       } else {
-        alert(data.message || 'Failed to upload image');
+        const errorMsg = data.message || data.error || 'Failed to upload image';
+        console.error('Upload failed:', errorMsg);
+        alert(`Upload failed: ${errorMsg}`);
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Error uploading image');
+      alert(`Error uploading image: ${error.message}`);
     } finally {
       setUploading(false);
     }

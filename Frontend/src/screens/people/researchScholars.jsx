@@ -60,8 +60,27 @@ export default function ResearchScholars() {
   useEffect(() => {
     const fetchScholars = async () => {
       try {
-        const response = await API.get('/api/students?program=Ph.D');
-        setScholarsData(response.data || []);
+        const response = await fetch(`${API.baseURL}/api/people/type/research-scholars`);
+        const data = await response.json();
+        console.log('Research Scholars API Response:', data);
+        
+        if (data.success && data.data && Array.isArray(data.data)) {
+          const transformedData = data.data
+            .filter(scholar => scholar.isActive !== false)
+            .map(scholar => ({
+              id: scholar.id,
+              name: scholar.name || 'Unknown',
+              type: scholar.designation || scholar.specialization || '',
+              batch: scholar.department || '2025',
+              email: scholar.email || '',
+              phone: scholar.phone || '',
+              image: API.getImageUrl(scholar.photo) || `https://placehold.co/100x100/22a05e/ffffff?text=${scholar.name?.charAt(0) || 'R'}`
+            }));
+          setScholarsData(transformedData);
+        } else {
+          console.error('Invalid response format:', data);
+          setScholarsData([]);
+        }
       } catch (error) {
         console.error('Error fetching research scholars:', error);
         setScholarsData([]);

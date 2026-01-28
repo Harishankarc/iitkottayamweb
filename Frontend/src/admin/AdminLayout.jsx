@@ -85,7 +85,7 @@ export default function AdminLayout() {
       id: 'content',
       label: 'Content Management',
       icon: FileText,
-      path: '/admin/content-editor',
+      path: '/admin/content',
       hasDropdown: false
     },
     {
@@ -143,7 +143,8 @@ export default function AdminLayout() {
       hasDropdown: true,
       submenu: [
         { icon: UsersRound, label: 'Manage Clubs', path: '/admin/clubs' },
-        { icon: Calendar, label: 'Events', path: '/admin/events' }
+        { icon: Calendar, label: 'Events', path: '/admin/events' },
+        { icon: Presentation, label: 'FDP Programs', path: '/admin/fdp-programs' }
       ]
     },
     {

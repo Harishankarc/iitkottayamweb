@@ -12,13 +12,13 @@ import {
 const router = express.Router();
 
 // Get all people
-router.get('/', protect, getAllPeople);
+router.get('/', getAllPeople);
 
-// Get people by type
-router.get('/type/:type', protect, getPeopleByType);
+// Get people by type (public access for frontend display)
+router.get('/type/:type', getPeopleByType);
 
 // Get single person
-router.get('/:id', protect, getPerson);
+router.get('/:id', getPerson);
 
 // Create person
 router.post('/', protect, createPerson);

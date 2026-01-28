@@ -4,179 +4,135 @@ import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Users, Mail, Phone, MapPin, Search, BookOpenText, UserCog, Headphones } from 'lucide-react';
 
-// Sub-component for the profile card with modern, professional design
+// Sub-component for the profile card - matching reference design
 const ProfileCard = ({ person, color1, darkMode }) => {
   const [isHovered, setIsHovered] = React.useState(false);
   
   return (
     <div
-      className={`relative rounded-xl overflow-hidden transition-all duration-300 ${
-        isHovered ? 'shadow-2xl' : 'shadow-md'
+      className={`relative rounded-2xl overflow-hidden transition-all duration-300 ${
+        isHovered ? 'shadow-2xl transform -translate-y-1' : 'shadow-lg'
       } ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
-        border: isHovered 
-          ? `2px solid ${color1}` 
-          : `2px solid ${darkMode ? '#374151' : '#E5E7EB'}`
+        border: `2px solid ${darkMode ? '#374151' : '#E5E7EB'}`
       }}
     >
-      {/* Decorative gradient overlay on hover */}
+      {/* Header Section with Gradient Background */}
       <div 
-        className={`absolute inset-0 pointer-events-none transition-opacity duration-300 ${isHovered ? 'opacity-5' : 'opacity-0'}`}
+        className="relative p-6 pb-16"
         style={{
-          background: `linear-gradient(135deg, ${color1}20, transparent)`
+          background: `linear-gradient(135deg, ${color1}, ${color1}ee)`
         }}
-      />
-      
-      {/* Card Content Container */}
-      <div className="relative">
-        {/* Header Section with Gradient */}
-        <div 
-          className="relative p-4 pb-12"
-          style={{
-            background: `linear-gradient(135deg, ${color1}, ${color1}dd)`
-          }}
-        >
-          {/* Decorative circles */}
-          <div className="absolute top-2 right-2 w-12 h-12 rounded-full bg-white opacity-10 pointer-events-none" />
-          <div className="absolute bottom-4 right-4 w-8 h-8 rounded-full bg-white opacity-10 pointer-events-none" />
-          
-          <h3 className="text-lg font-bold text-white relative z-10 leading-relaxed">
-            {person.name}
-          </h3>
-        </div>
+      >
+        {/* Decorative Background Elements */}
+        <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white opacity-10 transform translate-x-16 -translate-y-16" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-white opacity-10 transform -translate-x-12 translate-y-12" />
         
-        {/* Profile Image - overlapping header */}
-        <div className="absolute left-1/2 transform -translate-x-1/2" style={{ top: '70px' }}>
-          <div className="relative">
-            {/* Animated ring on hover */}
-            <div 
-              className={`absolute inset-0 rounded-full pointer-events-none transition-all duration-300 ${
-                isHovered ? 'scale-110 opacity-100' : 'scale-100 opacity-0'
-              }`}
-              style={{
-                border: `2px solid ${color1}`,
-                padding: '2px'
-              }}
-            />
+        {/* Name on Green Background */}
+        <h3 className="text-xl font-bold text-white relative z-10 mb-2">
+          {person.name}
+        </h3>
+      </div>
+      
+      {/* Profile Image - Circular, centered, overlapping */}
+      <div className="flex justify-center" style={{ marginTop: '-60px' }}>
+        <div className="relative">
+          <div 
+            className={`rounded-full p-1 transition-all duration-300 ${
+              darkMode ? 'bg-gray-800' : 'bg-white'
+            }`}
+            style={{
+              boxShadow: isHovered ? '0 10px 30px rgba(0,0,0,0.3)' : '0 5px 15px rgba(0,0,0,0.2)'
+            }}
+          >
             <img
               src={person.image}
               alt={person.name}
-              className={`w-24 h-24 rounded-full object-cover shadow-lg border-4 transition-transform duration-300 ${
+              className={`w-28 h-28 rounded-full object-cover transition-transform duration-300 ${
                 isHovered ? 'scale-105' : 'scale-100'
-              } ${darkMode ? 'border-gray-800' : 'border-white'}`}
-              onError={(e) => e.currentTarget.src = `https://placehold.co/96x96/e8f5f0/239244?text=${person.name.charAt(0)}`}
+              }`}
+              onError={(e) => e.currentTarget.src = `https://placehold.co/112x112/22a05e/ffffff?text=${person.name.charAt(0)}`}
             />
           </div>
         </div>
-        
-        {/* Card Body */}
-        <div className="pt-16 px-4 pb-4">
-          {/* Title and Roles */}
-          <div className="text-center mb-4">
+      </div>
+      
+      {/* Card Body */}
+      <div className="px-6 pb-6 pt-4">
+        {/* Title and Department */}
+        <div className="text-center mb-4">
+          <h4 className={`text-lg font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+            {person.title}
+          </h4>
+          {person.roles.map((role, index) => (
             <p 
-              className={`text-base font-bold mb-1 transition-colors duration-300 ${
-                darkMode ? 'text-gray-100' : 'text-gray-900'
-              }`}
-              style={{ color: isHovered ? color1 : undefined }}
+              key={index} 
+              className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} leading-relaxed`}
             >
-              {person.title}
+              {role}
             </p>
-            {person.roles.map((role, index) => (
-              <p 
-                key={index} 
-                className={`text-xs leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}
-              >
-                {role}
+          ))}
+        </div>
+        
+        {/* Divider */}
+        <div className={`h-px w-full mb-4 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} />
+        
+        {/* Contact Information - Stacked */}
+        <div className="space-y-3">
+          <div className={`flex items-start gap-3 p-2.5 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+            <div 
+              className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: `${color1}20` }}
+            >
+              <Mail className="w-4 h-4" style={{ color: color1 }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                Email
               </p>
-            ))}
+              <a 
+                href={`mailto:${person.email}`}
+                className={`text-sm break-all hover:underline ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {person.email}
+              </a>
+            </div>
           </div>
           
-          {/* Gradient Divider */}
-          <div 
-            className="h-0.5 mx-auto mb-4 rounded-full transition-all duration-300"
-            style={{
-              background: `linear-gradient(90deg, ${color1}, ${color1}80)`,
-              width: isHovered ? '64px' : '48px'
-            }}
-          />
+          <div className={`flex items-start gap-3 p-2.5 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+            <div 
+              className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: `${color1}20` }}
+            >
+              <Phone className="w-4 h-4" style={{ color: color1 }} />
+            </div>
+            <div className="flex-1">
+              <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                Phone
+              </p>
+              <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                {person.phone}
+              </p>
+            </div>
+          </div>
           
-          {/* Contact Information */}
-          <div className="space-y-2.5">
+          <div className={`flex items-start gap-3 p-2.5 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
             <div 
-              className={`flex items-start gap-2.5 p-2 rounded-lg transition-colors duration-200 ${
-                isHovered ? (darkMode ? 'bg-gray-750' : 'bg-gray-50') : ''
-              }`}
+              className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: `${color1}20` }}
             >
-              <div 
-                className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ 
-                  backgroundColor: `${color1}15`
-                }}
-              >
-                <Mail className="w-4 h-4" style={{ color: color1 }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Email
-                </p>
-                <a 
-                  href={`mailto:${person.email}`}
-                  className={`text-xs break-all hover:underline transition-colors ${
-                    darkMode ? 'text-gray-300' : 'text-gray-700'
-                  }`}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {person.email}
-                </a>
-              </div>
+              <MapPin className="w-4 h-4" style={{ color: color1 }} />
             </div>
-            
-            <div 
-              className={`flex items-start gap-2.5 p-2 rounded-lg transition-colors duration-200 ${
-                isHovered ? (darkMode ? 'bg-gray-750' : 'bg-gray-50') : ''
-              }`}
-            >
-              <div 
-                className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ 
-                  backgroundColor: `${color1}15`
-                }}
-              >
-                <Phone className="w-4 h-4" style={{ color: color1 }} />
-              </div>
-              <div className="flex-1">
-                <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Phone
-                </p>
-                <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  {person.phone}
-                </p>
-              </div>
-            </div>
-            
-            <div 
-              className={`flex items-start gap-2.5 p-2 rounded-lg transition-colors duration-200 ${
-                isHovered ? (darkMode ? 'bg-gray-750' : 'bg-gray-50') : ''
-              }`}
-            >
-              <div 
-                className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ 
-                  backgroundColor: `${color1}15`
-                }}
-              >
-                <MapPin className="w-4 h-4" style={{ color: color1 }} />
-              </div>
-              <div className="flex-1">
-                <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Location
-                </p>
-                <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  {person.room}
-                </p>
-              </div>
+            <div className="flex-1">
+              <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                Location
+              </p>
+              <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                {person.room}
+              </p>
             </div>
           </div>
         </div>
@@ -299,23 +255,32 @@ export default function Administration() {
   useEffect(() => {
     const fetchAdministration = async () => {
       try {
-        const response = await API.get('/api/people/type/administration');
-        if (response.success && response.data) {
+        const response = await fetch(`${API.baseURL}/api/people/type/administration`);
+        const data = await response.json();
+        console.log('API Response:', data);
+        
+        if (data.success && data.data && Array.isArray(data.data)) {
           // Transform API data to match component structure
-          const transformedData = response.data.map(person => ({
-            name: person.name,
-            title: person.designation,
-            roles: person.department ? [person.department] : [],
-            email: person.email || '',
-            phone: person.phone || '',
-            room: person.qualification || 'N/A',
-            image: person.photo || `https://placehold.co/128x128/e8f5f0/239244?text=${person.name.charAt(0)}`,
-            category: 'general'
-          }));
+          const transformedData = data.data
+            .filter(person => person.isActive !== false)
+            .map(person => ({
+              name: person.name || 'Unknown',
+              title: person.designation || 'Administrator',
+              roles: person.department ? [person.department] : [],
+              email: person.email || 'N/A',
+              phone: person.phone || 'N/A',
+              room: person.qualification || 'N/A',
+              image: API.getImageUrl(person.photo) || `https://placehold.co/128x128/22a05e/ffffff?text=${person.name?.charAt(0) || 'A'}`,
+              category: person.specialization || 'general' // Use specialization field as category
+            }));
           setAdministrationData(transformedData);
+        } else {
+          console.error('Invalid response format:', data);
+          setAdministrationData([]);
         }
       } catch (error) {
         console.error('Error fetching administration data:', error);
+        setAdministrationData([]);
       } finally {
         setLoading(false);
       }
@@ -337,6 +302,7 @@ export default function Administration() {
 
   // Filter data by category
   const facInChargeData = administrationData.filter(person => person.category === 'fac-in-charge');
+  const supportData = administrationData.filter(person => person.category === 'support');
 
   const tabs = [
     { name: 'General Administration', key: 'General' },
@@ -391,6 +357,13 @@ export default function Administration() {
 
         {/* Content for the active tab */}
         <div className="space-y-12">
+          {loading ? (
+            <div className={`text-center p-12 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: color1 }}></div>
+              <p className={`mt-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading administration data...</p>
+            </div>
+          ) : (
+            <>
           {activeTab === 'General' && (
             <div className="space-y-8">
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -529,6 +502,8 @@ export default function Administration() {
                 </div>
               )}
             </div>
+          )}
+            </>
           )}
         </div>
       </div>

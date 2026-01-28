@@ -37,8 +37,24 @@ export default function MTechStudents() {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await API.get('/api/students?program=M.Tech');
-        setStudentsData(response.data || []);
+        const response = await fetch(`${API.baseURL}/api/people/type/mtech-students`);
+        const data = await response.json();
+        console.log('M.Tech API Response:', data);
+        
+        if (data.success && data.data && Array.isArray(data.data)) {
+          const transformedData = data.data
+            .filter(student => student.isActive !== false)
+            .map(student => ({
+              id: student.id,
+              name: student.name || 'Unknown',
+              batch: student.department || '2019',
+              branch: student.specialization || ''
+            }));
+          setStudentsData(transformedData);
+        } else {
+          console.error('Invalid response format:', data);
+          setStudentsData([]);
+        }
       } catch (error) {
         console.error('Error fetching M.Tech students:', error);
         setStudentsData([]);

@@ -28,8 +28,28 @@ export default function ManageGenderIndex() {
 
   const fetchPeople = async () => {
     try {
-      const response = await API.get('/people/type/gender-index');
-      setPeople(response.data || []);
+      const response = await fetch(`${API.baseURL}/api/content-blocks/page/gender-index`);
+      const data = await response.json();
+      if (data.success && data.data) {
+        // Convert ContentBlocks to a format compatible with the existing UI
+        const tableBlock = data.data.find(block => block.blockType === 'table');
+        if (tableBlock && tableBlock.content) {
+          const tableData = typeof tableBlock.content === 'string' 
+            ? JSON.parse(tableBlock.content) 
+            : tableBlock.content;
+          
+          // Convert table rows to people-like format
+          const convertedData = tableData.rows.map((row, index) => ({
+            id: `row-${index}`,
+            name: row[1] || 'Unknown', // Category column
+            designation: row[0] || 'Unknown', // Gender column
+            department: row[2] || '0', // Count column
+            specialization: '',
+            isActive: true
+          }));
+          setPeople(convertedData);
+        }
+      }
     } catch (error) {
       console.error('Error fetching gender index:', error);
     } finally {
@@ -124,6 +144,26 @@ export default function ManageGenderIndex() {
 
   return (
     <div className="space-y-6">
+      {/* Notice Box */}
+      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-blue-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-blue-800">Content Management Notice</h3>
+            <div className="mt-1 text-sm text-blue-700">
+              <p>
+                Gender Index is now managed through <strong>Content Management &gt; Manage Pages</strong>. 
+                To edit the gender statistics table, please go to Content Management section and select the "gender-index" page.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Manage Gender Index</h1>
@@ -131,11 +171,13 @@ export default function ManageGenderIndex() {
         </div>
         <button
           onClick={() => { resetForm(); setShowModal(true); }}
-          className="flex items-center px-4 py-2 text-white rounded-lg hover:opacity-90"
+          className="flex items-center px-4 py-2 text-white rounded-lg opacity-50 cursor-not-allowed"
           style={{ backgroundColor: API.color1 }}
+          disabled
+          title="Please use Content Management > Manage Pages to edit Gender Index"
         >
           <Plus className="h-5 w-5 mr-2" />
-          Add Entry
+          Add Entry (Disabled)
         </button>
       </div>
 
@@ -214,14 +256,16 @@ export default function ManageGenderIndex() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
-                    onClick={() => openEditModal(item)}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
+                    disabled
+                    className="text-gray-400 cursor-not-allowed mr-4"
+                    title="Please use Content Management > Manage Pages"
                   >
                     <Edit className="h-5 w-5 inline" />
                   </button>
                   <button
-                    onClick={() => handleDelete(item.id)}
-                    className="text-red-600 hover:text-red-900"
+                    disabled
+                    className="text-gray-400 cursor-not-allowed"
+                    title="Please use Content Management > Manage Pages"
                   >
                     <Trash2 className="h-5 w-5 inline" />
                   </button>

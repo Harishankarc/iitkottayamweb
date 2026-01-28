@@ -62,7 +62,8 @@ export default function ManageContentBlocks() {
     { pageName: 'cultural-club', pageTitle: 'Cultural Club' },
     { pageName: 'technical-club', pageTitle: 'Technical Club' },
     { pageName: 'sports-club', pageTitle: 'Sports Club' },
-    { pageName: 'fdp-webinars', pageTitle: 'FDP & Webinars' },
+    { pageName: 'fdp-webinar', pageTitle: 'FDP & Webinars' },
+    { pageName: 'fdp', pageTitle: 'FDP Programs List' },
     { pageName: 'trendles-club', pageTitle: 'Trendles Club' },
     { pageName: 'cyber-security-club', pageTitle: 'Cyber Security Club' },
     { pageName: 'mind-quest', pageTitle: 'Mind Quest' },
@@ -735,7 +736,7 @@ export default function ManageContentBlocks() {
           { blockId: 'sports-club-events', sectionName: 'events', blockType: 'list', blockLabel: 'Events',
             content: { items: ['Annual Sports Meet', 'Inter-College Tournaments', 'Intra-College Competitions', 'Fitness Workshops', 'Yoga Sessions'] }, blockOrder: 2 }
         ],
-        'fdp-webinars': [
+        'fdp-webinar': [
           { blockId: 'fdp-hero', sectionName: 'hero', blockType: 'hero', blockLabel: 'Hero',
             content: { title: 'FDP & Webinars', subtitle: 'Continuous Learning & Development' }, blockOrder: 0 },
           { blockId: 'fdp-about', sectionName: 'about', blockType: 'paragraph', blockLabel: 'About',
@@ -1514,7 +1515,7 @@ export default function ManageContentBlocks() {
                 <option value="cultural-club">Cultural Club</option>
                 <option value="technical-club">Technical Club</option>
                 <option value="sports-club">Sports Club</option>
-                <option value="fdp-webinars">FDP & Webinars</option>
+                <option value="fdp-webinar">FDP & Webinars</option>
                 <option value="trendles-club">Trendles Club</option>
                 <option value="cyber-security-club">Cyber Security Club</option>
                 <option value="mind-quest">Mind Quest</option>

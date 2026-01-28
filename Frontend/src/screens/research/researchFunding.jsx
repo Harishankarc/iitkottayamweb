@@ -176,8 +176,8 @@ export default function ResearchFunding() {
                         <div className={`p-4 rounded-lg border transition-all duration-300 ${darkMode ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-gray-300'}`}
                              style={{ transition: 'all 0.3s ease' }}
                              onMouseEnter={(e) => {
-                                 e.currentTarget.style.borderColor = api.color1;
-                                 e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+                                 e.currentTarget.style.borderColor = API.color1;
+                                 e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
                              }}
                              onMouseLeave={(e) => {
                                  e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -202,8 +202,8 @@ export default function ResearchFunding() {
                         <div className={`p-4 rounded-lg border transition-all duration-300 ${darkMode ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-gray-300'}`}
                              style={{ transition: 'all 0.3s ease' }}
                              onMouseEnter={(e) => {
-                                 e.currentTarget.style.borderColor = api.color1;
-                                 e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+                                 e.currentTarget.style.borderColor = API.color1;
+                                 e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
                              }}
                              onMouseLeave={(e) => {
                                  e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
@@ -228,8 +228,8 @@ export default function ResearchFunding() {
                         <div className={`p-4 rounded-lg border transition-all duration-300 ${darkMode ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-gray-300'}`}
                              style={{ transition: 'all 0.3s ease' }}
                              onMouseEnter={(e) => {
-                                 e.currentTarget.style.borderColor = api.color1;
-                                 e.currentTarget.style.boxShadow = `0 0 20px ${api.color1}30`;
+                                 e.currentTarget.style.borderColor = API.color1;
+                                 e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
                              }}
                              onMouseLeave={(e) => {
                                  e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';

@@ -23,7 +23,13 @@ const People = sequelize.define('People', {
     type: DataTypes.STRING(255),
     allowNull: true,
     validate: {
-      isEmail: true
+      isEmail: {
+        msg: 'Please provide a valid email address'
+      }
+    },
+    set(value) {
+      // If empty string, set to null to avoid validation
+      this.setDataValue('email', value === '' ? null : value);
     }
   },
   phone: {

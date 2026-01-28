@@ -29,10 +29,18 @@ export default function ManageResearchScholars() {
 
   const fetchPeople = async () => {
     try {
-      const response = await API.get('/people/type/research-scholars');
-      setPeople(response.data || []);
+      const response = await fetch(`${API.baseURL}/api/people/type/research-scholars`);
+      const data = await response.json();
+      console.log('Research Scholars API Response:', data);
+      if (data.success && data.data && Array.isArray(data.data)) {
+        setPeople(data.data);
+      } else {
+        console.error('Invalid response format:', data);
+        setPeople([]);
+      }
     } catch (error) {
       console.error('Error fetching research scholars:', error);
+      setPeople([]);
     } finally {
       setLoading(false);
     }
@@ -42,9 +50,9 @@ export default function ManageResearchScholars() {
     e.preventDefault();
     try {
       if (editingItem) {
-        await API.put(`/people/${editingItem.id}`, formData);
+        await API.put(`/api/people/${editingItem.id}`, formData);
       } else {
-        await API.post('/people', formData);
+        await API.post('/api/people', formData);
       }
       fetchPeople();
       setShowModal(false);
@@ -58,7 +66,7 @@ export default function ManageResearchScholars() {
     if (!window.confirm('Are you sure you want to delete this research scholar?')) return;
     
     try {
-      await API.delete(`/people/${id}`);
+      await API.delete(`/api/people/${id}`);
       fetchPeople();
     } catch (error) {
       console.error('Error deleting research scholar:', error);

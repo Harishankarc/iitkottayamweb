@@ -163,17 +163,27 @@ export default function Technical() {
   useEffect(() => {
     const fetchTechnicalStaff = async () => {
       try {
-        const response = await API.get('/api/people/type/technical-staff');
-        const transformedData = (response.data || []).map(person => ({
-          id: person.id,
-          name: person.name,
-          designation: person.designation || '',
-          email: person.email || '',
-          phone: person.phone || '',
-          room: person.room || '',
-          image: person.photo || `https://placehold.co/100x100/e8f5f0/239244?text=${person.name.charAt(0)}`
-        }));
-        setTechnicalData(transformedData);
+        const response = await fetch(`${API.baseURL}/api/people/type/technical-staff`);
+        const data = await response.json();
+        console.log('Technical Staff API Response:', data);
+        
+        if (data.success && data.data && Array.isArray(data.data)) {
+          const transformedData = data.data
+            .filter(person => person.isActive !== false)
+            .map(person => ({
+              id: person.id,
+              name: person.name || 'Unknown',
+              designation: person.designation || '',
+              email: person.email || '',
+              phone: person.phone || '',
+              room: person.room || person.qualification || '',
+              image: API.getImageUrl(person.photo) || `https://placehold.co/100x100/22a05e/ffffff?text=${person.name?.charAt(0) || 'T'}`
+            }));
+          setTechnicalData(transformedData);
+        } else {
+          console.error('Invalid response format:', data);
+          setTechnicalData([]);
+        }
       } catch (error) {
         console.error('Error fetching technical staff:', error);
         setTechnicalData([]);

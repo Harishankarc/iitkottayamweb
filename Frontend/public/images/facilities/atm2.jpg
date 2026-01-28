@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <!-- Background -->
+  <rect width="1200" height="800" fill="#eff6ff"/>
+  
+  <!-- Campus building -->
+  <rect x="100" y="150" width="1000" height="450" fill="#dbeafe" opacity="0.7"/>
+  <rect x="150" y="200" width="300" height="350" fill="#93c5fd" opacity="0.6"/>
+  <rect x="750" y="200" width="300" height="350" fill="#93c5fd" opacity="0.6"/>
+  
+  <!-- ATM kiosk -->
+  <rect x="450" y="300" width="300" height="300" rx="15" fill="#1e40af"/>
+  <rect x="480" y="340" width="240" height="160" rx="8" fill="#3b82f6"/>
+  <rect x="510" y="520" width="180" height="50" rx="8" fill="#2563eb"/>
+  <circle cx="600" cy="600" r="20" fill="#1e3a8a"/>
+  
+  <!-- Decorative elements -->
+  <circle cx="250" cy="250" r="40" fill="#34d399" opacity="0.3"/>
+  <circle cx="950" cy="250" r="40" fill="#34d399" opacity="0.3"/>
+  
+  <!-- Text -->
+  <text x="600" y="100" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#1e40af" text-anchor="middle">
+    Bank/ATM Facility
+  </text>
+  <text x="600" y="150" font-family="Arial, sans-serif" font-size="24" fill="#3b82f6" text-anchor="middle">
+    IIIT Kottayam - View 2
+  </text>
+  
+  <!-- Bottom info -->
+  <text x="600" y="700" font-family="Arial, sans-serif" font-size="20" fill="#60a5fa" text-anchor="middle">
+    Modern Banking Infrastructure on Campus
+  </text>
+  <text x="600" y="740" font-family="Arial, sans-serif" font-size="16" fill="#93c5fd" text-anchor="middle">
+    Upload actual photo via Admin Panel > Content Management
+  </text>
+</svg>

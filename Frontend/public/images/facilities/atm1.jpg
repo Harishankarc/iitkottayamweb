@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <!-- Background -->
+  <rect width="1200" height="800" fill="#f3f4f6"/>
+  
+  <!-- Building silhouette -->
+  <rect x="200" y="200" width="800" height="400" fill="#d1d5db" opacity="0.5"/>
+  <rect x="250" y="250" width="200" height="300" fill="#9ca3af" opacity="0.6"/>
+  <rect x="750" y="250" width="200" height="300" fill="#9ca3af" opacity="0.6"/>
+  
+  <!-- ATM Machine representation -->
+  <rect x="500" y="350" width="200" height="250" rx="10" fill="#374151"/>
+  <rect x="520" y="380" width="160" height="120" rx="5" fill="#60a5fa"/>
+  <rect x="540" y="520" width="120" height="40" rx="5" fill="#3b82f6"/>
+  <circle cx="600" cy="590" r="15" fill="#1e40af"/>
+  
+  <!-- Text -->
+  <text x="600" y="120" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#374151" text-anchor="middle">
+    Bank/ATM Facility
+  </text>
+  <text x="600" y="170" font-family="Arial, sans-serif" font-size="24" fill="#6b7280" text-anchor="middle">
+    IIIT Kottayam - View 1
+  </text>
+  
+  <!-- Bottom text -->
+  <text x="600" y="720" font-family="Arial, sans-serif" font-size="20" fill="#9ca3af" text-anchor="middle">
+    24/7 ATM Service Available
+  </text>
+  <text x="600" y="750" font-family="Arial, sans-serif" font-size="16" fill="#9ca3af" text-anchor="middle">
+    Replace this with actual ATM facility photo
+  </text>
+</svg>

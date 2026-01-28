@@ -29,10 +29,18 @@ export default function ManageBTechStudents() {
 
   const fetchPeople = async () => {
     try {
-      const response = await API.get('/people/type/btech-students');
-      setPeople(response.data || []);
+      const response = await fetch(`${API.baseURL}/api/people/type/btech-students`);
+      const data = await response.json();
+      console.log('B.Tech Students API Response:', data);
+      if (data.success && data.data && Array.isArray(data.data)) {
+        setPeople(data.data);
+      } else {
+        console.error('Invalid response format:', data);
+        setPeople([]);
+      }
     } catch (error) {
       console.error('Error fetching B.Tech students:', error);
+      setPeople([]);
     } finally {
       setLoading(false);
     }
@@ -42,9 +50,9 @@ export default function ManageBTechStudents() {
     e.preventDefault();
     try {
       if (editingItem) {
-        await API.put(`/people/${editingItem.id}`, formData);
+        await API.put(`/api/people/${editingItem.id}`, formData);
       } else {
-        await API.post('/people', formData);
+        await API.post('/api/people', formData);
       }
       fetchPeople();
       setShowModal(false);
@@ -58,7 +66,7 @@ export default function ManageBTechStudents() {
     if (!window.confirm('Are you sure you want to delete this student?')) return;
     
     try {
-      await API.delete(`/people/${id}`);
+      await API.delete(`/api/people/${id}`);
       fetchPeople();
     } catch (error) {
       console.error('Error deleting B.Tech student:', error);
@@ -86,8 +94,9 @@ export default function ManageBTechStudents() {
     setEditingItem(item);
     setFormData({
       name: item.name,
-      designation: item.designation,
+      designation: item.designation || '',
       department: item.department || '',
+      specialization: item.specialization || '',
       email: item.email || '',
       phone: item.phone || '',
       photo: item.photo || '',
@@ -162,9 +171,11 @@ export default function ManageBTechStudents() {
                 </div>
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-1">{member.name}</h3>
-              <p className="text-sm text-gray-600 mb-2">{member.designation}</p>
               {member.department && (
-                <p className="text-sm font-medium" style={{ color: API.color1 }}>{member.department}</p>
+                <p className="text-sm font-semibold" style={{ color: API.color1 }}>Batch: {member.department}</p>
+              )}
+              {member.specialization && (
+                <p className="text-sm text-gray-600 mb-2">Branch: {member.specialization}</p>
               )}
               <div className="mt-4 space-y-2">
                 {member.email && (
@@ -204,26 +215,36 @@ export default function ManageBTechStudents() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Year/Batch *</label>
-                  <input
-                    type="text"
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Batch Year *</label>
+                  <select
                     required
-                    value={formData.designation}
-                    onChange={(e) => setFormData({...formData, designation: e.target.value})}
+                    value={formData.department}
+                    onChange={(e) => setFormData({...formData, department: e.target.value})}
                     className="w-full px-3 py-2 border rounded-lg"
-                    placeholder="e.g. 2nd Year, Batch 2023"
-                  />
+                  >
+                    <option value="">Select Batch</option>
+                    <option value="2015">2015</option>
+                    <option value="2016">2016</option>
+                    <option value="2017">2017</option>
+                    <option value="2018">2018</option>
+                    <option value="2019">2019</option>
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                  </select>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Branch *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
                 <select
-                  required
-                  value={formData.department}
-                  onChange={(e) => setFormData({...formData, department: e.target.value})}
+                  value={formData.specialization}
+                  onChange={(e) => setFormData({...formData, specialization: e.target.value})}
                   className="w-full px-3 py-2 border rounded-lg"
                 >
-                  <option value="">Select Branch</option>
+                  <option value="">Select Branch (Optional)</option>
                   <option value="CSE">Computer Science & Engineering</option>
                   <option value="ECE">Electronics & Communication Engineering</option>
                   <option value="Cybersecurity">Cybersecurity</option>

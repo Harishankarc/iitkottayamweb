@@ -11,6 +11,10 @@ const __dirname = path.dirname(__filename);
 // @access  Private
 export const uploadImage = async (req, res, next) => {
   try {
+    console.log('Upload request received');
+    console.log('File:', req.file);
+    console.log('Body:', req.body);
+    
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -21,6 +25,8 @@ export const uploadImage = async (req, res, next) => {
     // TODO: Implement Cloudinary or AWS S3 upload
     // For now, return local file path
     const fileUrl = `/uploads/${req.file.filename}`;
+
+    console.log('File uploaded successfully:', fileUrl);
 
     res.json({
       success: true,
@@ -34,7 +40,12 @@ export const uploadImage = async (req, res, next) => {
       }
     });
   } catch (error) {
-    next(error);
+    console.error('Upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error uploading image',
+      error: error.toString()
+    });
   }
 };
 

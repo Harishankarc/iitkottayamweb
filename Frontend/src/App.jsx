@@ -27,12 +27,14 @@ import Hostel from './screens/facilities/hostel';
 import Internet from './screens/facilities/internet';
 import InnovationCell from './screens/IIC&Clubs/innovationCell';
 import FDPWebinar from './screens/IIC&Clubs/fdpWebinar';
+import Fdp from './screens/IIC&Clubs/fdp';
 import ResearchGroup from './screens/research/researchGroup';
 import Security from './screens/facilities/security';
 import Gym from './screens/facilities/gym';
 import Sports from './screens/facilities/sports';
 import MedicalCentre from './screens/facilities/medicalCentre';
 import StudentMess from './screens/facilities/studentMess';
+import BankATM from './screens/facilities/atm';
 import Gallery from './screens/IIC&Clubs/gallery';
 import ClubCarnival from './screens/IIC&Clubs/culturalClub';
 import TechnicalClub from './screens/IIC&Clubs/technicalClub';
@@ -71,10 +73,8 @@ import ManageNIRF from './admin/pages/ManageNIRF';
 import ManageFooter from './admin/pages/ManageFooter';
 import ManageNavigation from './admin/pages/ManageNavigation';
 import ManageSiteSettings from './admin/pages/ManageSiteSettings';
-import ManageContentBlocks from './admin/pages/ManageContentBlocks';
-import ManagePages from './admin/pages/ManagePages';
-import VisualPageEditor from './admin/pages/VisualPageEditor';
-import UnifiedContentEditor from './admin/pages/UnifiedContentEditor';
+import UnifiedContentManager from './admin/pages/UnifiedContentManager';
+import HostelManagement from './screens/admin/HostelManagement';
 import ManageAdministration from './admin/pages/ManageAdministration';
 import ManageHOD from './admin/pages/ManageHOD';
 import ManageTechnicalStaff from './admin/pages/ManageTechnicalStaff';
@@ -84,6 +84,7 @@ import ManageBTechStudents from './admin/pages/ManageBTechStudents';
 import ManageMTechStudents from './admin/pages/ManageMTechStudents';
 import ManageGenderIndex from './admin/pages/ManageGenderIndex';
 import ManageFacilities from './admin/pages/ManageFacilities';
+import ManageFdpPrograms from './admin/pages/ManageFdpPrograms';
 import ManageClubs from './screens/admin/ManageClubs';
 import ManageResearchActivities from './screens/admin/ManageResearchActivities';
 import LMSLinks from './screens/footer/lmsLinks';
@@ -125,10 +126,8 @@ function App() {
             <Route path="nirf" element={<ManageNIRF />} />
             <Route path="footer" element={<ManageFooter />} />
             <Route path="navigation" element={<ManageNavigation />} />
-            <Route path="pages" element={<ManagePages />} />
-            <Route path="content-blocks" element={<ManageContentBlocks />} />
-            <Route path="visual-editor" element={<VisualPageEditor />} />
-            <Route path="content-editor" element={<UnifiedContentEditor />} />
+            <Route path="content" element={<UnifiedContentManager />} />
+            <Route path="hostel" element={<HostelManagement />} />
             <Route path="administration" element={<ManageAdministration />} />
             <Route path="hod" element={<ManageHOD />} />
             <Route path="technical-staff" element={<ManageTechnicalStaff />} />
@@ -139,6 +138,7 @@ function App() {
             <Route path="gender-index" element={<ManageGenderIndex />} />
             <Route path="facilities" element={<ManageFacilities />} />
             <Route path="clubs" element={<ManageClubs />} />
+            <Route path="fdp-programs" element={<ManageFdpPrograms />} />
             <Route path="research-activities" element={<ManageResearchActivities />} />
             <Route path="settings" element={<ManageSiteSettings />} />
           </Route>
@@ -184,8 +184,10 @@ function App() {
                 <Route path="/facilities/campus-network" element={<Internet />} />
                 <Route path="/facilities/medical-centre" element={<MedicalCentre />} />
                 <Route path="/facilities/student-mess" element={<StudentMess />} />
+                <Route path="/facilities/bank-atm" element={<BankATM />} />
                 <Route path="/iic-clubs/innovation-cell" element={<InnovationCell />} />
                 <Route path="/iic-clubs/fdp-webinars" element={<FDPWebinar />} />
+                <Route path="/fdp" element={<Fdp />} />
                 <Route path="/iic-clubs/gallery" element={<Gallery />} />
                 <Route path="/iic-clubs/cultural-club" element={<ClubCarnival />} />
                 <Route path="/iic-clubs/technical-club" element={<TechnicalClub />} />

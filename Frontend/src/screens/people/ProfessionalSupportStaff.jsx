@@ -167,17 +167,27 @@ export default function ProfessionalSupportStaff() {
   useEffect(() => {
     const fetchSupportStaff = async () => {
       try {
-        const response = await API.get('/api/people/type/support-staff');
-        const transformedData = (response.data || []).map(person => ({
-          id: person.id,
-          name: person.name,
-          designation: person.designation || '',
-          email: person.email || '',
-          phone: person.phone || '',
-          room: person.room || '',
-          image: person.photo || `https://placehold.co/110x110/e8f5f0/239244?text=${person.name.charAt(0)}`
-        }));
-        setStaffData(transformedData);
+        const response = await fetch(`${API.baseURL}/api/people/type/support-staff`);
+        const data = await response.json();
+        console.log('Support Staff API Response:', data);
+        
+        if (data.success && data.data && Array.isArray(data.data)) {
+          const transformedData = data.data
+            .filter(person => person.isActive !== false)
+            .map(person => ({
+              id: person.id,
+              name: person.name || 'Unknown',
+              designation: person.designation || '',
+              email: person.email || '',
+              phone: person.phone || '',
+              room: person.room || person.qualification || '',
+              image: API.getImageUrl(person.photo) || `https://placehold.co/110x110/22a05e/ffffff?text=${person.name?.charAt(0) || 'S'}`
+            }));
+          setStaffData(transformedData);
+        } else {
+          console.error('Invalid response format:', data);
+          setStaffData([]);
+        }
       } catch (error) {
         console.error('Error fetching support staff:', error);
         setStaffData([]);

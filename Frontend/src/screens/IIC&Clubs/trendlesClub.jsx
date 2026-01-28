@@ -1,19 +1,16 @@
+import { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
-import { BookOpen, Users, Mail, Sparkles, Camera, Calendar } from 'lucide-react';
+import { BookOpen, Users, Mail, Sparkles, Camera, Calendar, AlertCircle, Loader } from 'lucide-react';
 import API from '../../api/api.jsx';
 
-const MemberCard = ({ name, email }) => {
+const MemberCard = ({ name, email, role }) => {
   const { darkMode } = useTheme();
   return (
     <div
       className={`p-4 rounded-lg border-2 transition-all duration-300 ${
-        darkMode
-          ? `bg-gray-800 border-gray-700 hover:border-${API.color1} hover:shadow-lg`
-          : `bg-white border-gray-200 hover:border-${API.color1} hover:shadow-lg`
+        darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
       }`}
-      style={{
-        borderColor: darkMode ? '#374151' : '#e5e7eb',
-      }}
+      style={{ borderColor: darkMode ? '#374151' : '#e5e7eb' }}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = API.color1;
         e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
@@ -28,6 +25,11 @@ const MemberCard = ({ name, email }) => {
           <h4 className={`font-semibold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             {name}
           </h4>
+          {role && (
+            <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              {role}
+            </p>
+          )}
           {email && (
             <p className={`text-sm flex items-center gap-2 mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               <Mail size={16} />
@@ -40,18 +42,14 @@ const MemberCard = ({ name, email }) => {
   );
 };
 
-const FICCard = ({ member }) => {
+const FICCard = ({ name, role }) => {
   const { darkMode } = useTheme();
   return (
     <div
       className={`p-6 rounded-lg border-2 transition-all duration-300 ${
-        darkMode
-          ? `bg-gray-800 border-gray-700 hover:border-${API.color1} hover:shadow-lg`
-          : `bg-white border-gray-200 hover:border-${API.color1} hover:shadow-lg`
+        darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
       }`}
-      style={{
-        borderColor: darkMode ? '#374151' : '#e5e7eb',
-      }}
+      style={{ borderColor: darkMode ? '#374151' : '#e5e7eb' }}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = API.color1;
         e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
@@ -69,65 +67,176 @@ const FICCard = ({ member }) => {
           <Users className="w-8 h-8" style={{ color: API.color1 }} />
         </div>
         <h4 className={`font-semibold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-          {member.name}
+          {name}
         </h4>
         <p className={`text-sm mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          {member.role}
+          {role}
         </p>
       </div>
     </div>
   );
 };
 
-const ImageGallery = ({ title, count = 9 }) => {
-  const { darkMode } = useTheme();
-  return (
-    <div className="mb-8">
-      {title && (
-        <h3 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-          {title}
-        </h3>
-      )}
+const ImageGallery = ({ images = [], title, darkMode }) => {
+  if (!images || images.length === 0) {
+    return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {Array.from({ length: count }).map((_, i) => (
+        {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
             className={`aspect-square rounded-lg border-2 flex items-center justify-center transition-all duration-300 ${
               darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-gray-300'
             }`}
-            style={{
-              borderColor: darkMode ? '#374151' : '#d1d5db',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = API.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = darkMode ? '#374151' : '#d1d5db';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
+            style={{ borderColor: darkMode ? '#374151' : '#d1d5db' }}
           >
             <Camera className={darkMode ? 'text-gray-600' : 'text-gray-400'} size={32} />
           </div>
         ))}
       </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {images.map((image, index) => {
+        const imageUrl = image.url || image;
+        const fullUrl = API.getImageUrl(imageUrl);
+        
+        return (
+          <div
+            key={index}
+            className={`aspect-square rounded-lg border-2 overflow-hidden transition-all duration-300 relative ${
+              darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            }`}
+            style={{ borderColor: darkMode ? '#374151' : '#e5e7eb' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = API.color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            <img 
+              src={fullUrl} 
+              alt={image.alt || image.caption || `${title || 'Gallery'} image ${index + 1}`}
+              className="w-full h-full object-cover"
+              style={{ display: 'block' }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center"><svg class="w-8 h-8 ${darkMode ? 'text-gray-600' : 'text-gray-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>`;
+              }}
+            />
+            {image.caption && (
+              <div className={`absolute bottom-0 left-0 right-0 p-2 text-xs ${darkMode ? 'bg-gray-900/80 text-gray-300' : 'bg-white/80 text-gray-700'}`}>
+                {image.caption}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };
 
 export default function TrendlesClub() {
   const { darkMode } = useTheme();
+  const [contentBlocks, setContentBlocks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const ficMembers = [
-    { name: 'Dr. S.Mohakud', role: 'Trendles Club FIC' },
-    { name: 'Dr. John Paul Martin', role: 'Trendles Club FIC' },
-    { name: 'Dr. Sangeetha A.Shenoi', role: 'Trendles Club FIC' }
-  ];
+  useEffect(() => {
+    fetchContent();
+  }, []);
 
-  const mentors = [
-    { name: 'Mr. Pradeep Somalraju', email: 'pradeep21bcd1@iiittkottayam.ac.in' },
-    { name: 'Mr. Avush Raj', email: 'avush22bcs17@iiittkottayam.ac.in' }
-  ];
+  const fetchContent = () => {
+    setLoading(true);
+    setError(null);
+    API.get('/api/content-blocks/page/trendles-club')
+      .then((response) => {
+        const blocks = response.data.data || response.data || [];
+        const visibleBlocks = blocks.filter(block => block.isVisible);
+        setContentBlocks(visibleBlocks);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error('Error fetching content:', error);
+        setError('Failed to load content. Please try again later.');
+        setLoading(false);
+      });
+  };
+
+  const handleRetry = () => {
+    fetchContent();
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="text-center">
+          <Loader className={`w-12 h-12 animate-spin mx-auto mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} style={{ color: API.color1 }} />
+          <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Loading club information...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="text-center max-w-md mx-auto px-6">
+          <AlertCircle className={`w-16 h-16 mx-auto mb-4 ${darkMode ? 'text-red-400' : 'text-red-600'}`} />
+          <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Oops! Something went wrong</h2>
+          <p className={`mb-6 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{error}</p>
+          <button
+            onClick={handleRetry}
+            className="px-6 py-3 rounded-lg text-white font-semibold transition-all duration-300 hover:shadow-lg"
+            style={{ backgroundColor: API.color1 }}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const heroBlock = contentBlocks.find(b => b.blockType === 'hero');
+  const aboutBlock = contentBlocks.find(b => b.blockId === 'trendles-about');
+  const ficBlock = contentBlocks.find(b => b.blockId === 'trendles-fic');
+  const mentorsBlock = contentBlocks.find(b => b.blockId === 'trendles-mentors');
+  const agonyGalleryBlock = contentBlocks.find(b => b.blockId === 'trendles-gallery-agony');
+  const bloodGalleryBlock = contentBlocks.find(b => b.blockId === 'trendles-gallery-blood');
+  const eventsGalleryBlock = contentBlocks.find(b => b.blockId === 'trendles-gallery-events');
+
+  // Helper function to extract images from gallery blocks
+  const extractGalleryImages = (block) => {
+    if (!block || !block.content) return [];
+    
+    const images = [];
+    
+    // Check for images array
+    if (block.content.images && Array.isArray(block.content.images)) {
+      images.push(...block.content.images);
+    }
+    
+    // Check for single URL (when block type is 'image')
+    if (block.content.url) {
+      images.push({
+        url: block.content.url,
+        alt: block.content.alt || block.content.title || 'Gallery image',
+        caption: block.content.caption || ''
+      });
+    }
+    
+    return images;
+  };
+
+  const agonyImages = extractGalleryImages(agonyGalleryBlock);
+  const bloodImages = extractGalleryImages(bloodGalleryBlock);
+  const eventsImages = extractGalleryImages(eventsGalleryBlock);
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -139,10 +248,10 @@ export default function TrendlesClub() {
             Literary & Social Club
           </div>
           <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-            Trendles Club
+            {heroBlock?.content?.title || 'Trendles Club'}
           </h1>
           <p className={`text-xs md:text-sm max-w-2xl mx-auto italic ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            "When 'I' is replaced by 'We' even illness becomes Wellness"
+            {heroBlock?.content?.description || '"When \'I\' is replaced by \'We\' even illness becomes Wellness"'}
           </p>
         </div>
       </div>
@@ -152,80 +261,84 @@ export default function TrendlesClub() {
         <div className="max-w-full mx-auto space-y-12">
 
           {/* About Section */}
-          <div className={`p-8 rounded-lg border-2 transition-all duration-300 ${
-            darkMode ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-gray-300'
-          }`}
-            style={{
-              borderColor: darkMode ? '#374151' : '#e5e7eb',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = API.color1;
-              e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            <h2 className={`text-2xl font-bold mb-4 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Sparkles size={28} style={{ color: API.color1 }} />
-              About Trendles Club
-            </h2>
-            <div className={`text-base leading-relaxed space-y-4 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-              <p>
-                This is an official social club of IIIT Kottayam, that focuses on social impact of IIIT Kottayam by organizing various programs round the year. Some notable events include: Savitribai R.Phule, Children's Day, PEHCHAAN (the fashion show), World Literacy Day, Environment Day among others.
-              </p>
-              <p>
-                This club is a union various sub-clubs like Obliteuse (for photography), Literary club (for quizzes and appreciating literary works), Manga club etc., The Trendles Club of IIIT Kottayam is a vibrant and learning community engagement and social responsibility among students. The club organizes a wide array of activities, including charity drives, community service projects, and events aimed at fostering a sense of social awareness and empathy. These initiatives aim to promote a sense of civic duty, intellectual curiosity, and creative expression, creating a well-rounded and socially aware student body.
-              </p>
-              <p>
-                Beyond the social contributions, the Trendles Club also envisions a positive impact with events such as fashion shows, fun events, the Secret Grill service to make a positive impact both within the campus and in the broader community.
-              </p>
-              <p>
-                Be it Ashoka a freshers' night to welcome freshers, or renaissance or lndla Pakistan Partition Day division, or Environmental Day celebrations or flash mobbing or conducting quizzes or December festivities, Trendles club Is here to help bring out the joy in you and has the deep root !
-              </p>
-              <p>
-                Join hands with us, get refreshed, feel content and feel responsible with the wide-spread social activities of the Trendles club.
-              </p>
+          {aboutBlock && (
+            <div className={`p-8 rounded-lg border-2 transition-all duration-300 ${
+              darkMode ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-gray-300'
+            }`}
+              style={{ borderColor: darkMode ? '#374151' : '#e5e7eb' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = API.color1;
+                e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              <h2 className={`text-2xl font-bold mb-4 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                <Sparkles size={28} style={{ color: API.color1 }} />
+                {aboutBlock.content?.title || 'About Trendles Club'}
+              </h2>
+              <div className={`text-base leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-700'}`} style={{ whiteSpace: 'pre-wrap' }}>
+                {aboutBlock.content?.text || ''}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Faculty In-Charge */}
-          <div>
-            <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Users size={28} style={{ color: API.color1 }} />
-              Trendles Club FIC
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {ficMembers.map((member, index) => (
-                <FICCard key={index} member={member} />
-              ))}
+          {ficBlock && (
+            <div>
+              <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                <Users size={28} style={{ color: API.color1 }} />
+                {ficBlock.content?.title || 'Trendles Club FIC'}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {ficBlock.content?.items?.map((item, index) => {
+                  const parts = item.split(' - ');
+                  return (
+                    <FICCard 
+                      key={index}
+                      name={parts[0]} 
+                      role={parts[1]}
+                    />
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Mentors */}
-          <div>
-            <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              <Users size={28} style={{ color: API.color1 }} />
-              Mentors
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
-              {mentors.map((mentor, index) => (
-                <MemberCard key={index} name={mentor.name} email={mentor.email} />
-              ))}
+          {mentorsBlock && (
+            <div>
+              <h2 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                <Users size={28} style={{ color: API.color1 }} />
+                {mentorsBlock.content?.title || 'Mentors'}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
+                {mentorsBlock.content?.items?.map((item, index) => {
+                  const parts = item.split(' - ');
+                  return (
+                    <MemberCard 
+                      key={index}
+                      name={parts[0]} 
+                      email={parts[1]}
+                    />
+                  );
+                })}
+              </div>
             </div>
-            <p className={`text-sm mt-4 italic ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Some glimpses of the events conducted:
-            </p>
-          </div>
+          )}
+
+          {/* Events Introduction */}
+          <p className={`text-sm italic ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            Some glimpses of the events conducted:
+          </p>
 
           {/* Gallery - Agony 2025 */}
           <div className={`p-8 rounded-lg border-2 transition-all duration-300 ${
             darkMode ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-gray-300'
           }`}
-            style={{
-              borderColor: darkMode ? '#374151' : '#e5e7eb',
-            }}
+            style={{ borderColor: darkMode ? '#374151' : '#e5e7eb' }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = API.color1;
               e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
@@ -238,19 +351,21 @@ export default function TrendlesClub() {
             <div className="flex items-center gap-3 mb-6">
               <Calendar size={28} style={{ color: API.color1 }} />
               <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                Agony 2025
+                {agonyGalleryBlock?.content?.title || 'Agony 2025'}
               </h2>
             </div>
-            <ImageGallery count={9} />
+            <ImageGallery 
+              images={agonyImages} 
+              title={agonyGalleryBlock?.content?.title || 'Agony 2025'}
+              darkMode={darkMode}
+            />
           </div>
 
           {/* Gallery - Blood Donation Camp 2025 */}
           <div className={`p-8 rounded-lg border-2 transition-all duration-300 ${
             darkMode ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-gray-300'
           }`}
-            style={{
-              borderColor: darkMode ? '#374151' : '#e5e7eb',
-            }}
+            style={{ borderColor: darkMode ? '#374151' : '#e5e7eb' }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = API.color1;
               e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
@@ -263,19 +378,21 @@ export default function TrendlesClub() {
             <div className="flex items-center gap-3 mb-6">
               <Calendar size={28} style={{ color: API.color1 }} />
               <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                Blood Donation Camp 2025
+                {bloodGalleryBlock?.content?.title || 'Blood Donation Camp 2025'}
               </h2>
             </div>
-            <ImageGallery count={6} />
+            <ImageGallery 
+              images={bloodImages} 
+              title={bloodGalleryBlock?.content?.title || 'Blood Donation Camp 2025'}
+              darkMode={darkMode}
+            />
           </div>
 
           {/* Additional Events Gallery */}
           <div className={`p-8 rounded-lg border-2 transition-all duration-300 ${
             darkMode ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-gray-300'
           }`}
-            style={{
-              borderColor: darkMode ? '#374151' : '#e5e7eb',
-            }}
+            style={{ borderColor: darkMode ? '#374151' : '#e5e7eb' }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = API.color1;
               e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
@@ -288,10 +405,14 @@ export default function TrendlesClub() {
             <div className="flex items-center gap-3 mb-6">
               <Camera size={28} style={{ color: API.color1 }} />
               <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                Events Gallery
+                {eventsGalleryBlock?.content?.title || 'Events Gallery'}
               </h2>
             </div>
-            <ImageGallery count={12} />
+            <ImageGallery 
+              images={eventsImages} 
+              title={eventsGalleryBlock?.content?.title || 'Events Gallery'}
+              darkMode={darkMode}
+            />
           </div>
 
         </div>

@@ -37,8 +37,24 @@ export default function BTechStudents() {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await API.get('/api/students?program=B.Tech');
-        setStudentsData(response.data || []);
+        const response = await fetch(`${API.baseURL}/api/people/type/btech-students`);
+        const data = await response.json();
+        console.log('B.Tech API Response:', data);
+        
+        if (data.success && data.data && Array.isArray(data.data)) {
+          const transformedData = data.data
+            .filter(student => student.isActive !== false)
+            .map(student => ({
+              id: student.id,
+              name: student.name || 'Unknown',
+              batch: student.department || '2015',
+              branch: student.specialization || ''
+            }));
+          setStudentsData(transformedData);
+        } else {
+          console.error('Invalid response format:', data);
+          setStudentsData([]);
+        }
       } catch (error) {
         console.error('Error fetching B.Tech students:', error);
         setStudentsData([]);
