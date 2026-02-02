@@ -2,13 +2,10 @@ import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { usePageContent, getVisibleBlocks, renderContentBlock } from '../../hooks/usePageContent.jsx';
 
-export default function ResearchActivities() {
+export default function AwardRecognition() {
   const { darkMode } = useTheme();
-  const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('research-activities');
+  const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('awards-recognition');
   const visibleBlocks = contentBlocks ? getVisibleBlocks(contentBlocks) : [];
-  
-  console.log('Research Activities - Content Blocks:', contentBlocks);
-  console.log('Research Activities - Visible Blocks:', visibleBlocks);
   
   const color1 = API.color1;
   const color2 = API.color2;

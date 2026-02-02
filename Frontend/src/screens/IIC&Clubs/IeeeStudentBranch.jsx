@@ -119,8 +119,11 @@ export default function IeeeStudentBranch() {
     setError(null);
     API.get('/api/content-blocks/page/ieee-student-branch')
       .then((response) => {
+        console.log('IEEE Student Branch API Response:', response);
         const blocks = response.data.data || response.data || [];
-        const visibleBlocks = blocks.filter(block => block.isVisible);
+        console.log('Content blocks received:', blocks);
+        const visibleBlocks = blocks.filter(block => block.isVisible !== false);
+        console.log('Visible blocks:', visibleBlocks);
         setContentBlocks(visibleBlocks);
         setLoading(false);
       })
@@ -167,12 +170,29 @@ export default function IeeeStudentBranch() {
     );
   }
 
+  // Debug: Log all block IDs and types
+  console.log('Available blocks:', contentBlocks.map(b => ({ id: b.blockId, type: b.blockType, label: b.blockLabel })));
+
   const heroBlock = contentBlocks.find(b => b.blockType === 'hero');
-  const aboutBlock = contentBlocks.find(b => b.blockId === 'ieee-about');
-  const activitiesBlock = contentBlocks.find(b => b.blockId === 'ieee-activities');
-  const coordinatorsBlock = contentBlocks.find(b => b.blockId === 'ieee-coordinators');
-  const membersBlock = contentBlocks.find(b => b.blockId === 'ieee-members');
+  const aboutBlock = contentBlocks.find(b => b.blockId === 'ieee-about' || b.blockType === 'paragraph' && b.sectionName === 'about');
+  const activitiesBlock = contentBlocks.find(b => b.blockId === 'ieee-activities' || b.blockType === 'list' && b.sectionName === 'activities');
+  const coordinatorsBlock = contentBlocks.find(b => b.blockId === 'ieee-coordinators' || b.sectionName === 'coordinators');
+  const membersBlock = contentBlocks.find(b => b.blockId === 'ieee-members' || b.sectionName === 'members');
   const galleryBlocks = contentBlocks.filter(b => b.blockType === 'gallery' || b.blockType === 'image');
+  
+  // Get remaining blocks that haven't been displayed
+  const displayedBlockIds = [
+    heroBlock?.id,
+    aboutBlock?.id,
+    activitiesBlock?.id,
+    coordinatorsBlock?.id,
+    membersBlock?.id,
+    ...galleryBlocks.map(b => b.id)
+  ].filter(Boolean);
+  
+  const remainingBlocks = contentBlocks.filter(b => !displayedBlockIds.includes(b.id));
+  
+  console.log('Remaining undisplayed blocks:', remainingBlocks);
   
   // Extract images from gallery blocks
   const galleryImages = galleryBlocks.flatMap(block => {
@@ -217,6 +237,30 @@ export default function IeeeStudentBranch() {
       {/* Main Content */}
       <section className={`py-8 px-6 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <div className="max-w-full mx-auto space-y-12">
+
+          {/* No Content Message */}
+          {contentBlocks.length === 0 && (
+            <div className={`text-center py-16 px-6 rounded-lg border-2 ${
+              darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            }`}>
+              <AlertCircle className={`w-16 h-16 mx-auto mb-4 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+              <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                No Content Available
+              </h3>
+              <p className={`text-base mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                Content for this page hasn't been added yet.
+              </p>
+              {localStorage.getItem('token') && (
+                <a
+                  href="/admin/content"
+                  className="inline-block px-6 py-3 rounded-lg text-white font-semibold transition-all duration-300 hover:shadow-lg"
+                  style={{ backgroundColor: API.color1 }}
+                >
+                  Add Content in Admin Panel
+                </a>
+              )}
+            </div>
+          )}
 
           {/* About */}
           {aboutBlock && (
@@ -335,6 +379,55 @@ export default function IeeeStudentBranch() {
               <ImageGallery images={galleryImages} darkMode={darkMode} />
             </div>
           )}
+
+          {/* Display any remaining blocks that weren't matched above */}
+          {remainingBlocks.map((block, index) => (
+            <div key={block.id || index} className={`p-8 rounded-lg border-2 transition-all duration-300 ${
+              darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            }`}
+              style={{ borderColor: darkMode ? '#374151' : '#e5e7eb' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = API.color1;
+                e.currentTarget.style.boxShadow = `0 0 20px ${API.color1}30`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              {block.blockLabel && (
+                <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {block.blockLabel}
+                </h2>
+              )}
+              
+              {/* Paragraph type */}
+              {block.blockType === 'paragraph' && (
+                <p className={`text-base leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-700'}`} style={{ whiteSpace: 'pre-wrap' }}>
+                  {block.content?.text || ''}
+                </p>
+              )}
+              
+              {/* List type */}
+              {block.blockType === 'list' && block.content?.items && (
+                <ul className="space-y-2">
+                  {block.content.items.map((item, i) => (
+                    <li key={i} className={`flex items-start gap-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <span style={{ color: API.color1 }}>•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              
+              {/* Other content types */}
+              {!['paragraph', 'list', 'hero', 'gallery', 'image'].includes(block.blockType) && (
+                <pre className={`text-sm overflow-auto ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  {JSON.stringify(block.content, null, 2)}
+                </pre>
+              )}
+            </div>
+          ))}
 
         </div>
       </section>

@@ -58,6 +58,22 @@ export default function NavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isGoogleTranslateReady, setIsGoogleTranslateReady] = useState(false);
+  const [navbarLinks, setNavbarLinks] = useState([]);
+
+  useEffect(() => {
+    // Fetch navbar links from API
+    const fetchNavbarLinks = async () => {
+      try {
+        const response = await API.get('/api/navbar-links');
+        if (response.success) {
+          setNavbarLinks(response.data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching navbar links:', error);
+      }
+    };
+    fetchNavbarLinks();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -167,30 +183,40 @@ export default function NavBar() {
         <div className="max-w-[1400px] mx-auto flex justify-end items-center">
           {/* All items on right side */}
           <div className="flex items-center gap-3 md:gap-4">
-            <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors">
-              {t('HOME')}
-            </a>
-            <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors">
-              {t('WEBMAIL')}
-            </a>
-            <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors">
-              {t('INTRANET')}
-            </a>
-            <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden md:block">
-              {t('TELEPHONE DIRECTORY')}
-            </a>
-            <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden lg:block">
-              {t('NIWAHIKA')}
-            </a>
-            <a href="/rti" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden lg:block">
-              {t('RTI')}
-            </a>
-            <a href="#" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden lg:block">
-              {t('IMS')}
-            </a>
-            <a href="/login" className="text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors hidden xl:block">
-              {t('LOGIN')}
-            </a>
+            {/* Dynamic Navbar Links */}
+            {navbarLinks.map((link) => {
+              // Build visibility classes based on device settings
+              let visibilityClasses = '';
+              
+              if (!link.showOnMobile && link.showOnTablet && link.showOnDesktop) {
+                visibilityClasses = 'hidden md:block';
+              } else if (!link.showOnMobile && !link.showOnTablet && link.showOnDesktop) {
+                visibilityClasses = 'hidden lg:block';
+              } else if (!link.showOnMobile && link.showOnTablet && !link.showOnDesktop) {
+                visibilityClasses = 'hidden md:block lg:hidden';
+              } else if (link.showOnMobile && !link.showOnTablet && link.showOnDesktop) {
+                visibilityClasses = 'md:hidden lg:block';
+              } else if (link.showOnMobile && link.showOnTablet && !link.showOnDesktop) {
+                visibilityClasses = 'lg:hidden';
+              } else if (link.showOnMobile && !link.showOnTablet && !link.showOnDesktop) {
+                visibilityClasses = 'md:hidden';
+              } else if (!link.showOnMobile && !link.showOnTablet && !link.showOnDesktop) {
+                visibilityClasses = 'hidden';
+              }
+              // If all true, no visibility class needed (shows on all devices)
+
+              return (
+                <a 
+                  key={link.id}
+                  href={link.url} 
+                  target={link.openInNewTab ? '_blank' : '_self'}
+                  rel={link.openInNewTab ? 'noopener noreferrer' : ''}
+                  className={`text-white text-[10px] md:text-xs hover:text-gray-200 transition-colors ${visibilityClasses}`}
+                >
+                  {t(link.label)}
+                </a>
+              );
+            })}
 
             {/* Separator */}
             <span className="text-white text-xs hidden md:block">|</span>

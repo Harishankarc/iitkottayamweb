@@ -109,6 +109,34 @@ export function renderContentBlock(block, options = {}) {
   const content = block.content || {};
   const blockType = block.blockType || block.type; // Support both field names
 
+  // Helper function to get correct image URL
+  const getImageUrl = (imgUrl) => {
+    // Return empty string if no URL provided
+    if (!imgUrl || imgUrl === 'undefined' || imgUrl === 'null') {
+      console.warn('Invalid image URL:', imgUrl);
+      return '';
+    }
+    // If it's already a full URL, use as is
+    if (imgUrl.startsWith('http')) {
+      return imgUrl;
+    }
+    // If it's an uploaded file, prepend backend URL
+    if (imgUrl.startsWith('/uploads/')) {
+      return `http://localhost:5000${imgUrl}`;
+    }
+    // If it's a static image from /images, use as is
+    if (imgUrl.startsWith('/images/')) {
+      return imgUrl;
+    }
+    // Try to import from assets
+    try {
+      return new URL(`../assets/images/${imgUrl}`, import.meta.url).href;
+    } catch (e) {
+      console.error('Failed to load image:', imgUrl, e);
+      return '';
+    }
+  };
+
   switch (blockType) {
     case 'hero':
       return (
@@ -162,9 +190,21 @@ export function renderContentBlock(block, options = {}) {
       );
 
     case 'heading':
+      const level = content.level || content.headingLevel || 'h2';
+      const HeadingTag = typeof level === 'number' ? `h${level}` : level;
+      const alignmentClass = content.align === 'center' ? 'text-center' : content.align === 'right' ? 'text-right' : 'text-left';
+      const sizeClasses = {
+        h1: 'text-4xl md:text-5xl',
+        h2: 'text-3xl md:text-4xl',
+        h3: 'text-2xl md:text-3xl',
+        h4: 'text-xl md:text-2xl'
+      };
+      
       return (
-        <div className={`py-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-          <h2 className="text-2xl font-bold">{content.title || content.text}</h2>
+        <div className={`py-6 ${alignmentClass} ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+          <HeadingTag className={`${sizeClasses[HeadingTag] || sizeClasses.h2} font-bold tracking-tight`}>
+            {content.text || content.title || 'Heading'}
+          </HeadingTag>
         </div>
       );
 
@@ -215,50 +255,67 @@ export function renderContentBlock(block, options = {}) {
         />
       );
 
+    case 'gallery':
     case 'image':
       // Handle both single image and image arrays
       if (content.images && Array.isArray(content.images)) {
+        // Filter out images with invalid URLs
+        const validImages = content.images.filter(img => {
+          const url = img.url || img.src;
+          return url && url !== 'undefined' && url !== 'null';
+        });
+
+        if (validImages.length === 0) {
+          return null; // Don't render if no valid images
+        }
+
         return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-8">
-            {content.images.map((img, idx) => {
-              // Get image source - check if it's already a full path or needs to be imported from assets
-              let imgSrc = img.url;
-              if (!imgSrc.startsWith('http') && !imgSrc.startsWith('/uploads/')) {
-                // Import from assets folder
-                try {
-                  imgSrc = new URL(`../assets/images/${img.url}`, import.meta.url).href;
-                } catch (e) {
-                  console.error('Error loading image:', img.url, e);
-                  imgSrc = img.url;
-                }
-              }
-              
-              return (
-                <div key={idx} className="relative rounded-lg overflow-hidden shadow-lg">
-                  <img 
-                    src={imgSrc} 
-                    alt={img.alt || `Image ${idx + 1}`} 
-                    className="w-full h-auto object-cover"
-                  />
-                  {img.caption && (
-                    <div className="absolute bottom-0 right-0 bg-black bg-opacity-60 text-white px-4 py-2 text-sm font-medium">
-                      {img.caption}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+          <div className="w-full py-8">
+            {content.title && (
+              <h3 className={`text-2xl font-bold mb-6 text-center ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                {content.title}
+              </h3>
+            )}
+            <div className="grid grid-cols-3 gap-4 max-w-7xl mx-auto">
+              {validImages.map((img, idx) => {
+                const imgSrc = getImageUrl(img.url || img.src);
+                
+                return (
+                  <div key={idx} className="relative rounded-lg overflow-hidden shadow-lg h-64">
+                    <img 
+                      src={imgSrc} 
+                      alt={img.alt || `Image ${idx + 1}`} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.error('Failed to load image:', imgSrc);
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                    {img.caption && (
+                      <div className="absolute bottom-0 right-0 bg-black bg-opacity-60 text-white px-4 py-2 text-sm font-medium">
+                        {img.caption}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         );
       }
       
       // Single image fallback
+      const singleImgSrc = getImageUrl(content.url || content.src);
       return (
-        <div className="py-4">
+        <div className="py-4 max-w-3xl mx-auto">
           <img 
-            src={content.src || API.getImageUrl(content.src)} 
+            src={singleImgSrc} 
             alt={content.alt || 'Image'} 
-            className="w-full rounded-lg"
+            className="w-full rounded-lg max-h-96 object-cover"
+            onError={(e) => {
+              console.error('Failed to load image:', singleImgSrc);
+              e.target.style.display = 'none';
+            }}
           />
           {content.caption && (
             <p className={`text-sm mt-2 text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -474,6 +531,78 @@ export function renderContentBlock(block, options = {}) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
+              </div>
+            </div>
+          </a>
+        </div>
+      );
+
+    case 'card':
+      return (
+        <div className="py-2">
+          <a
+            href={content.link || '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`block rounded-lg overflow-hidden border transition-all duration-300 hover:scale-105 hover:shadow-xl ${
+              darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            }`}
+            style={{
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = color1;
+              e.currentTarget.style.boxShadow = `0 0 20px ${color1}30`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            {/* Header with Title/Source */}
+            {content.title && (
+              <div
+                className={`px-4 py-3 border-b ${
+                  darkMode ? 'bg-blue-900/30 border-gray-700' : 'bg-blue-50 border-gray-200'
+                }`}
+              >
+                <h3 className={`font-bold text-sm flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {content.icon && <span>{content.icon}</span>}
+                  {content.title}
+                </h3>
+              </div>
+            )}
+
+            {/* Image */}
+            {content.image && (
+              <div className="relative w-full h-48 bg-gray-200 overflow-hidden">
+                <img
+                  src={getImageUrl(content.image)}
+                  alt={content.title || 'Card image'}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Description and Button */}
+            <div className="p-4">
+              {content.description && (
+                <p className={`text-sm mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  {content.description}
+                </p>
+              )}
+              <div
+                className={`flex items-center gap-2 text-sm font-medium transition-colors ${
+                  darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
+                }`}
+              >
+                <span>{content.buttonText || 'Learn More'}</span>
+                <svg className="w-3 h-3 ml-auto flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
               </div>
             </div>
           </a>

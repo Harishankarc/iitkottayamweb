@@ -12,8 +12,8 @@ const BLOCK_TYPES = [
   { value: 'hero', label: '🎯 Hero Banner', color: '#8b5cf6' },
   { value: 'heading', label: '📝 Heading', color: '#3b82f6' },
   { value: 'paragraph', label: '📄 Paragraph', color: '#10b981' },
-  { value: 'image', label: '🖼️ Image', color: '#f59e0b' },
-  { value: 'gallery', label: '🎨 Gallery', color: '#ec4899' },
+  { value: 'image', label: '🖼️ Single Image', color: '#f59e0b' },
+  { value: 'gallery', label: '🎨 Image Gallery', color: '#ec4899' },
   { value: 'list', label: '📋 List', color: '#6366f1' },
   { value: 'card', label: '🃏 Card', color: '#14b8a6' },
   { value: 'table', label: '📊 Table', color: '#06b6d4' },
@@ -28,8 +28,14 @@ const AVAILABLE_PAGES = [
   { pageName: 'about', pageTitle: 'About', category: 'Main' },
   { pageName: 'admissions', pageTitle: 'Admissions', category: 'Main' },
   { pageName: 'academics', pageTitle: 'Academics', category: 'Main' },
-  { pageName: 'research-groups', pageTitle: 'Research Groups', category: 'Main' },
-  { pageName: 'placements', pageTitle: 'Placements', category: 'Main' },
+  { pageName: 'research-groups', pageTitle: 'Research Groups', category: 'Research' },
+  { pageName: 'faculty-research-papers', pageTitle: 'Faculty Research Papers', category: 'Research' },
+  { pageName: 'ug-research-students', pageTitle: 'UG Research Students', category: 'Research' },
+  { pageName: 'research-funding', pageTitle: 'Research Funding', category: 'Research' },
+  { pageName: 'awards-recognition', pageTitle: 'Awards & Recognition', category: 'Research' },
+  { pageName: 'international-collaboration', pageTitle: 'International Collaboration', category: 'Research' },
+  { pageName: 'research-activities', pageTitle: 'Research Activities', category: 'Research' },
+  { pageName: 'placements', pageTitle: 'Placements & Career', category: 'Placements' },
   { pageName: 'nirf', pageTitle: 'NIRF', category: 'Main' },
   // Courses
   { pageName: 'btech-cse', pageTitle: 'B.Tech CSE', category: 'Courses' },
@@ -57,6 +63,7 @@ const AVAILABLE_PAGES = [
   { pageName: 'ieee-student-branch', pageTitle: 'IEEE Student Branch', category: 'Clubs' },
   { pageName: 'acm', pageTitle: 'ACM Student Chapter', category: 'Clubs' },
   // Others
+  { pageName: 'media', pageTitle: 'Media', category: 'Others' },
   { pageName: 'gallery', pageTitle: 'Gallery', category: 'Others' },
   { pageName: 'campus-life', pageTitle: 'Campus Life', category: 'Others' },
   { pageName: 'contact', pageTitle: 'Contact', category: 'Others' },
@@ -92,7 +99,7 @@ export default function UnifiedContentManager() {
   const color1 = API.color1 || '#239244';
   const color2 = API.color2 || '#e8f5f0';
 
-  const categories = ['All', 'Main', 'Courses', 'Facilities', 'Clubs', 'Others'];
+  const categories = ['All', 'Main', 'Research', 'Placements', 'Courses', 'Facilities', 'Clubs', 'Others'];
 
   useEffect(() => {
     fetchPagesAndBlocks();
@@ -225,10 +232,18 @@ export default function UnifiedContentManager() {
         content: JSON.stringify(editingBlock.content)
       };
 
+      console.log('=== SAVING BLOCK ===');
+      console.log('Has ID:', !!editingBlock.id);
+      console.log('Block Data:', blockData);
+
       if (editingBlock.id) {
-        await API.put(`/api/content-blocks/${editingBlock.id}`, blockData);
+        console.log('Updating block:', editingBlock.id);
+        const response = await API.put(`/api/content-blocks/${editingBlock.id}`, blockData);
+        console.log('Update response:', response);
       } else {
-        await API.post('/api/content-blocks', blockData);
+        console.log('Creating new block');
+        const response = await API.post('/api/content-blocks', blockData);
+        console.log('Create response:', response);
       }
 
       alert('Block saved successfully!');
@@ -238,7 +253,8 @@ export default function UnifiedContentManager() {
       fetchPagesAndBlocks();
     } catch (error) {
       console.error('Error saving block:', error);
-      alert('Error saving block');
+      console.error('Error details:', error.response?.data || error.message);
+      alert('Error saving block: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -339,6 +355,56 @@ export default function UnifiedContentManager() {
                 rows={3}
                 placeholder="Brief description"
               />
+            </div>
+          </div>
+        );
+
+      case 'heading':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Heading Text</label>
+              <input
+                type="text"
+                value={block.content.text || ''}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, text: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+                placeholder="Your heading text"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Heading Level</label>
+              <select
+                value={block.content.level || 'h2'}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, level: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+              >
+                <option value="h1">H1 - Largest</option>
+                <option value="h2">H2 - Large</option>
+                <option value="h3">H3 - Medium</option>
+                <option value="h4">H4 - Small</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Alignment</label>
+              <select
+                value={block.content.align || 'left'}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, align: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+              >
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+              </select>
             </div>
           </div>
         );
@@ -460,6 +526,269 @@ export default function UnifiedContentManager() {
                 <img src={block.content.url} alt="Preview" className="max-w-xs rounded-lg border" />
               </div>
             )}
+          </div>
+        );
+
+      case 'card':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Card Title</label>
+              <input
+                type="text"
+                value={block.content.title || ''}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, title: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Description</label>
+              <textarea
+                value={block.content.description || ''}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, description: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+                rows={4}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Icon (emoji or icon name)</label>
+              <input
+                type="text"
+                value={block.content.icon || ''}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, icon: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+                placeholder="📚 or icon-name"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Link URL (optional)</label>
+              <input
+                type="text"
+                value={block.content.link || ''}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, link: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+                placeholder="/path/to/page"
+              />
+            </div>
+          </div>
+        );
+
+      case 'gallery':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Gallery Title</label>
+              <input
+                type="text"
+                value={block.content.title || ''}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, title: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+                placeholder="Gallery title (optional)"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Images (one URL per line)</label>
+              <textarea
+                value={(block.content.images || []).map(img => 
+                  typeof img === 'string' ? img : img.url
+                ).join('\n')}
+                onChange={(e) => {
+                  const urls = e.target.value.split('\n').filter(url => url.trim());
+                  const images = urls.map(url => ({
+                    url: url.trim(),
+                    alt: `Gallery Image`,
+                    caption: ''
+                  }));
+                  setEditingBlock({
+                    ...block,
+                    content: { ...block.content, images }
+                  });
+                }}
+                className="w-full px-4 py-2 border rounded-lg font-mono text-sm"
+                rows={8}
+                placeholder="/uploads/image1.jpg\n/uploads/image2.jpg\n/uploads/image3.jpg"
+              />
+              <p className="text-xs text-gray-500 mt-1">Enter image URLs, one per line. Use ImageUploader below to upload new images.</p>
+            </div>
+            <ImageUploader
+              onChange={(url) => {
+                const newImage = { url, alt: 'Gallery Image', caption: '' };
+                const images = [...(block.content.images || []), newImage];
+                setEditingBlock({
+                  ...block,
+                  content: { ...block.content, images }
+                });
+              }}
+            />
+          </div>
+        );
+
+      case 'button':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Button Text</label>
+              <input
+                type="text"
+                value={block.content.text || ''}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, text: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+                placeholder="Click Here"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Link URL</label>
+              <input
+                type="text"
+                value={block.content.url || ''}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, url: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+                placeholder="/path/to/page"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Button Style</label>
+              <select
+                value={block.content.style || 'primary'}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, style: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+              >
+                <option value="primary">Primary</option>
+                <option value="secondary">Secondary</option>
+                <option value="outline">Outline</option>
+              </select>
+            </div>
+          </div>
+        );
+
+      case 'gallery':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Gallery Title</label>
+              <input
+                type="text"
+                value={block.content.title || ''}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, title: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Image URLs (one per line)</label>
+              <textarea
+                value={(block.content.images || []).join('\n')}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, images: e.target.value.split('\n').filter(i => i.trim()) }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+                rows={6}
+                placeholder="/uploads/image1.jpg&#10;/uploads/image2.jpg"
+              />
+            </div>
+          </div>
+        );
+
+      case 'statistics':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Statistics (format: value|label, one per line)</label>
+              <textarea
+                value={(block.content.stats || []).map(s => `${s.value}|${s.label}`).join('\n')}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { 
+                    ...block.content, 
+                    stats: e.target.value.split('\n')
+                      .filter(i => i.trim())
+                      .map(line => {
+                        const [value, label] = line.split('|');
+                        return { value: value?.trim() || '', label: label?.trim() || '' };
+                      })
+                  }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+                rows={6}
+                placeholder="100+|Students&#10;50+|Faculty&#10;10+|Programs"
+              />
+            </div>
+          </div>
+        );
+
+      case 'table':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Table Title</label>
+              <input
+                type="text"
+                value={block.content.title || ''}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, title: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Headers (comma separated)</label>
+              <input
+                type="text"
+                value={(block.content.headers || []).join(', ')}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, headers: e.target.value.split(',').map(h => h.trim()).filter(h => h) }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+                placeholder="Column 1, Column 2, Column 3"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Rows (one row per line, cells separated by |)</label>
+              <textarea
+                value={(block.content.rows || []).map(r => r.join(' | ')).join('\n')}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { 
+                    ...block.content, 
+                    rows: e.target.value.split('\n')
+                      .filter(line => line.trim())
+                      .map(line => line.split('|').map(cell => cell.trim()))
+                  }
+                })}
+                className="w-full px-4 py-2 border rounded-lg"
+                rows={8}
+                placeholder="Cell 1 | Cell 2 | Cell 3&#10;Cell 4 | Cell 5 | Cell 6"
+              />
+            </div>
           </div>
         );
 

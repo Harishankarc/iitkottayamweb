@@ -44,11 +44,11 @@ import SecurityClub from './screens/IIC&Clubs/securityClub';
 import MindQuest from './screens/IIC&Clubs/mindQuest';
 import IEEEStudentBranch from './screens/IIC&Clubs/IeeeStudentBranch';
 import ACM from './screens/IIC&Clubs/acm';
-import FacultyResearchPaper from './screens/research/facultyResearchPaper';
+import FacultyResearchPaper from './screens/research/facultyResearchPaper_dynamic';
 import ResearchScholars from './screens/people/researchScholars';
-import UgResearchStudents from './screens/research/ugResearchStudents';
-import ResearchFunding from './screens/research/researchFunding';
-import AwardRecognition from './screens/research/awardRecognition';
+import UgResearchStudents from './screens/research/ugResearchStudents_dynamic';
+import ResearchFunding from './screens/research/researchFunding_dynamic';
+import AwardRecognition from './screens/research/awardRecognition_dynamic';
 import InternationalCollab from './screens/research/internationalCollab';
 import ResearchActivities from './screens/research/researchActivities';
 import Placement from './screens/placement/placement';
@@ -74,6 +74,8 @@ import ManageFooter from './admin/pages/ManageFooter';
 import ManageNavigation from './admin/pages/ManageNavigation';
 import ManageSiteSettings from './admin/pages/ManageSiteSettings';
 import UnifiedContentManager from './admin/pages/UnifiedContentManager';
+import NavbarManager from './admin/pages/NavbarManager';
+import FooterLinksManager from './admin/pages/FooterLinksManager';
 import HostelManagement from './screens/admin/HostelManagement';
 import ManageAdministration from './admin/pages/ManageAdministration';
 import ManageHOD from './admin/pages/ManageHOD';
@@ -125,7 +127,9 @@ function App() {
             <Route path="company-logos" element={<ManageCompanyLogos />} />
             <Route path="nirf" element={<ManageNIRF />} />
             <Route path="footer" element={<ManageFooter />} />
+            <Route path="footer-links" element={<FooterLinksManager />} />
             <Route path="navigation" element={<ManageNavigation />} />
+            <Route path="navbar" element={<NavbarManager />} />
             <Route path="content" element={<UnifiedContentManager />} />
             <Route path="hostel" element={<HostelManagement />} />
             <Route path="administration" element={<ManageAdministration />} />
@@ -197,7 +201,7 @@ function App() {
                 <Route path="/iic-clubs/mind-quest" element={<MindQuest />} />
                 <Route path="/iic-clubs/ieee-student-branch" element={<IEEEStudentBranch />} />
                 <Route path="/iic-clubs/acm" element={<ACM />} />
-                <Route path="/research/research-group" element={<ResearchGroup />} />
+                <Route path="/research/research-groups" element={<ResearchGroup />} />
                 <Route path="/research/faculty-research-papers" element={<FacultyResearchPaper />} />
                 <Route path="/research/ug-research-students" element={<UgResearchStudents />} />
                 <Route path="/research/research-funding" element={<ResearchFunding />} />

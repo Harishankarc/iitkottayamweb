@@ -103,7 +103,7 @@ export const navigationConfig = [
     submenu: [
       { id: 'faculty-research-papers', label: 'Faculty Research Papers', link: '/research/faculty-research-papers' },
       { id: 'research-groups', label: 'Research Groups', link: '/research/research-groups' },
-      { id: 'ug-student-research', label: 'UG Student Research Papers', link: '/research/ug-student-research' },
+      { id: 'ug-student-research', label: 'UG Student Research Papers', link: '/research/ug-research-students' },
       { id: 'research-funding', label: 'Research Project Fundings', link: '/research/research-funding' },
       { id: 'awards-recognition', label: 'Awards & Recognition', link: '/research/awards-recognition' },
       { id: 'international-collab', label: 'International Collaborations', link: '/research/international-collab' },
