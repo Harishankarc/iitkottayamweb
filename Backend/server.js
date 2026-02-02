@@ -40,6 +40,8 @@ import researchActivityRoutes from './routes/researchActivityRoutes.js';
 import clubRoutes from './routes/clubRoutes.js';
 import translationRoutes from './routes/translationRoutes.js';
 import fdpProgramRoutes from './routes/fdpProgramRoutes.js';
+import navbarRoutes from './routes/navbarRoutes.js';
+import footerLinksRoutes from './routes/footerLinksRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -104,6 +106,8 @@ app.use('/api/research-activities', researchActivityRoutes);
 app.use('/api/clubs', clubRoutes);
 app.use('/api', translationRoutes);
 app.use('/api/fdp-programs', fdpProgramRoutes);
+app.use('/api', navbarRoutes);
+app.use('/api', footerLinksRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

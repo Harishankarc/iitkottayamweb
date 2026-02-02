@@ -349,7 +349,7 @@ const PAGE_MAPPINGS = {
   // Research
   'awards-recognition': { template: 'research', title: 'Awards & Recognition' },
   'faculty-research-papers': { template: 'research', title: 'Faculty Research Publications' },
-  'international-collab': { template: 'research', title: 'International Collaborations' },
+  'international-collaboration': { template: 'research', title: 'International Collaborations' },
   'research-activities': { template: 'research', title: 'Research Activities' },
   'research-funding': { template: 'research', title: 'Research Funding' },
   'research-groups': { template: 'research', title: 'Research Groups' },

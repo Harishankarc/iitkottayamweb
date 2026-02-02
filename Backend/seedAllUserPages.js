@@ -59,7 +59,7 @@ const ALL_PAGES = [
   { pageName: 'research-funding', pageTitle: 'Research Funding - IIIT Kottayam', pageSlug: '/research/funding', category: 'research', metaDescription: 'Research grants and funding opportunities', isPublished: true },
   { pageName: 'faculty-research-papers', pageTitle: 'Faculty Research Publications - IIIT Kottayam', pageSlug: '/research/publications', category: 'research', metaDescription: 'Faculty research papers and publications', isPublished: true },
   { pageName: 'ug-research-students', pageTitle: 'UG Research Students - IIIT Kottayam', pageSlug: '/research/ug-students', category: 'research', metaDescription: 'Undergraduate research opportunities', isPublished: true },
-  { pageName: 'international-collab', pageTitle: 'International Collaborations - IIIT Kottayam', pageSlug: '/research/collaborations', category: 'research', metaDescription: 'International research collaborations', isPublished: true },
+  { pageName: 'international-collaboration', pageTitle: 'International Collaborations - IIIT Kottayam', pageSlug: '/research/collaborations', category: 'research', metaDescription: 'International research collaborations', isPublished: true },
   { pageName: 'awards-recognition', pageTitle: 'Awards & Recognition - IIIT Kottayam', pageSlug: '/research/awards', category: 'research', metaDescription: 'Research awards and recognitions', isPublished: true },
   
   // PLACEMENT
