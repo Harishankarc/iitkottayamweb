@@ -145,7 +145,7 @@ export default function BankATM() {
     };
 
     fetchContent();
-  }, [language]);
+  }, [language, t]);
 
   if (loading) {
     return (
