@@ -3,6 +3,49 @@ import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { CreditCard, Clock, Shield, Building2, Banknote, CheckCircle } from 'lucide-react';
 
+// Translation helper - fetches translations from backend
+const useTranslation = () => {
+  const [translations, setTranslations] = useState({});
+  const language = localStorage.getItem('language') || 'en';
+
+  useEffect(() => {
+    const fetchTranslations = async () => {
+      if (language === 'en') {
+        setTranslations({});
+        return;
+      }
+
+      try {
+        const response = await API.post('/api/translate-bulk', {
+          texts: [
+            'Banking Services',
+            'Failed to load content',
+            'No content available',
+            'ATM Facility'
+          ],
+          targetLang: language
+        });
+
+        if (response.success && response.data?.data?.translations) {
+          const translationMap = {};
+          response.data.data.translations.forEach((item) => {
+            translationMap[item.originalText] = item.translatedText;
+          });
+          setTranslations(translationMap);
+        }
+      } catch (error) {
+        console.error('Translation fetch error:', error);
+        setTranslations({});
+      }
+    };
+
+    fetchTranslations();
+  }, [language]);
+
+  const t = (text) => translations[text] || text;
+  return { t, language };
+};
+
 // Feature Card Component
 const FeatureCard = ({ feature, color1, darkMode }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -60,6 +103,7 @@ const FeatureCard = ({ feature, color1, darkMode }) => {
 
 export default function BankATM() {
   const { darkMode } = useTheme();
+  const { t, language } = useTranslation();
   const color1 = API.color1;
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -94,14 +138,14 @@ export default function BankATM() {
         }
       } catch (error) {
         console.error('Error fetching Bank/ATM content:', error);
-        setError('Failed to load content');
+        setError(t('Failed to load content'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchContent();
-  }, []);
+  }, [language]);
 
   if (loading) {
     return (
@@ -119,7 +163,7 @@ export default function BankATM() {
         <div className="container mx-auto px-4 py-16">
           <div className="text-center">
             <p className={`text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              {error || 'No content available'}
+              {error || t('No content available')}
             </p>
           </div>
         </div>
@@ -135,7 +179,7 @@ export default function BankATM() {
           <div className="max-w-7xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
               <CreditCard className="w-4 h-4" style={{ color: color1 }} />
-              {content.hero.subtitle || 'Banking Services'}
+              {content.hero.subtitle || t('Banking Services')}
             </div>
             <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
               {content.hero.title}
@@ -161,7 +205,7 @@ export default function BankATM() {
                 <div key={index} className="rounded-xl overflow-hidden">
                   <img 
                     src={API.getImageUrl(image.src || image.url)} 
-                    alt={image.alt || `ATM Facility ${index + 1}`}
+                    alt={image.alt || `${t('ATM Facility')} ${index + 1}`}
                     className="w-full h-auto object-cover"
                     onError={(e) => {
                       e.target.onerror = null;
