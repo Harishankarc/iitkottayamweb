@@ -1,14 +1,21 @@
+import { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { usePageContent, getVisibleBlocks, renderContentBlock } from '../../hooks/usePageContent.jsx';
+import { useTranslation } from '../../context/TranslationContext';
 
 export default function ResearchActivities() {
   const { darkMode } = useTheme();
   const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('research-activities');
   const visibleBlocks = contentBlocks ? getVisibleBlocks(contentBlocks) : [];
+  const { t } = useTranslation();
   
   console.log('Research Activities - Content Blocks:', contentBlocks);
   console.log('Research Activities - Visible Blocks:', visibleBlocks);
+  
+  useEffect(() => {
+    console.log('Research Activities Page - Translation function available:', typeof t === 'function');
+  }, [t]);
   
   const color1 = API.color1;
   const color2 = API.color2;
@@ -26,14 +33,14 @@ export default function ResearchActivities() {
             <div className="space-y-6 max-w-full mx-auto">
               {visibleBlocks.map((block, index) => (
                 <div key={block.blockId || index}>
-                  {renderContentBlock(block, { darkMode, color1, color2 })}
+                  {renderContentBlock(block, { darkMode, color1, color2, t })}
                 </div>
               ))}
             </div>
           ) : (
             <div className="max-w-4xl mx-auto text-center py-12">
               <p className={`text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                No content available. Please add content blocks from the admin panel.
+                {t('No content available. Please add content blocks from the admin panel.')}
               </p>
               {localStorage.getItem('token') && (
                 <a
