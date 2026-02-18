@@ -510,10 +510,10 @@ const HomePage = () => {
                       } catch (e) { stats = []; }
                       if (!stats || stats.length === 0) {
                         stats = [
-                          { label: 'Highest Package', value: '45 LPA' },
-                          { label: 'Avg. Package', value: '14 LPA' },
-                          { label: 'Companies Visited', value: '100+' },
-                          { label: 'Placement Rate', value: '95%' }
+                          { label: t('Highest Package'), value: '45 LPA' },
+                          { label: t('Avg. Package'), value: '14 LPA' },
+                          { label: t('Companies Visited'), value: '100+' },
+                          { label: t('Placement Rate'), value: '95%' }
                         ];
                       }
                       const getBarValue = (val) => {
