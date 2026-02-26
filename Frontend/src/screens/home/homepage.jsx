@@ -203,7 +203,8 @@ const HomePage = () => {
           if (pageRes?.success && pageRes?.data) {
             setPageContent(pageRes.data);
           }
-        } catch { /* page metadata not found, using defaults */
+        } catch {
+          // Page metadata not found - continue with defaults
         }
 
         // Fetch Content Blocks (MAIN CONTENT SOURCE)
@@ -251,7 +252,7 @@ const HomePage = () => {
         // setPageContent(null);
         // setContentBlocks([]);
         console.error('Error fetching data:', error);
-      } finally { /* cleanup */ }
+      }
     };
 
     fetchData();

@@ -58,7 +58,7 @@ export default function BTechStudents() {
       } catch (error) {
         console.error('Error fetching B.Tech students:', error);
         setStudentsData([]);
-      } finally { /* cleanup */ }
+      }
     };
     fetchStudents();
   }, []);

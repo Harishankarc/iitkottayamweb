@@ -66,7 +66,6 @@ export default function WhyIIIT() {
 
   const color1 = API.color1; // #239244 (Dark Green)
   const color2 = API.color2; // #e8f5f0 (Light Mint)
-   // #F1F3F3 (Light Gray)
 
   // Check if admin is logged in
   const isAdmin = localStorage.getItem('token');

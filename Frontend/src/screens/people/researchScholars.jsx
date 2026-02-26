@@ -84,7 +84,7 @@ export default function ResearchScholars() {
       } catch (error) {
         console.error('Error fetching research scholars:', error);
         setScholarsData([]);
-      } finally { /* cleanup */ }
+      }
     };
     fetchScholars();
   }, []);

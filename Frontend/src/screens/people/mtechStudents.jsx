@@ -58,7 +58,7 @@ export default function MTechStudents() {
       } catch (error) {
         console.error('Error fetching M.Tech students:', error);
         setStudentsData([]);
-      } finally { /* cleanup */ }
+      }
     };
     fetchStudents();
   }, []);
