@@ -5,7 +5,7 @@ import { useTheme } from '../context/createContext';
 import { navigationConfig } from '../config/navigationConfig';
 import campusImage from '../assets/images/img1.jpg';
 
-const DropdownMenu = ({ items, isOpen, onClose, menuId }) => {
+const DropdownMenu = ({ items, isOpen, onClose }) => {
   const { darkMode, fontSize } = useTheme();
 
   const getFontSizeClass = () => {

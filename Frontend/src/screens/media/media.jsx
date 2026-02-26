@@ -4,7 +4,7 @@ import API from '../../api/api.jsx';
 
 export default function Media() {
     const { darkMode } = useTheme();
-    const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('media');
+    const { blocks: contentBlocks, loading: contentLoading } = usePageContent('media');
     const visibleBlocks = contentBlocks ? getVisibleBlocks(contentBlocks) : [];
     
     const color1 = API.color1;

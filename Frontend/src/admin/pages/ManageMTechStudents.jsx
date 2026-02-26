@@ -101,7 +101,6 @@ export default function ManageMTechStudents() {
       phone: item.phone || '',
       photo: item.photo || '',
       qualification: item.qualification || '',
-      specialization: item.specialization || '',
       experience: item.experience || '',
       userType: 'mtech-students',
       isActive: item.isActive

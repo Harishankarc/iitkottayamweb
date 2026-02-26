@@ -13,7 +13,6 @@ export default function VisualPageEditor() {
   const initialPage = searchParams.get('page') || 'why-iiitk';
   
   const [selectedPage, setSelectedPage] = useState(initialPage);
-  const [pages, setPages] = useState([]);
   const [blocks, setBlocks] = useState([]);
   const [selectedBlock, setSelectedBlock] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -73,26 +72,11 @@ export default function VisualPageEditor() {
   ];
 
   useEffect(() => {
-    fetchPages();
-  }, []);
-
-  useEffect(() => {
     if (selectedPage) {
       fetchBlocks();
       setSearchParams({ page: selectedPage });
     }
   }, [selectedPage]);
-
-  const fetchPages = async () => {
-    try {
-      const response = await API.get('/api/pages');
-      if (response.success) {
-        setPages(response.data.data || []);
-      }
-    } catch (error) {
-      console.error('Error fetching pages:', error);
-    }
-  };
 
   const fetchBlocks = async () => {
     try {
@@ -111,9 +95,8 @@ export default function VisualPageEditor() {
       if (typeof field === 'string') {
         try {
           return JSON.parse(field);
-        } catch (e) {
-          return {};
-        }
+        } catch { /* ignore parse errors */ }
+        return {};
       }
       return field;
     };
@@ -189,7 +172,7 @@ export default function VisualPageEditor() {
           </div>
         );
 
-      case 'heading':
+      case 'heading': {
         const HeadingTag = `h${content.level || 2}`;
         return (
           <div className={baseClass} onClick={() => handleEditBlock(block)}>
@@ -199,6 +182,7 @@ export default function VisualPageEditor() {
             {isSelected && <EditOverlay block={block} onDelete={handleDeleteBlock} />}
           </div>
         );
+      }
 
       case 'paragraph':
         return (
@@ -437,7 +421,7 @@ export default function VisualPageEditor() {
               onChange={(e) => {
                 try {
                   setEditingContent({ ...editingContent, content: JSON.parse(e.target.value) });
-                } catch {}
+                } catch { /* ignore invalid JSON */ }
               }}
               className={`${inputClass} font-mono text-sm`}
               rows="12"

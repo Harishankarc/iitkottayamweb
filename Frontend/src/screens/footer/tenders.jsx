@@ -76,7 +76,7 @@ export default function Tenders() {
       
       // Using default data for now
       setTenders(defaultTenders);
-    } catch (err) {
+    } catch {
       console.log('Using default tenders data');
       setTenders(defaultTenders);
     } finally {
@@ -178,7 +178,7 @@ export default function Tenders() {
                     </tr>
                   </thead>
                   <tbody>
-                    {currentTenders.map((tender, index) => (
+                    {currentTenders.map((tender) => (
                       <tr 
                         key={tender.id}
                         className={`border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} ${

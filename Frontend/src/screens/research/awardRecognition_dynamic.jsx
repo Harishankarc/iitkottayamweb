@@ -4,7 +4,7 @@ import { usePageContent, getVisibleBlocks, renderContentBlock } from '../../hook
 
 export default function AwardRecognition() {
   const { darkMode } = useTheme();
-  const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('awards-recognition');
+  const { blocks: contentBlocks, loading: contentLoading } = usePageContent('awards-recognition');
   const visibleBlocks = contentBlocks ? getVisibleBlocks(contentBlocks) : [];
   
   const color1 = API.color1;

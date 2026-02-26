@@ -9,10 +9,10 @@ export default function Academics() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
   const color2 = API.color2;
-  const color3 = API.color3;
+  
 
   // Fetch dynamic content from database
-  const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('academics');
+  const { blocks: contentBlocks, loading: contentLoading } = usePageContent('academics');
   const visibleBlocks = contentBlocks ? getVisibleBlocks(contentBlocks) : [];
 
   return (

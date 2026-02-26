@@ -159,7 +159,7 @@ const StaffCard = ({ staff, color1, darkMode }) => {
 export default function ProfessionalSupportStaff() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
-  const color2 = API.color2;
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [staffData, setStaffData] = useState([]);
   const [loading, setLoading] = useState(true);

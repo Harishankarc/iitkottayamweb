@@ -6,8 +6,8 @@ import { Users, TrendingUp, BarChart3, PieChart } from 'lucide-react';
 export default function GenderIndex() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
-  const color2 = API.color2;
-  const [content, setContent] = useState([]);
+  
+
   const [loading, setLoading] = useState(true);
   const [genderData, setGenderData] = useState({
     enrolment: { male: 0, female: 0, total: 0 },
@@ -21,7 +21,7 @@ export default function GenderIndex() {
         const data = await response.json();
         
         if (data.success && data.data) {
-          setContent(data.data);
+
           
           // Extract data from content blocks
           const tableBlock = data.data.find(block => block.blockType === 'table');

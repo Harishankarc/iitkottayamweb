@@ -60,13 +60,13 @@ const useTranslation = () => {
 export default function WhyIIIT() {
   const { t } = useTranslation();
   // Fetch dynamic content from database
-  const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('why-iiitk');
+  const { blocks: contentBlocks, loading: contentLoading } = usePageContent('why-iiitk');
 
   const { darkMode } = useTheme();
 
   const color1 = API.color1; // #239244 (Dark Green)
   const color2 = API.color2; // #e8f5f0 (Light Mint)
-  const color3 = API.color3; // #F1F3F3 (Light Gray)
+   // #F1F3F3 (Light Gray)
 
   // Check if admin is logged in
   const isAdmin = localStorage.getItem('token');

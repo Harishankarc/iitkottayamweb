@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import API from '../../api/api';
 import { useTheme } from '../../context/createContext';
-import { navigationConfig, footerLinks, footerReports, footerLegal } from '../../config/navigationConfig';
+import { navigationConfig } from '../../config/navigationConfig';
 
 export default function SiteMap() {
   const { darkMode } = useTheme();

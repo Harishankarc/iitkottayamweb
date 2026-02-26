@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import WhyIIIT from './screens/whyiiit/whyIIIT';
 import { ThemeProvider } from './context/createContext';
 import HomePage from './screens/home/homepage'
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Nirf from './screens/nirf/nirf';
 import NavBar from './components/navbar';
 import AppFooter from './components/footer';

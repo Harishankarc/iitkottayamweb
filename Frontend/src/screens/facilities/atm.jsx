@@ -7,15 +7,6 @@ import { CreditCard, Clock, Shield, Building2, Banknote, CheckCircle } from 'luc
 const FeatureCard = ({ feature, color1, darkMode }) => {
   const [isHovered, setIsHovered] = useState(false);
   
-  const icons = {
-    'clock': Clock,
-    'shield': Shield,
-    'building': Building2,
-    'banknote': Banknote,
-    'check': CheckCircle,
-    'card': CreditCard
-  };
-
   // Extract icon type from feature text or use default
   const getIcon = () => {
     if (feature.toLowerCase().includes('24/7') || feature.toLowerCase().includes('round')) return Clock;

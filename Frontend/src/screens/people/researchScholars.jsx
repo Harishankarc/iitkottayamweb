@@ -51,11 +51,11 @@ const ScholarCard = ({ scholar, color1, darkMode }) => {
 export default function ResearchScholars() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
-  const color2 = API.color2;
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBatch, setSelectedBatch] = useState('2025');
   const [scholarsData, setScholarsData] = useState([]);
-  const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     const fetchScholars = async () => {
@@ -84,9 +84,7 @@ export default function ResearchScholars() {
       } catch (error) {
         console.error('Error fetching research scholars:', error);
         setScholarsData([]);
-      } finally {
-        setLoading(false);
-      }
+      } finally { /* cleanup */ }
     };
     fetchScholars();
   }, []);

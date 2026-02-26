@@ -58,7 +58,7 @@ const TeamMemberCard = ({ member, color1, darkMode }) => {
 };
 
 // Focus Item Card Component
-const FocusCard = ({ item, index, color1, darkMode }) => {
+const FocusCard = ({ item, color1, darkMode }) => {
   const [isHovered, setIsHovered] = React.useState(false);
   
   return (
@@ -90,7 +90,7 @@ const FocusCard = ({ item, index, color1, darkMode }) => {
 };
 
 // Objective Card Component
-const ObjectiveCard = ({ item, index, color1, darkMode }) => {
+const ObjectiveCard = ({ item, color1, darkMode }) => {
   const [isHovered, setIsHovered] = React.useState(false);
   
   return (
@@ -152,7 +152,7 @@ const ImageGallery = ({ color1, darkMode }) => {
 export default function InnovationCell() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
-  const color2 = API.color2;
+  
   const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

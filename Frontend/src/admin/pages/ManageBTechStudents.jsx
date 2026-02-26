@@ -101,7 +101,6 @@ export default function ManageBTechStudents() {
       phone: item.phone || '',
       photo: item.photo || '',
       qualification: item.qualification || '',
-      specialization: item.specialization || '',
       experience: item.experience || '',
       userType: 'btech-students',
       isActive: item.isActive

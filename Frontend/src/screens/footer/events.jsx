@@ -148,7 +148,7 @@ export default function Events() {
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+
 
   const color1 = API.color1;
 

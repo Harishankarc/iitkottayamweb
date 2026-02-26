@@ -155,7 +155,7 @@ const TechnicalCard = ({ staff, color1, darkMode }) => {
 export default function Technical() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
-  const color2 = API.color2;
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [technicalData, setTechnicalData] = useState([]);
   const [loading, setLoading] = useState(true);

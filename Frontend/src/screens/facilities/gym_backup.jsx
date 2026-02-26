@@ -72,8 +72,8 @@ const ImageGallery = ({ color1, darkMode }) => {
 export default function Gym() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
-  const color2 = API.color2;
-  const [gymData, setGymData] = useState(null);
+  
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -83,7 +83,7 @@ export default function Gym() {
         setError(null);
         const response = await API.get('/api/facilities/slug/gym');
         if (response.data) {
-          setGymData(response.data);
+          // Data loaded successfully (use default gym information below)
         } else {
           setError('Gym information not available at the moment.');
         }
@@ -103,7 +103,7 @@ export default function Gym() {
     API.get('/api/facilities/slug/gym')
       .then((response) => {
         if (response.data) {
-          setGymData(response.data);
+          // Data loaded successfully (use default gym information below)
         } else {
           setError('Gym information not available at the moment.');
         }

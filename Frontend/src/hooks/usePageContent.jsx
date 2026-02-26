@@ -189,7 +189,7 @@ export function renderContentBlock(block, options = {}) {
         </div>
       );
 
-    case 'heading':
+    case 'heading': {
       const level = content.level || content.headingLevel || 'h2';
       const HeadingTag = typeof level === 'number' ? `h${level}` : level;
       const alignmentClass = content.align === 'center' ? 'text-center' : content.align === 'right' ? 'text-right' : 'text-left';
@@ -207,6 +207,7 @@ export function renderContentBlock(block, options = {}) {
           </HeadingTag>
         </div>
       );
+    }
 
     case 'paragraph':
       return (
@@ -256,7 +257,7 @@ export function renderContentBlock(block, options = {}) {
       );
 
     case 'gallery':
-    case 'image':
+    case 'image': {
       // Handle both single image and image arrays
       if (content.images && Array.isArray(content.images)) {
         // Filter out images with invalid URLs
@@ -324,8 +325,9 @@ export function renderContentBlock(block, options = {}) {
           )}
         </div>
       );
+    }
 
-    case 'list':
+    case 'list': {
       const listItems = Array.isArray(content) ? content : (Array.isArray(content.items) ? content.items : (typeof content.items === 'string' ? content.items.split(' ') : []));
       
       // Detect document style: check for SCALES/BOOK/DOC keywords OR if blockId contains 'documents'
@@ -499,6 +501,7 @@ export function renderContentBlock(block, options = {}) {
           </div>
         </div>
       );
+    }
 
     case 'button':
       return (

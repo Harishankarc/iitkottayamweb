@@ -245,7 +245,7 @@ const CompactListCard = ({ person, color1, darkMode, icon: Icon }) => {
 export default function Administration() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
-  const color2 = API.color2;
+  
   const [activeTab, setActiveTab] = useState('General');
   const [searchTerm, setSearchTerm] = useState('');
   const [administrationData, setAdministrationData] = useState([]);

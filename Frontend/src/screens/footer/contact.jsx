@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MapPin, Phone, Mail, Clock, Facebook, Twitter, Linkedin, Youtube } from 'lucide-react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';

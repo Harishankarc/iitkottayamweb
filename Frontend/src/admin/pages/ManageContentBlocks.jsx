@@ -210,57 +210,6 @@ export default function ManageContentBlocks() {
     }
   };
 
-  const handleImportWhyIIITContent = async () => {
-    if (!window.confirm('This will import all existing content from Why IIIT page as editable blocks. Continue?')) {
-      return;
-    }
-
-    try {
-      const blocksToCreate = [
-        {
-          blockId: 'hero-section',
-          pageName: selectedPage,
-          sectionName: 'hero',
-          blockType: 'hero',
-          blockLabel: 'Hero Section',
-          content: { title: 'Why Choose IIIT Kottayam?', subtitle: 'Excellence in Technology Education' },
-          blockOrder: 0,
-          isVisible: true
-        },
-        {
-          blockId: 'introduction',
-          pageName: selectedPage,
-          sectionName: 'intro',
-          blockType: 'paragraph',
-          blockLabel: 'Introduction Text',
-          content: { text: 'IIIT Kottayam stands as a beacon of technological excellence and innovation in higher education. Established to nurture future-ready tech professionals, we combine cutting-edge research with world-class teaching methodologies.' },
-          blockOrder: 1,
-          isVisible: true
-        },
-        {
-          blockId: 'research-groups-heading',
-          pageName: selectedPage,
-          sectionName: 'research',
-          blockType: 'heading',
-          blockLabel: 'Research Groups Section',
-          content: { text: 'Research Groups', level: 2 },
-          blockOrder: 2,
-          isVisible: true
-        }
-      ];
-
-      for (const block of blocksToCreate) {
-        await API.post('/api/content-blocks', block);
-      }
-
-      alert('✅ Content imported successfully! You can now edit these blocks.');
-      fetchBlocks();
-    } catch (error) {
-      console.error('Error importing content:', error);
-      alert('❌ Error importing content');
-    }
-  };
-
   const handleImportDefaultContent = async () => {
     if (!window.confirm(`This will REPLACE all existing content for "${selectedPage}" with default content from the actual website pages. All current blocks for this page will be deleted and replaced with fresh content. Continue?`)) {
       return;
@@ -1102,8 +1051,7 @@ export default function ManageContentBlocks() {
           </div>
         );
 
-      case 'heading':
-      case 'paragraph':
+      case 'card':
         return (
           <div className="space-y-4">
             <div>
@@ -1161,7 +1109,7 @@ export default function ManageContentBlocks() {
           </div>
         );
 
-      case 'button':
+      case 'statistics':
         return (
           <div className="space-y-4">
             <div>
@@ -1421,7 +1369,7 @@ export default function ManageContentBlocks() {
               onChange={(e) => {
                 try {
                   setEditingBlock({ ...editingBlock, content: JSON.parse(e.target.value) });
-                } catch {}
+                } catch { /* ignore invalid JSON */ }
               }}
               className="w-full px-3 py-2 border rounded-lg font-mono text-sm"
               rows="10"
