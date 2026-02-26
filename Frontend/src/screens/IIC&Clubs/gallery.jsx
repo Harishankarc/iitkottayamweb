@@ -106,7 +106,7 @@ const FeaturedGallery = ({ color1, darkMode }) => {
 export default function Gallery() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
-  const color2 = API.color2;
+  
   const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

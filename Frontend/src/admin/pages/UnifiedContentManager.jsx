@@ -84,8 +84,6 @@ export default function UnifiedContentManager() {
   const [expandedBlock, setExpandedBlock] = useState(null);
   const [pageBlockCounts, setPageBlockCounts] = useState({});
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [showPageModal, setShowPageModal] = useState(false);
-  const [editingPage, setEditingPage] = useState(null);
   
   // Page metadata form
   const [pageMetadata, setPageMetadata] = useState({
@@ -97,7 +95,6 @@ export default function UnifiedContentManager() {
   });
 
   const color1 = API.color1 || '#239244';
-  const color2 = API.color2 || '#e8f5f0';
 
   const categories = ['All', 'Main', 'Research', 'Placements', 'Courses', 'Facilities', 'Clubs', 'Others'];
 
@@ -136,7 +133,7 @@ export default function UnifiedContentManager() {
           if (blocksResponse.success) {
             counts[page.pageName] = (blocksResponse.data.data || blocksResponse.data || []).length;
           }
-        } catch (err) {
+        } catch { /* ignore fetch error */
           counts[page.pageName] = 0;
         }
       }
@@ -214,7 +211,7 @@ export default function UnifiedContentManager() {
     if (typeof parsedContent === 'string') {
       try {
         parsedContent = JSON.parse(parsedContent);
-      } catch (e) {
+      } catch { /* ignore parse errors */
         parsedContent = {};
       }
     }
@@ -311,8 +308,6 @@ export default function UnifiedContentManager() {
   });
 
   const renderContentEditor = (block) => {
-    const blockType = BLOCK_TYPES.find(t => t.value === block.blockType);
-    
     switch (block.blockType) {
       case 'hero':
         return (
@@ -681,37 +676,6 @@ export default function UnifiedContentManager() {
                 <option value="secondary">Secondary</option>
                 <option value="outline">Outline</option>
               </select>
-            </div>
-          </div>
-        );
-
-      case 'gallery':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Gallery Title</label>
-              <input
-                type="text"
-                value={block.content.title || ''}
-                onChange={(e) => setEditingBlock({
-                  ...block,
-                  content: { ...block.content, title: e.target.value }
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Image URLs (one per line)</label>
-              <textarea
-                value={(block.content.images || []).join('\n')}
-                onChange={(e) => setEditingBlock({
-                  ...block,
-                  content: { ...block.content, images: e.target.value.split('\n').filter(i => i.trim()) }
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-                rows={6}
-                placeholder="/uploads/image1.jpg&#10;/uploads/image2.jpg"
-              />
             </div>
           </div>
         );

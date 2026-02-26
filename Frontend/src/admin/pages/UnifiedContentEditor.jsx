@@ -43,8 +43,6 @@ export default function UnifiedContentEditor() {
     isPublished: true
   });
 
-  const color1 = API.color1 || '#239244';
-  const color2 = API.color2 || '#e8f5f0';
 
   useEffect(() => {
     fetchPages();
@@ -73,7 +71,7 @@ export default function UnifiedContentEditor() {
             if (blocksResponse.success) {
               counts[page.pageName] = (blocksResponse.data.data || blocksResponse.data || []).length;
             }
-          } catch (err) {
+          } catch { /* ignore */
             counts[page.pageName] = 0;
           }
         }
@@ -125,29 +123,14 @@ export default function UnifiedContentEditor() {
     }
   };
 
-  const createBlock = () => {
-    setEditingBlock({
-      blockId: `block-${Date.now()}`,
-      pageName: selectedPage.pageName,
-      sectionName: '',
-      blockType: 'paragraph',
-      blockLabel: 'New Content Block',
-      content: {},
-      blockOrder: blocks.length,
-      isVisible: true
-    });
-    setShowBlockEditor(true);
-  };
-
   const editBlock = (block) => {
     const parseField = (field) => {
       if (!field) return {};
       if (typeof field === 'string') {
         try {
           return JSON.parse(field);
-        } catch (e) {
-          return {};
-        }
+        } catch { /* ignore parse errors */ }
+        return {};
       }
       return field;
     };

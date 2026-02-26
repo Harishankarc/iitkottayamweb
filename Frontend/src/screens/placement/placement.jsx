@@ -4,7 +4,7 @@ import { usePageContent, getVisibleBlocks, renderContentBlock } from '../../hook
 
 export default function Placement() {
     const { darkMode } = useTheme();
-    const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('placements');
+    const { blocks: contentBlocks, loading: contentLoading } = usePageContent('placements');
     const visibleBlocks = contentBlocks ? getVisibleBlocks(contentBlocks) : [];
     
     const color1 = API.color1;

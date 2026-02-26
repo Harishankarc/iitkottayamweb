@@ -161,7 +161,7 @@ const HallCard = ({ hall, color1, darkMode }) => {
 export default function Hostel() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
-  const color2 = API.color2;
+  
   const [contentBlocks, setContentBlocks] = useState([]);
   const [hostelData, setHostelData] = useState(null);
   const [loading, setLoading] = useState(true);

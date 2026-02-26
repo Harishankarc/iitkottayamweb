@@ -4,7 +4,7 @@ import { usePageContent, getVisibleBlocks, renderContentBlock } from '../../hook
 
 export default function ResearchActivities() {
   const { darkMode } = useTheme();
-  const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('research-activities');
+  const { blocks: contentBlocks, loading: contentLoading } = usePageContent('research-activities');
   const visibleBlocks = contentBlocks ? getVisibleBlocks(contentBlocks) : [];
   
   console.log('Research Activities - Content Blocks:', contentBlocks);

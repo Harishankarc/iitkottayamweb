@@ -21,7 +21,7 @@ export default function Nirf() {
     const { darkMode } = useTheme();
   const color1 = API.color1; // (Dark Green)
   const color2 = API.color2; // (Light Mint)
-  const color3 = API.color3; // (Light Gray)
+   // (Light Gray)
 
   // Placeholder data for NIRF parameters
   const nirfParams = [

@@ -6,7 +6,7 @@ import { Shield, Users, Eye, Clock, CheckCircle } from 'lucide-react';
 export default function Security() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
-  const color2 = API.color2;
+  
   const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -136,7 +136,7 @@ export default function Security() {
       {/* Main Content */}
       <div className="mx-auto py-8 px-6 max-w-full">
         {/* About Security */}
-        {paragraphBlocks.map((block, index) => (
+        {paragraphBlocks.map((block) => (
           <div 
             key={block.id}
             className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
@@ -156,7 +156,7 @@ export default function Security() {
         ))}
 
         {/* Security Features List */}
-        {listBlocks.map((block, index) => (
+        {listBlocks.map((block) => (
           <div 
             key={block.id}
             className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${

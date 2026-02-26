@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import API from "../../api/api.jsx";
-import placementdetailimg from '../../assets/images/placementstatisticsiiit.jpeg'
 import img1 from '../../assets/images/img1.jpg';
 import img2 from '../../assets/images/img2.jpg';
 import img3 from '../../assets/images/img3.jpg';
@@ -92,7 +91,7 @@ const HomePage = () => {
   const [heroSliders, setHeroSliders] = useState([])
   const [pageContent, setPageContent] = useState(null);
   const [contentBlocks, setContentBlocks] = useState([]);
-  const [loading, setLoading] = useState(true);
+
 
   // --- Fetch Data from API ---
   useEffect(() => {
@@ -204,8 +203,8 @@ const HomePage = () => {
           if (pageRes?.success && pageRes?.data) {
             setPageContent(pageRes.data);
           }
-        } catch (error) {
-          console.log('Page metadata not found, using defaults');
+        } catch {
+          // Page metadata not found - continue with defaults
         }
 
         // Fetch Content Blocks (MAIN CONTENT SOURCE)
@@ -253,8 +252,6 @@ const HomePage = () => {
         // setPageContent(null);
         // setContentBlocks([]);
         console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -507,7 +504,7 @@ const HomePage = () => {
                         const statsBlock = contentBlocks.find(b => b.blockId === 'homepage-placement-stats');
                         // Use stats array from content (correct field name)
                         stats = statsBlock?.content?.stats || statsBlock?.content?.statistics || [];
-                      } catch (e) { stats = []; }
+                      } catch { stats = []; }
                       if (!stats || stats.length === 0) {
                         stats = [
                           { label: 'Highest Package', value: '45 LPA' },
@@ -729,7 +726,7 @@ const HeroSlider = ({ events, color1 }) => {
   );
 };
 
-const FacultyCarousel = ({ faculty, darkMode, color1, color2 }) => {
+const FacultyCarousel = ({ faculty, darkMode, color1 }) => {
   const scrollRef = React.useRef(null);
   const [isPaused, setIsPaused] = React.useState(false);
 

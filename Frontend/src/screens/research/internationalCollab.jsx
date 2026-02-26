@@ -5,7 +5,7 @@ import { usePageContent, getVisibleBlocks, renderContentBlock } from '../../hook
 
 export default function InternationalCollab() {
     const { darkMode } = useTheme();
-    const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('international-collaboration');
+    const { blocks: contentBlocks, loading: contentLoading } = usePageContent('international-collaboration');
     const visibleBlocks = contentBlocks ? getVisibleBlocks(contentBlocks) : [];
     
     const color1 = API.color1;

@@ -3,13 +3,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-console.log('🔍 Database Config:', {
-  host: process.env.DB_HOST || '127.0.0.1',
-  user: process.env.DB_USER || 'root',
-  database: process.env.DB_NAME || 'iitkottayam',
-  port: process.env.DB_PORT || 3306
-});
-
 const sequelize = new Sequelize(
   process.env.DB_NAME || 'iitkottayam',
   process.env.DB_USER || 'root',

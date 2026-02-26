@@ -73,17 +73,6 @@ export default function ManageGenderIndex() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this entry?')) return;
-    
-    try {
-      await API.delete(`/people/${id}`);
-      fetchPeople();
-    } catch (error) {
-      console.error('Error deleting gender index entry:', error);
-    }
-  };
-
   const resetForm = () => {
     setFormData({
       name: '',
@@ -99,24 +88,6 @@ export default function ManageGenderIndex() {
       isActive: true
     });
     setEditingItem(null);
-  };
-
-  const openEditModal = (item) => {
-    setEditingItem(item);
-    setFormData({
-      name: item.name,
-      designation: item.designation,
-      department: item.department || '',
-      email: item.email || '',
-      phone: item.phone || '',
-      photo: item.photo || '',
-      qualification: item.qualification || '',
-      specialization: item.specialization || '',
-      experience: item.experience || '',
-      userType: 'gender-index',
-      isActive: item.isActive
-    });
-    setShowModal(true);
   };
 
   const filteredPeople = people.filter(item =>

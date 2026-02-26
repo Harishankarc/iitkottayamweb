@@ -11,7 +11,6 @@ export default function FdpWebinar() {
   const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const targetUrl = 'https://iiitkottayam.ac.in/#!/fdp';
 
   useEffect(() => {
     fetchContent();

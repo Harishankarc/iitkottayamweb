@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-const useHomePageController = create((set) => ({
+const useHomePageController = create(() => ({
   data: null,
   loading: false,
 

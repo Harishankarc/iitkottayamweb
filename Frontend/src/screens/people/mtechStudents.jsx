@@ -28,11 +28,11 @@ const StudentCard = ({ student, color1, darkMode }) => {
 export default function MTechStudents() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
-  const color2 = API.color2;
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBatch, setSelectedBatch] = useState('2019');
   const [studentsData, setStudentsData] = useState([]);
-  const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -58,8 +58,6 @@ export default function MTechStudents() {
       } catch (error) {
         console.error('Error fetching M.Tech students:', error);
         setStudentsData([]);
-      } finally {
-        setLoading(false);
       }
     };
     fetchStudents();

@@ -6,7 +6,7 @@ import { Wifi, Server, CheckCircle } from 'lucide-react';
 export default function Internet() {
   const { darkMode } = useTheme();
   const color1 = API.color1;
-  const color2 = API.color2;
+  
   const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -116,7 +116,7 @@ export default function Internet() {
       {/* Main Content */}
       <div className="mx-auto py-8 px-6 max-w-full">
         {/* Paragraph Blocks */}
-        {paragraphBlocks.map((block, index) => (
+        {paragraphBlocks.map((block) => (
           <div 
             key={block.id}
             className={`max-w-full mx-auto mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
@@ -147,7 +147,7 @@ export default function Internet() {
         ))}
 
         {/* List Blocks */}
-        {listBlocks.map((block, index) => (
+        {listBlocks.map((block) => (
           <div 
             key={block.id}
             className={`max-w-full mx-auto mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${

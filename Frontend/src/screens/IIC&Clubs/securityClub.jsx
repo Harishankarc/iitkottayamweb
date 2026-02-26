@@ -40,7 +40,7 @@ const MemberCard = ({ name, email }) => {
   );
 };
 
-const SocialMediaLinks = ({ darkMode }) => {
+const SocialMediaLinks = () => {
   const platforms = [
     { name: 'LinkedIn', color: '#0077B5' },
     { name: 'Instagram', color: '#E4405F' },

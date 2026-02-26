@@ -3,7 +3,7 @@ import { useTheme } from '../context/createContext';
 import API from '../api/api';
 
 export default function AnnouncementBanner() {
-  const { darkMode, fontSize } = useTheme();
+  const { darkMode } = useTheme();
   const [announcements, setAnnouncements] = useState([]);
   const [currentBatch, setCurrentBatch] = useState(0);
   const [fade, setFade] = useState(false);
@@ -36,12 +36,6 @@ export default function AnnouncementBanner() {
     };
     fetchAnnouncements();
   }, []);
-
-  const getFontSizeClass = () => {
-    if (fontSize === 'small') return 'text-xs';
-    if (fontSize === 'large') return 'text-base';
-    return 'text-sm';
-  };
 
   // Announcement cycling with fade effect - cycle through batches
   useEffect(() => {

@@ -4,7 +4,7 @@ import { usePageContent, getVisibleBlocks, renderContentBlock } from '../../hook
 
 export default function UgResearchStudents() {
   const { darkMode } = useTheme();
-  const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('ug-research-students');
+  const { blocks: contentBlocks, loading: contentLoading } = usePageContent('ug-research-students');
   const visibleBlocks = contentBlocks ? getVisibleBlocks(contentBlocks) : [];
   
   console.log('UG Research Students - Content Blocks:', contentBlocks);
