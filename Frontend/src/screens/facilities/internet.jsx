@@ -3,9 +3,11 @@ import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Wifi, Server, CheckCircle } from 'lucide-react';
 
+
+
 export default function Internet() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
   const color2 = API.color2;
   const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);

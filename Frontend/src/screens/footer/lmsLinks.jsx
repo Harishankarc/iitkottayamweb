@@ -4,7 +4,7 @@ import { useTheme } from '../../context/createContext';
 
 export default function LMSLinks() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
   const color2 = API.color2;
 
   const lmsLinks = [

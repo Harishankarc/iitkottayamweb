@@ -21,7 +21,11 @@ export default function MultiImageUploader({
   const images = Array.isArray(value) ? value : (value ? [value] : []);
 
   const handleFileUpload = async (files) => {
-    if (!files || files.length === 0) return;
+    console.log('[MultiImageUploader] handleFileUpload called with files:', files);
+    if (!files || files.length === 0) {
+      console.log('[MultiImageUploader] No files provided');
+      return;
+    }
     
     // Check if adding these files would exceed max images
     if (images.length + files.length > maxImages) {
@@ -29,20 +33,25 @@ export default function MultiImageUploader({
       return;
     }
 
+    console.log('[MultiImageUploader] Starting upload. Current images count:', images.length);
     setUploading(true);
     const token = localStorage.getItem('token');
     const uploadedUrls = [];
 
     try {
       for (const file of files) {
+        console.log('[MultiImageUploader] Processing file:', file.name, 'Type:', file.type, 'Size:', file.size);
+        
         // Validate file type
         if (!file.type.startsWith('image/')) {
+          console.warn('[MultiImageUploader] Invalid file type:', file.type);
           alert(`${file.name} is not an image file`);
           continue;
         }
 
         // Validate file size
         if (file.size > maxSize * 1024 * 1024) {
+          console.warn('[MultiImageUploader] File too large:', file.size);
           alert(`${file.name} is too large. Maximum size is ${maxSize}MB`);
           continue;
         }
@@ -52,6 +61,7 @@ export default function MultiImageUploader({
         formData.append('image', file);
         formData.append('folder', folder);
 
+        console.log('[MultiImageUploader] Uploading to:', `${API.baseURL}/api/upload`);
         const response = await fetch(`${API.baseURL}/api/upload`, {
           method: 'POST',
           headers: {
@@ -60,21 +70,36 @@ export default function MultiImageUploader({
           body: formData
         });
 
+        console.log('[MultiImageUploader] Upload response status:', response.status);
         const data = await response.json();
-        if (data.success && data.imageUrl) {
+        console.log('[MultiImageUploader] Upload response data:', data);
+        
+        // Backend returns { success: true, data: { url: '/uploads/...' } }
+        if (data.success && data.data && data.data.url) {
+          uploadedUrls.push(data.data.url);
+          console.log('[MultiImageUploader] Successfully uploaded:', data.data.url);
+        } else if (data.success && data.imageUrl) {
+          // Fallback for different backend response format
           uploadedUrls.push(data.imageUrl);
+          console.log('[MultiImageUploader] Successfully uploaded:', data.imageUrl);
+        } else {
+          console.error('[MultiImageUploader] Upload failed for:', file.name, 'Response:', data);
         }
       }
 
       // Add uploaded images to existing array
       if (uploadedUrls.length > 0) {
+        console.log('[MultiImageUploader] Calling onChange with new images:', [...images, ...uploadedUrls]);
         onChange([...images, ...uploadedUrls]);
+      } else {
+        console.warn('[MultiImageUploader] No images were successfully uploaded');
       }
     } catch (error) {
-      console.error('Upload error:', error);
-      alert('Failed to upload images');
+      console.error('[MultiImageUploader] Upload error:', error);
+      alert('Failed to upload images: ' + error.message);
     } finally {
       setUploading(false);
+      console.log('[MultiImageUploader] Upload process complete');
     }
   };
 

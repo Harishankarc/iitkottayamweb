@@ -142,7 +142,7 @@ const ImageGallery = ({ images = [], title, darkMode }) => {
 
 export default function TrendlesClub() {
   const { darkMode } = useTheme();
-  const [contentBlocks, setContentBlocks] = useState([]);
+    const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -420,3 +420,4 @@ export default function TrendlesClub() {
     </div>
   );
 }
+

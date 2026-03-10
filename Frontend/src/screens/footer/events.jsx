@@ -144,7 +144,7 @@ const EventCard = ({ event, darkMode, color1 }) => {
 
 export default function Events() {
   const { darkMode } = useTheme();
-  const [events, setEvents] = useState([]);
+    const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);

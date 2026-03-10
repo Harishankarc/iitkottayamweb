@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 import { useTheme } from '../context/createContext';
@@ -7,7 +7,7 @@ import campusImage from '../assets/images/img1.jpg';
 
 const DropdownMenu = ({ items, isOpen, onClose, menuId }) => {
   const { darkMode, fontSize } = useTheme();
-
+  
   const getFontSizeClass = () => {
     if (fontSize === 'small') return 'text-xs';
     if (fontSize === 'large') return 'text-sm';
@@ -87,7 +87,7 @@ const DropdownMenu = ({ items, isOpen, onClose, menuId }) => {
 export default function DesktopNavigation({ isScrolled = false }) {
   const [openDropdown, setOpenDropdown] = useState(null);
   const { darkMode, fontSize } = useTheme();
-  const timeoutRef = useRef(null);
+    const timeoutRef = useRef(null);
 
   const getNavFontSizeClass = () => {
     if (isScrolled) return 'text-m';
@@ -155,5 +155,6 @@ export default function DesktopNavigation({ isScrolled = false }) {
     </div>
   );
 };
+
 
 

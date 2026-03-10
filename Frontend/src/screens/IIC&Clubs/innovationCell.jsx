@@ -3,6 +3,8 @@ import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Lightbulb, Users, Target, Rocket, TrendingUp, Award, Mail, Phone, ExternalLink, CheckCircle, Camera } from 'lucide-react';
 
+
+
 // Team Member Card Component
 const TeamMemberCard = ({ member, color1, darkMode }) => {
   const [isHovered, setIsHovered] = React.useState(false);
@@ -151,7 +153,7 @@ const ImageGallery = ({ color1, darkMode }) => {
 
 export default function InnovationCell() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
   const color2 = API.color2;
   const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);

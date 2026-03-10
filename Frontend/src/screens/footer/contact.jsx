@@ -5,7 +5,7 @@ import API from '../../api/api.jsx';
 
 export default function Contact() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
 
   const phoneNumbers = {
     generalEnquiry: ['+91 0482 228210', '+91 8075-521128'],

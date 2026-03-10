@@ -5,7 +5,7 @@ import API from '../api/api';
 
 const MobileMenuItem = ({ item, onClose, darkMode, fontSize }) => {
   const [isOpen, setIsOpen] = useState(false);
-
+  
   const getFontSizeClass = () => {
     if (fontSize === 'small') return 'text-xs';
     if (fontSize === 'large') return 'text-base';

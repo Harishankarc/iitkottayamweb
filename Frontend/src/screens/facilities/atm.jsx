@@ -3,6 +3,8 @@ import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { CreditCard, Clock, Shield, Building2, Banknote, CheckCircle } from 'lucide-react';
 
+
+
 // Feature Card Component
 const FeatureCard = ({ feature, color1, darkMode }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -60,7 +62,7 @@ const FeatureCard = ({ feature, color1, darkMode }) => {
 
 export default function BankATM() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -102,7 +104,6 @@ export default function BankATM() {
 
     fetchContent();
   }, []);
-
   if (loading) {
     return (
       <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -229,3 +230,4 @@ export default function BankATM() {
     </div>
   );
 }
+

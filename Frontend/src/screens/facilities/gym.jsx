@@ -3,9 +3,11 @@ import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Dumbbell, Activity, Heart, Users, Clock, Trophy, Camera } from 'lucide-react';
 
+
+
 export default function Gym() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -62,7 +64,7 @@ export default function Gym() {
       <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <div className="text-center">
           <p className={`text-lg mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            {error || 'Content not available'}
+            {t(error || 'Content not available')}
           </p>
         </div>
       </div>
@@ -215,3 +217,4 @@ export default function Gym() {
     </div>
   );
 }
+

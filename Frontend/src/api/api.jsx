@@ -9,6 +9,14 @@ class API {
   static getImageUrl(imagePath) {
     if (!imagePath) return null;
     
+    // If imagePath is an object with url property, extract the url
+    if (typeof imagePath === 'object' && imagePath.url) {
+      imagePath = imagePath.url;
+    }
+    
+    // Convert to string if needed
+    imagePath = String(imagePath);
+    
     // If it's already a full URL (http/https), return as is
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;

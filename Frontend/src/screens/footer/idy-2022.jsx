@@ -4,7 +4,7 @@ import { useTheme } from '../../context/createContext';
 
 export default function IDY2022() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const images = [

@@ -5,7 +5,7 @@ import API from '../../api/api.jsx';
 
 export default function RTI() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
 
   const rtiLinks = [
     {

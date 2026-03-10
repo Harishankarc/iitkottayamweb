@@ -3,6 +3,8 @@ import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Home, Mail, Phone, MapPin, Users, Shield, Wifi, Utensils, Bed, FileText, CheckCircle } from 'lucide-react';
 
+
+
 // Warden Card Component
 const WardenCard = ({ warden, color1, darkMode }) => {
   const [isHovered, setIsHovered] = React.useState(false);
@@ -160,7 +162,7 @@ const HallCard = ({ hall, color1, darkMode }) => {
 
 export default function Hostel() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
   const color2 = API.color2;
   const [contentBlocks, setContentBlocks] = useState([]);
   const [hostelData, setHostelData] = useState(null);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
@@ -12,7 +12,8 @@ export default function ScholarshipLoan() {
   const color3 = API.color3;
 
   // Fetch dynamic content from database
-  const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('scholarship');
+  const { content: pageContent, blocks: contentBlocks, loading: contentLoading, refetch } = usePageContent('scholarship');
+  
   const visibleBlocks = contentBlocks ? getVisibleBlocks(contentBlocks) : [];
 
   return (

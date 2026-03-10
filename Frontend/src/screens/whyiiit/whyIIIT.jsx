@@ -10,59 +10,12 @@ import {
   Edit2,
 } from 'lucide-react';
 
-// Translation helper
-const useTranslation = () => {
-  const [translations, setTranslations] = useState({});
-  const language = localStorage.getItem('language') || 'en';
-
-  useEffect(() => {
-    const fetchTranslations = async () => {
-      if (language === 'en') return;
-      try {
-        console.log('Fetching translations for why-iiitk page:', language);
-        const response = await API.post('/api/translate-bulk', {
-          texts: [
-            'Established 2015 • Institution of National Importance',
-            'Why',
-            'IIIT Kottayam',
-            'Pioneering excellence in Information Technology education and research',
-            'About Our Institute',
-            'Interested in Joining IIIT Kottayam?',
-            'Explore our admission process, eligibility criteria, and application deadlines',
-            'Learn More',
-            'PPP Model',
-            '53 Acre Campus',
-            'AIC Certified',
-            'National Importance'
-          ],
-          targetLang: language
-        });
-
-        if (response.success && response.data?.data?.translations) {
-          const translationMap = {};
-          response.data.data.translations.forEach((item) => {
-            translationMap[item.originalText] = item.translatedText;
-          });
-          setTranslations(translationMap);
-        }
-      } catch (error) {
-        console.error('Translation error:', error);
-        setTranslations({});
-      }
-    };
-    fetchTranslations();
-  }, [language]);
-
-  const t = (text) => translations[text] || text;
-  return { t };
-};
-
 export default function WhyIIIT() {
-  const { t } = useTranslation();
-  // Fetch dynamic content from database
-  const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('why-iiitk');
-
+  
   const { darkMode } = useTheme();
+  
+  // Fetch dynamic content from database
+  const { content: pageContent, blocks: contentBlocks, loading: contentLoading, refetch } = usePageContent('why-iiitk');
 
   const color1 = API.color1; // #239244 (Dark Green)
   const color2 = API.color2; // #e8f5f0 (Light Mint)
@@ -88,7 +41,7 @@ export default function WhyIIIT() {
             <div className="space-y-6 max-w-full mx-auto">
               {visibleBlocks.map((block, index) => (
                 <div key={block.blockId || index}>
-                  {renderContentBlock(block, { darkMode, color1, color2, t })}
+                  {renderContentBlock(block, { darkMode, color1, color2 })}
                 </div>
               ))}
             </div>

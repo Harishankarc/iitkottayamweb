@@ -106,7 +106,7 @@ const ImageGallery = ({ images = [], darkMode }) => {
 
 export default function SportsClub() {
   const { darkMode } = useTheme();
-  const [contentBlocks, setContentBlocks] = useState([]);
+    const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -384,3 +384,4 @@ export default function SportsClub() {
     </div>
   );
 }
+

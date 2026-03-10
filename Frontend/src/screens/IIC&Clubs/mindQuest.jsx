@@ -106,7 +106,7 @@ const ImageGallery = ({ images = [], darkMode }) => {
 
 export default function MindQuest() {
   const { darkMode } = useTheme();
-  const [contentBlocks, setContentBlocks] = useState([]);
+    const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -339,3 +339,4 @@ export default function MindQuest() {
     </div>
   );
 }
+

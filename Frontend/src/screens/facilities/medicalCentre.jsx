@@ -3,9 +3,11 @@ import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Heart, Stethoscope, Clock, Phone, Shield, Users, Camera, Pill, Activity, AlertTriangle } from 'lucide-react';
 
+
+
 export default function MedicalCentre() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
   const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

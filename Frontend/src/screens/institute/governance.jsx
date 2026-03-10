@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Scale, BookCopy, FileText, Download, Archive } from 'lucide-react';
 import { useTheme } from '../../context/createContext.jsx';
@@ -7,12 +7,13 @@ import { usePageContent, getVisibleBlocks, renderContentBlock } from '../../hook
 
 export default function Governance() {
   const { darkMode } = useTheme();
+  
   const color1 = API.color1;
   const color2 = API.color2;
   const color3 = API.color3;
 
   // Fetch dynamic content from database
-  const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('governance');
+  const { content: pageContent, blocks: contentBlocks, loading: contentLoading, refetch } = usePageContent('governance');
   const visibleBlocks = contentBlocks ? getVisibleBlocks(contentBlocks) : [];
 
   return (

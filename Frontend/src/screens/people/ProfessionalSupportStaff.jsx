@@ -3,6 +3,8 @@ import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Mail, Phone, MapPin, Search, Heart, Stethoscope, UserCheck, Shield, Award } from 'lucide-react';
 
+
+
 // Professional Support Staff Card Component - Simple & Stylish
 const StaffCard = ({ staff, color1, darkMode }) => {
   const [isHovered, setIsHovered] = React.useState(false);
@@ -158,7 +160,7 @@ const StaffCard = ({ staff, color1, darkMode }) => {
 
 export default function ProfessionalSupportStaff() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
   const color2 = API.color2;
   const [searchTerm, setSearchTerm] = useState('');
   const [staffData, setStaffData] = useState([]);

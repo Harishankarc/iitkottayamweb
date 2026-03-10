@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import API from '../../api/api.jsx';
 import { ExternalLink, Calendar, Users, BookOpen } from 'lucide-react';
 
+
+
 export default function FdpWebinar() {
   const { darkMode } = useTheme();
-  const navigate = useNavigate();
+    const navigate = useNavigate();
   const color1 = API.color1;
   const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);

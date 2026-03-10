@@ -3,9 +3,11 @@ import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Trophy, Users, Target, MapPin, Clock, Award, Camera, Activity } from 'lucide-react';
 
+
+
 export default function Sports() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
   const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

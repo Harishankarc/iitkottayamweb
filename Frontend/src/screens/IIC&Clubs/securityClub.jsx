@@ -67,7 +67,7 @@ const SocialMediaLinks = ({ darkMode }) => {
 
 export default function SecurityClub() {
   const { darkMode } = useTheme();
-
+  
   const mentors = [
     { name: 'Suranvath Ghid', email: 'ghid22bcs220@iiittkottayam.ac.in' },
     { name: 'Basanth Aleti', email: 'basanth22bcs22@iiittkottayam.ac.in' },

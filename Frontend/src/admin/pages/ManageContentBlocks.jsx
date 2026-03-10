@@ -307,7 +307,7 @@ export default function ManageContentBlocks() {
           { blockId: 'why-hero-title', sectionName: 'hero', blockType: 'heading', blockLabel: 'Hero Title',
             content: { text: 'Why IIIT Kottayam', level: 1 }, blockOrder: 1 },
           { blockId: 'why-hero-subtitle', sectionName: 'hero', blockType: 'paragraph', blockLabel: 'Hero Subtitle',
-            content: { text: 'Pioneering excellence in Information Technology education and research' }, blockOrder: 2 },
+            content: { text: '' }, blockOrder: 2 },
           
           // About Section
           { blockId: 'why-about-badge', sectionName: 'about', blockType: 'paragraph', blockLabel: 'About Badge',
@@ -909,7 +909,7 @@ export default function ManageContentBlocks() {
                 value={content.subtitle || ''}
                 onChange={(e) => updateContent('subtitle', e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg"
-                placeholder="Pioneering excellence in Information Technology education and research"
+                placeholder=""
               />
             </div>
             <div>

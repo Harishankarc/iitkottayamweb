@@ -4,6 +4,8 @@ import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Users, Mail, Phone, MapPin, Search, BookOpenText, UserCog, Headphones } from 'lucide-react';
 
+
+
 // Sub-component for the profile card - matching reference design
 const ProfileCard = ({ person, color1, darkMode }) => {
   const [isHovered, setIsHovered] = React.useState(false);

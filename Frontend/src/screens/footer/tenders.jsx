@@ -5,7 +5,7 @@ import API from '../../api/api.jsx';
 
 export default function Tenders() {
   const { darkMode } = useTheme();
-  const [activeTab, setActiveTab] = useState('live');
+    const [activeTab, setActiveTab] = useState('live');
   const [tenders, setTenders] = useState([]);
   const [loading, setLoading] = useState(false);
 

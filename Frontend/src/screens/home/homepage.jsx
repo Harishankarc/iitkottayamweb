@@ -8,71 +8,6 @@ import img3 from '../../assets/images/img3.jpg';
 import { useTheme } from "../../context/createContext.jsx";
 import AnnouncementBanner from "../../components/announcementbanner.jsx";
 
-// Translation helper - fetches translations from backend
-const useTranslation = () => {
-  const [translations, setTranslations] = useState({});
-  const language = localStorage.getItem('language') || 'en';
-
-  useEffect(() => {
-    // Fetch translations for static text
-    const fetchTranslations = async () => {
-      if (language === 'en') {
-        // No translation needed for English
-        setTranslations({});
-        return;
-      }
-
-      try {
-        console.log('Fetching translations for language:', language);
-        const response = await API.post('/api/translate-bulk', {
-          texts: [
-            'Latest News & Updates',
-            'Announcements',
-            'Campus Updates',
-            'Quick Updates',
-            'Our Core Values',
-            'Vision',
-            'Mission',
-            'Placement Highlights',
-            'Upcoming Events',
-            'Recruitment Partners',
-            'Distinguished Faculty',
-            'View all faculty →',
-            'NIRF Rankings (2025)',
-            'All Rankings',
-            'Loading...',
-            'items',
-            'Highest Package',
-            'Avg. Package',
-            'Companies Visited'
-          ],
-          targetLang: language
-        });
-
-        console.log('Translation API Response:', response);
-
-        if (response.success && response.data?.data?.translations) {
-          const translationMap = {};
-          response.data.data.translations.forEach((item) => {
-            translationMap[item.originalText] = item.translatedText;
-          });
-          console.log('Translation Map:', translationMap);
-          setTranslations(translationMap);
-        }
-      } catch (error) {
-        console.error('Translation fetch error:', error);
-        setTranslations({});
-      }
-    };
-
-    fetchTranslations();
-  }, [language]);
-
-  const t = (text) => translations[text] || text;
-  
-  return { t, language };
-};
-
 // =================================================================
 //                    HOMEPAGE COMPONENT
 // =================================================================
@@ -81,7 +16,6 @@ const HomePage = () => {
   const { darkMode } = useTheme();
   const color1 = API.color1; // Primary Accent Color
   const color2 = API.color2; // Secondary Accent Color
-  const { t } = useTranslation(); // Translation function
 
   // --- State for Dynamic Data ---
   const [newsList, setNewsList] = useState([]);
@@ -97,6 +31,8 @@ const HomePage = () => {
   // --- Fetch Data from API ---
   useEffect(() => {
     const fetchData = async () => {
+      const startTime = Date.now();
+      
       try {
         // Fetch News
         const newsRes = await API.get('/api/news');
@@ -254,15 +190,64 @@ const HomePage = () => {
         // setContentBlocks([]);
         console.error('Error fetching data:', error);
       } finally {
-        setLoading(false);
+        // Ensure minimum loading time of 800ms for smooth UX
+        const elapsedTime = Date.now() - startTime;
+        const minimumLoadingTime = 800;
+        const remainingTime = Math.max(0, minimumLoadingTime - elapsedTime);
+        
+        setTimeout(() => {
+          setLoading(false);
+        }, remainingTime);
       }
     };
 
     fetchData();
-  }, []);
+  }, []); // Re-fetch data when language changes
+
+  // Loading Screen Component
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="text-center">
+          {/* Animated Logo/Spinner */}
+          <div className="relative w-32 h-32 mx-auto mb-6">
+            <div className="absolute inset-0 rounded-full border-4 border-gray-200 dark:border-gray-700"></div>
+            <div 
+              className="absolute inset-0 rounded-full border-4 border-transparent animate-spin"
+              style={{ 
+                borderTopColor: color1,
+                borderRightColor: color1,
+                animationDuration: '1s'
+              }}
+            ></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <svg className="w-16 h-16" style={{ color: color1 }} fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+              </svg>
+            </div>
+          </div>
+          
+          {/* Loading Text */}
+          <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
+            Loading IIIT Kottayam
+          </h2>
+          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            Please wait while we fetch the latest updates...
+          </p>
+          
+          {/* Animated Dots */}
+          <div className="flex justify-center gap-2 mt-4">
+            <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: color1, animationDelay: '0s' }}></div>
+            <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: color1, animationDelay: '0.2s' }}></div>
+            <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: color1, animationDelay: '0.4s' }}></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'} animate-fade-in-up`}>
       
       {/* CSS for custom animation */}
       <style>{`
@@ -289,7 +274,7 @@ const HomePage = () => {
       {/* LATEST NEWS SECTION - FULL WIDTH WITH 3 DIFFERENT DESIGNS     */}
       {/* ------------------------------------------------------------- */}
       <section className="mx-auto py-4 px-4 sm:px-6 md:px-8 max-w-screen-2xl">
-        <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>{t('Latest News & Updates')}</h3>
+        <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Latest News & Updates</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           
           {/* News Box 1 - Left Accent Bar Design */}
@@ -299,7 +284,7 @@ const HomePage = () => {
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: color1 }}>
                   <span className="text-xl">📢</span>
                 </div>
-                <h4 className="font-bold text-lg" style={{ color: color1 }}>{t('Announcements')}</h4>
+                <h4 className="font-bold text-lg" style={{ color: color1 }}>Announcements</h4>
               </div>
               <div className="space-y-3 h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                 {newsList.slice(0, 5).map((n, i) => (
@@ -337,7 +322,7 @@ const HomePage = () => {
                   <span className="text-xl">📰</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-lg" style={{ color: color1 }}>{t('Campus Updates')}</h4>
+                  <h4 className="font-bold text-lg" style={{ color: color1 }}>Campus Updates</h4>
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                 </div>
               </div>
@@ -383,10 +368,10 @@ const HomePage = () => {
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white" style={{ background: `linear-gradient(135deg, ${color1}, ${color2})` }}>
                   <span className="text-xl">⚡</span>
                 </div>
-                <h4 className="font-bold text-lg" style={{ color: color1 }}>{t('Quick Updates')}</h4>
+                <h4 className="font-bold text-lg" style={{ color: color1 }}>Quick Updates</h4>
               </div>
               <span className={`text-xs font-bold px-2 py-1 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} style={{ color: color1 }}>
-                {newsList.length} {t('items')}
+                {newsList.length} items
               </span>
             </div>
             <div className="space-y-2 h-[400px] overflow-y-auto pr-2 custom-scrollbar">
@@ -463,27 +448,30 @@ const HomePage = () => {
             
             {/* Vision & Mission - FULL WIDTH */}
             <section>
-              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>{t('Our Core Values')}</h3>
+              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Our Core Values</h3>
               <div className={`grid grid-cols-1 md:grid-cols-2 shadow-xl overflow-hidden rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <div className={`p-6 md:p-8 border-r-0 md:border-r-2`} style={{ borderColor: color1 + '30' }}>
-                  <h4 className="text-2xl font-bold mb-3">🎯 {t('Vision')}</h4>
+                  <h4 className="text-2xl font-bold mb-3">🎯 Vision</h4>
                   <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-relaxed text-base`}>
                     {contentBlocks.find(b => b.blockId === 'homepage-vision')?.content?.description || 
-                     contentBlocks.find(b => b.blockId === 'homepage-vision')?.content?.text || 
-                     '"Generating knowledge for the future" — aspiring to be a top-tier, research-driven organization in IT and allied fields.'}
+                       contentBlocks.find(b => b.blockId === 'homepage-vision')?.content?.text || 
+                       '"Generating knowledge for the future" — aspiring to be a top-tier, research-driven organization in IT and allied fields.'}
                   </p>
                 </div>
                 <div className="p-6 md:p-8">
-                  <h4 className="text-2xl font-bold mb-3">🎯 {t('Mission')}</h4>
+                  <h4 className="text-2xl font-bold mb-3">🎯 Mission</h4>
                   <ul className={`list-disc pl-5 ${darkMode ? 'text-gray-300' : 'text-gray-600'} space-y-2 text-base`}>
-                    {(contentBlocks.find(b => b.blockId === 'homepage-mission')?.content?.items || 
-                      pageContent?.sections?.find(s => s.id === 'mission')?.items || [
+                    {(() => {
+                      const missionItems = contentBlocks.find(b => b.blockId === 'homepage-mission')?.content?.items || 
+                                          pageContent?.sections?.find(s => s.id === 'mission')?.items || [
                         'Produce competent and ethical graduates.',
                         'Solve local & global problems through technology.',
                         'Promote significance of ethics and integrity.'
-                      ]).map((item, i) => (
-                      <li key={i}>{item}</li>
-                    ))}
+                      ];
+                      return missionItems.map((item, i) => (
+                        <li key={i}>{item}</li>
+                      ));
+                    })()}
                   </ul>
                 </div>
               </div>
@@ -494,7 +482,7 @@ const HomePage = () => {
               {/* Placement Highlights - LEFT 50% */}
               <div className={`rounded-xl overflow-hidden shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <div className="p-3 border-b" style={{ borderColor: `${color1}30` }}>
-                  <h3 className="text-lg font-bold" style={{ color: color1 }}>{t('Placement Highlights')}</h3>
+                  <h3 className="text-lg font-bold" style={{ color: color1 }}>Placement Highlights</h3>
                 </div>
                 <div className="p-4">
                   {/* Vertical Bar Chart Styled Like the Provided Image */}
@@ -509,8 +497,9 @@ const HomePage = () => {
                         stats = statsBlock?.content?.stats || statsBlock?.content?.statistics || [];
                       } catch (e) { stats = []; }
                       if (!stats || stats.length === 0) {
+                        // Fallback data - will be translated in display layer
                         stats = [
-                          { label: 'Highest Package', value: '45 LPA' },
+                          { label: 'Highest Package', value: '44 LPA' },
                           { label: 'Avg. Package', value: '14 LPA' },
                           { label: 'Companies Visited', value: '100+' },
                           { label: 'Placement Rate', value: '95%' }
@@ -554,7 +543,7 @@ const HomePage = () => {
                                   <span className="mb-1 text-sm font-bold" style={{ color: barColors[i] }}>{stat.value}</span>
                                   {/* Bar */}
                                   <div className="w-10 rounded-t-md rounded-b-sm flex items-end justify-center transition-all duration-700" style={{ height: `calc(${percent}% - 2rem)`, background: barColors[i], minHeight: '10px', maxHeight: '100%' }}></div>
-                                  {/* Label below */}
+                                  {/* Label below - translate here during render */}
                                   <span className="mt-2 text-xs text-center font-medium" style={{ color: darkMode ? '#E5E7EB' : '#222' }}>{stat.label}</span>
                                 </div>
                               );
@@ -570,7 +559,7 @@ const HomePage = () => {
               {/* Upcoming Events - RIGHT 50% */}
               <div className={`rounded-xl overflow-hidden shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <div className="p-4 border-b" style={{ borderColor: `${color1}30` }}>
-                  <h3 className="text-xl font-bold" style={{ color: color1 }}>{t('Upcoming Events')}</h3>
+                  <h3 className="text-xl font-bold" style={{ color: color1 }}>Upcoming Events</h3>
                 </div>
                 <EventSlider events={eventsList} darkMode={darkMode} color1={color1} />
               </div>
@@ -578,7 +567,7 @@ const HomePage = () => {
 
             {/* Recruitment Partners - FULL WIDTH */}
             <section>
-              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>{t('Recruitment Partners')}</h3>
+              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Recruitment Partners</h3>
               <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 p-8 rounded-xl shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}> 
                 {companyList
                   .filter(c => {
@@ -610,8 +599,8 @@ const HomePage = () => {
             {/* Distinguished Faculty - FULL WIDTH */}
             <section>
               <div className="flex items-center justify-between mb-4 px-1">
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-bold" style={{ color: color1 }}>{t('Distinguished Faculty')}</h3>
-                <a href="/people/faculty" style={{ color: color1 }} className="text-sm font-semibold hover:underline">{t('View all faculty →')}</a>
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-bold" style={{ color: color1 }}>Distinguished Faculty</h3>
+                <a href="/people/faculty" style={{ color: color1 }} className="text-sm font-semibold hover:underline">View all faculty →</a>
               </div>
               <div className={`rounded-xl overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl border`} style={{ borderColor: color1 + '30' }}>
                 <FacultyCarousel faculty={facultyList} darkMode={darkMode} color1={color1} color2={color2} />

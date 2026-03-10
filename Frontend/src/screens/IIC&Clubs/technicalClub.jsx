@@ -118,7 +118,7 @@ const ImageGallery = ({ images = [], darkMode }) => {
 
 export default function TechnicalClub() {
   const { darkMode } = useTheme();
-  const [contentBlocks, setContentBlocks] = useState([]);
+    const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -357,3 +357,4 @@ export default function TechnicalClub() {
     </div>
   );
 }
+

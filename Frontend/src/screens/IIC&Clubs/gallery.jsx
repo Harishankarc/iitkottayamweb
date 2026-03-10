@@ -3,6 +3,8 @@ import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Camera, Calendar, Users, Award, Palette, Activity, ExternalLink } from 'lucide-react';
 
+
+
 // Event Gallery Card Component
 const EventGalleryCard = ({ event, color1, darkMode }) => {
   const [isHovered, setIsHovered] = React.useState(false);
@@ -105,7 +107,7 @@ const FeaturedGallery = ({ color1, darkMode }) => {
 
 export default function Gallery() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
   const color2 = API.color2;
   const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);

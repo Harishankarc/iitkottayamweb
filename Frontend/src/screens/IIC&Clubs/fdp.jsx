@@ -3,9 +3,11 @@ import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Download, Calendar, Users } from 'lucide-react';
 
+
+
 export default function Fdp() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
   const [programs, setPrograms] = useState([]);
   const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -243,3 +245,4 @@ export default function Fdp() {
     </div>
   );
 }
+

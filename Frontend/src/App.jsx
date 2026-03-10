@@ -73,6 +73,7 @@ import ManageNIRF from './admin/pages/ManageNIRF';
 import ManageFooter from './admin/pages/ManageFooter';
 import ManageNavigation from './admin/pages/ManageNavigation';
 import ManageSiteSettings from './admin/pages/ManageSiteSettings';
+import Settings from './admin/pages/Settings';
 import UnifiedContentManager from './admin/pages/UnifiedContentManager';
 import NavbarManager from './admin/pages/NavbarManager';
 import FooterLinksManager from './admin/pages/FooterLinksManager';
@@ -144,7 +145,7 @@ function App() {
             <Route path="clubs" element={<ManageClubs />} />
             <Route path="fdp-programs" element={<ManageFdpPrograms />} />
             <Route path="research-activities" element={<ManageResearchActivities />} />
-            <Route path="settings" element={<ManageSiteSettings />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
 
           {/* Public Routes - With NavBar/Footer */}

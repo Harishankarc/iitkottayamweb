@@ -13,7 +13,6 @@ export const useTheme = () => {
 export const ThemeProvider = ({ children }) => {
   const [darkMode, setDarkMode] = useState(false);
   const [fontSize, setFontSize] = useState('medium');
-  const [language, setLanguage] = useState('ENG');
 
   useEffect(() => {
     if (darkMode) {
@@ -59,8 +58,6 @@ export const ThemeProvider = ({ children }) => {
     setFontSize,
     increaseFontSize,
     decreaseFontSize,
-    language,
-    setLanguage,
   };
 
   return (

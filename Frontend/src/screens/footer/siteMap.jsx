@@ -6,7 +6,7 @@ import { navigationConfig, footerLinks, footerReports, footerLegal } from '../..
 
 export default function SiteMap() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
 
   // Organize all links by sections
   const sections = [

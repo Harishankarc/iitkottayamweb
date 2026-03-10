@@ -3,6 +3,8 @@ import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Palette, Users, Music, Star, Calendar, Award, Mail, Camera, ExternalLink } from 'lucide-react';
 
+
+
 // Faculty/Member Card Component
 const MemberCard = ({ member, color1, darkMode, type = 'faculty' }) => {
   const [isHovered, setIsHovered] = React.useState(false);
@@ -141,7 +143,7 @@ const ImageGallery = ({ color1, darkMode }) => {
 
 export default function ClubCarnival() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
   const color2 = API.color2;
   const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -3,6 +3,8 @@ import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Search, GraduationCap, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 
+
+
 // Student Card Component - Simple & Clean
 const StudentCard = ({ student, color1, darkMode }) => {
   const [isHovered, setIsHovered] = React.useState(false);
@@ -27,7 +29,7 @@ const StudentCard = ({ student, color1, darkMode }) => {
 
 export default function BTechStudents() {
   const { darkMode } = useTheme();
-  const color1 = API.color1;
+    const color1 = API.color1;
   const color2 = API.color2;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBatch, setSelectedBatch] = useState('2015');
