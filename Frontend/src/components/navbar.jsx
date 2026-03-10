@@ -1,10 +1,11 @@
-import { Moon, Sun, Menu, X } from "lucide-react";
+import { Moon, Sun, Menu, X, Search } from "lucide-react";
 import API from "../api/api";
 import logo from '../assets/images/iiitlogo.jpg';
 import DesktopNavigation from "./desktopnav";
 import MobileNavigation from "./mobnav";
 import { useTheme } from "../context/createContext";
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import ImageSlider from "./imageslider";
 import img1 from '../assets/images/img1.jpg';
 import img2 from '../assets/images/img2.jpg';
@@ -44,6 +45,7 @@ const useTranslation = () => {
 
 export default function NavBar() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const {
     darkMode,
     toggleDarkMode,
@@ -59,20 +61,78 @@ export default function NavBar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isGoogleTranslateReady, setIsGoogleTranslateReady] = useState(false);
   const [navbarLinks, setNavbarLinks] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [isClosingModal, setIsClosingModal] = useState(false);
+  const [allPages, setAllPages] = useState([]);
 
   useEffect(() => {
     // Fetch navbar links from API
     const fetchNavbarLinks = async () => {
       try {
-        const response = await API.get('/api/navbar-links');
-        if (response.success) {
-          setNavbarLinks(response.data || []);
+        // Add timestamp to prevent caching
+        const response = await API.get(`/api/navbar-links?_t=${Date.now()}`);
+        console.log('Navbar API Response:', response);
+        
+        if (response.success && response.data) {
+          // Handle both nested and direct data structures
+          const navbarData = response.data.data || response.data;
+          console.log('Navbar data received:', navbarData);
+          
+          if (Array.isArray(navbarData)) {
+            setNavbarLinks(navbarData);
+          } else {
+            console.warn('Navbar data is not an array:', navbarData);
+            setNavbarLinks([]);
+          }
         }
       } catch (error) {
         console.error('Error fetching navbar links:', error);
+        setNavbarLinks([]);
       }
     };
     fetchNavbarLinks();
+
+    // Fetch all navigation pages for search
+    const fetchAllPages = async () => {
+      try {
+        const response = await API.get(`/api/navigation?_t=${Date.now()}`);
+        if (response.success && response.data) {
+          const navData = response.data.data || response.data;
+          
+          // Flatten navigation structure (including submenus)
+          const flattenPages = (items) => {
+            let pages = [];
+            items.forEach(item => {
+              pages.push({
+                label: item.label,
+                path: item.path,
+                isExternal: item.isExternal
+              });
+              
+              if (item.children && Array.isArray(item.children)) {
+                item.children.forEach(child => {
+                  pages.push({
+                    label: `${item.label} > ${child.label}`,
+                    path: child.path,
+                    isExternal: child.isExternal
+                  });
+                });
+              }
+            });
+            return pages;
+          };
+          
+          if (Array.isArray(navData)) {
+            setAllPages(flattenPages(navData));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching navigation pages:', error);
+      }
+    };
+    fetchAllPages();
   }, []);
 
   useEffect(() => {
@@ -82,6 +142,19 @@ export default function NavBar() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Keyboard shortcut for search (Ctrl+K or Cmd+K)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowSearchModal(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   // Check if Google Translate is ready
@@ -139,41 +212,67 @@ export default function NavBar() {
     setIsMobileMenuOpen(false);
   };
 
-  // Function to trigger Google Translate
-  const changeLanguage = (lang) => {
-    setLanguage(lang);
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
 
-    
-    // Map display names to Google Translate language codes
-    const langMap = {
-      'മലയാളം': 'ml',
-      'हिं': 'hi',
-      'ENG': 'en'
-    };
-    
-    const langCode = langMap[lang];
-    
-    localStorage.setItem('language', langCode);
-    
-    if (!isGoogleTranslateReady) {
-      console.warn('Google Translate is not ready yet');
-      // Reload page even if Google Translate is not ready
-      window.location.reload();
-      return;
+    if (query.trim().length > 0) {
+      // Filter pages based on search query
+      const filtered = allPages.filter(page =>
+        page.label.toLowerCase().includes(query.toLowerCase()) ||
+        page.path.toLowerCase().includes(query.toLowerCase())
+      ).slice(0, 10); // Limit to 10 results
+      
+      setSearchResults(filtered);
+    } else {
+      setSearchResults([]);
     }
-    
-    // Trigger Google Translate
-    const selectElement = document.querySelector('.goog-te-combo');
-    if (selectElement) {
-      selectElement.value = langCode;
-      selectElement.dispatchEvent(new Event('change'));
-      console.log('Language changed to:', langCode);
+  };
+
+  const handleSearchSelect = (page) => {
+    if (page.isExternal) {
+      window.open(page.path, '_blank');
+    } else {
+      navigate(page.path);
     }
-    
-    // Reload page to apply translations
+    setIsClosingModal(true);
     setTimeout(() => {
-      window.location.reload();
-    }, 100);
+      setSearchQuery('');
+      setShowSearchModal(false);
+      setSearchResults([]);
+      setIsClosingModal(false);
+    }, 300);
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchResults.length > 0) {
+      // Navigate to first result
+      handleSearchSelect(searchResults[0]);
+    }
+  };
+
+  const handleSearchKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch(e);
+    } else if (e.key === 'Escape') {
+      closeSearchModal();
+    }
+  };
+
+  const openSearchModal = () => {
+    setShowSearchModal(true);
+    setIsClosingModal(false);
+  };
+
+  const closeSearchModal = () => {
+    setIsClosingModal(true);
+    setTimeout(() => {
+      setShowSearchModal(false);
+      setSearchQuery('');
+      setSearchResults([]);
+      setIsClosingModal(false);
+    }, 300);
   };
 
   return (
@@ -255,35 +354,16 @@ export default function NavBar() {
               {darkMode ? <Sun size={14} /> : <Moon size={14} />}
             </button>
 
-            <div className="flex gap-1 items-center">
-              {['മലയാളം', 'हिं', 'ENG'].map((lang, index) => (
-                <React.Fragment key={`${lang}-${darkMode}`}>
-                  <button
-                    onClick={() => changeLanguage(lang)}
-                    style={{
-                      color: darkMode 
-                        ? (language === lang ? '#facc15' : '#fef08a') 
-                        : '#ffffff'
-                    }}
-                    className={`px-1 py-0.5 text-[10px] font-medium cursor-pointer ${
-                      language === lang ? 'underline font-bold' : 'hover:underline'
-                    }`}
-                  >
-                    {lang}
-                  </button>
-                  {index < 2 && <span className="text-white text-[10px]">|</span>}
-                </React.Fragment>
-              ))}
-            </div>
-
-            <input
-              type="text"
-              placeholder="Search..."
-              className="hidden xl:block ml-2 px-2 py-0.5 text-[10px] rounded border border-gray-300 bg-white focus:outline-none focus:ring-1 focus:ring-white w-28"
-              style={{
-                color: darkMode ? '#facc15' : '#000000'
-              }}
-            />
+            {/* Search Button */}
+            <button
+              onClick={openSearchModal}
+              className="hidden xl:flex items-center gap-1.5 px-3 py-1 bg-white/20 hover:bg-white/30 text-white rounded transition-all duration-300 active:scale-95 hover:scale-105 hover:shadow-lg hover:shadow-white/20 animate-pulse-subtle"
+              aria-label="Search pages"
+              title="Search pages (Ctrl+K)"
+            >
+              <Search size={16} className="transition-transform duration-300 hover:rotate-12" />
+              <span className="text-xs font-medium">Search</span>
+            </button>
           </div>
         </div>
       </div>
@@ -384,6 +464,37 @@ export default function NavBar() {
           0% { background-position: 0% 50%; }
           100% { background-position: 200% 50%; }
         }
+        
+        @keyframes pulse-subtle {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.85; }
+        }
+        
+        .animate-pulse-subtle {
+          animation: pulse-subtle 3s ease-in-out infinite;
+        }
+        
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        
+        @keyframes slideOut {
+          from {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+          to {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.95);
+          }
+        }
       `}</style>
 
       {/* Desktop Navigation - STICKY */}
@@ -398,6 +509,104 @@ export default function NavBar() {
         darkMode={darkMode}
         fontSize={fontSize}
       />
+
+      {/* Search Modal */}
+      {showSearchModal && (
+        <div 
+          className={`fixed inset-0 backdrop-blur-md z-[100] flex items-start justify-center pt-20 px-4 transition-all duration-300 ${
+            darkMode ? 'bg-black/20' : 'bg-white/30'
+          } ${isClosingModal ? 'opacity-0 backdrop-blur-none' : 'opacity-100'}`}
+          onClick={closeSearchModal}
+        >
+          <div 
+            className={`w-full max-w-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-2xl overflow-hidden transition-all duration-300 ${
+              isClosingModal ? 'scale-95 opacity-0 -translate-y-4' : 'scale-100 opacity-100 translate-y-0'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Search Input */}
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <Search size={20} className="text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search pages..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onKeyPress={handleSearchKeyPress}
+                  autoFocus
+                  className={`flex-1 text-lg outline-none ${
+                    darkMode ? 'bg-gray-800 text-white placeholder-gray-400' : 'bg-white text-gray-900 placeholder-gray-500'
+                  }`}
+                />
+                <button
+                  onClick={closeSearchModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Search Results */}
+            <div className="max-h-96 overflow-y-auto">
+              {searchQuery.trim() === '' ? (
+                <div className={`p-8 text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <Search size={48} className="mx-auto mb-3 opacity-30" />
+                  <p className="text-sm">Start typing to search pages...</p>
+                </div>
+              ) : searchResults.length > 0 ? (
+                <div>
+                  {searchResults.map((page, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSearchSelect(page)}
+                      className={`w-full text-left px-6 py-4 border-b transition-colors ${
+                        darkMode 
+                          ? 'border-gray-700 hover:bg-gray-700' 
+                          : 'border-gray-100 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                            {page.label}
+                          </div>
+                          <div className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {page.path}
+                          </div>
+                        </div>
+                        {page.isExternal && (
+                          <span className={`text-xs px-2 py-1 rounded ${
+                            darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
+                          }`}>
+                            External
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className={`p-8 text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <p>No pages found for "{searchQuery}"</p>
+                  <p className="text-sm mt-2">Try a different search term</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer Hint */}
+            <div className={`px-6 py-3 border-t flex items-center justify-between text-xs ${
+              darkMode ? 'bg-gray-900 border-gray-700 text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-500'
+            }`}>
+              <div className="flex items-center gap-4">
+                <span>Press <kbd className={`px-1.5 py-0.5 rounded ${darkMode ? 'bg-gray-700' : 'bg-white'} border`}>↵</kbd> to navigate</span>
+                <span>Press <kbd className={`px-1.5 py-0.5 rounded ${darkMode ? 'bg-gray-700' : 'bg-white'} border`}>Esc</kbd> to close</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

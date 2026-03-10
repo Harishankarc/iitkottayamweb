@@ -27,9 +27,11 @@ export default function ManageClubs() {
   const fetchClubs = async () => {
     try {
       const response = await API.get('/api/clubs');
-      setClubs(response.data);
+      const clubsData = response.data?.data || response.data || [];
+      setClubs(Array.isArray(clubsData) ? clubsData : []);
     } catch (error) {
       console.error('Error fetching clubs:', error);
+      setClubs([]);
     } finally {
       setLoading(false);
     }
@@ -131,7 +133,7 @@ export default function ManageClubs() {
               </tr>
             </thead>
             <tbody className={`${darkMode ? 'bg-gray-800 divide-gray-700' : 'bg-white divide-gray-200'} divide-y`}>
-              {clubs.map((club) => (
+              {Array.isArray(clubs) && clubs.length > 0 ? clubs.map((club) => (
                 <tr key={club.id}>
                   <td className="px-6 py-4 whitespace-nowrap font-medium">{club.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -160,7 +162,13 @@ export default function ManageClubs() {
                     </button>
                   </td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                    No clubs found. Click "Add Club" to create one.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

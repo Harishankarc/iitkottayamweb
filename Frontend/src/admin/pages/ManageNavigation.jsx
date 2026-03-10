@@ -39,12 +39,40 @@ export default function ManageNavigation() {
     }
   };
 
+  // Helper function to convert line-based format to JSON
+  const convertChildrenToJSON = (childrenText) => {
+    if (!childrenText || childrenText.trim() === '') return '';
+    
+    // Check if already JSON format
+    if (childrenText.trim().startsWith('[')) {
+      return childrenText; // Already JSON, return as is
+    }
+    
+    // Convert line-based format to JSON
+    const lines = childrenText.split('\n').filter(line => line.trim());
+    const childrenArray = lines.map(line => {
+      const parts = line.split('|').map(p => p.trim());
+      if (parts.length >= 2) {
+        return { label: parts[0], path: parts[1] };
+      }
+      return null;
+    }).filter(Boolean);
+    
+    return JSON.stringify(childrenArray);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Convert children to JSON format if needed
+      const dataToSend = {
+        ...formData,
+        children: convertChildrenToJSON(formData.children)
+      };
+      
       const result = editingItem 
-        ? await API.put(`/api/navigation/${editingItem.id}`, formData)
-        : await API.post('/api/navigation', formData);
+        ? await API.put(`/api/navigation/${editingItem.id}`, dataToSend)
+        : await API.post('/api/navigation', dataToSend);
       
       if (result.success) {
         fetchNavItems();
@@ -90,9 +118,28 @@ export default function ManageNavigation() {
     setEditingItem(null);
   };
 
+  // Helper function to convert JSON to line-based format for editing
+  const convertJSONToLines = (jsonText) => {
+    if (!jsonText || jsonText.trim() === '') return '';
+    
+    try {
+      const children = JSON.parse(jsonText);
+      if (Array.isArray(children)) {
+        return children.map(child => `${child.label} | ${child.path}`).join('\n');
+      }
+    } catch (e) {
+      // If parsing fails, return as is (might already be line format)
+      return jsonText;
+    }
+    return jsonText;
+  };
+
   const openEditModal = (item) => {
     setEditingItem(item);
-    setFormData(item);
+    setFormData({
+      ...item,
+      children: convertJSONToLines(item.children)
+    });
     setShowModal(true);
   };
 
@@ -188,8 +235,19 @@ export default function ManageNavigation() {
                     <input type="text" value={formData.icon} onChange={(e) => setFormData({ ...formData, icon: e.target.value })} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500" placeholder="icon-name" />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Children (JSON) - Optional submenu items</label>
-                    <textarea value={formData.children} onChange={(e) => setFormData({ ...formData, children: e.target.value })} className="w-full px-3 py-2 border rounded-lg font-mono text-sm focus:ring-2 focus:ring-green-500" rows="4" placeholder='[{"label":"Sub Item","path":"/path"}]' />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Submenu Items <span className="text-gray-500 text-xs">(Optional)</span>
+                    </label>
+                    <textarea 
+                      value={formData.children} 
+                      onChange={(e) => setFormData({ ...formData, children: e.target.value })} 
+                      className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500" 
+                      rows="4" 
+                      placeholder='One submenu item per line, format: Label | Path&#10;Example:&#10;About Us | /about&#10;Our Team | /team&#10;Contact | /contact'
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 Tip: Add submenu items one per line. Format: Label | Path
+                    </p>
                   </div>
                   <div className="flex items-center gap-6">
                     <label className="flex items-center cursor-pointer">

@@ -97,7 +97,6 @@ export default function AdminLayout() {
         { icon: Presentation, label: 'Hero Sliders', path: '/admin/hero-sliders' },
         { icon: Megaphone, label: 'Announcements', path: '/admin/announcements' },
         { icon: Layout, label: 'Footer', path: '/admin/footer' },
-        { icon: Link, label: 'Footer Links', path: '/admin/footer-links' },
         { icon: Link, label: 'Navbar Links', path: '/admin/navbar' },
         { icon: Link, label: 'Navigation', path: '/admin/navigation' }
       ]

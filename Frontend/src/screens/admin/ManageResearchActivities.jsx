@@ -28,9 +28,11 @@ export default function ManageResearchActivities() {
   const fetchResearchActivities = async () => {
     try {
       const response = await API.get('/api/research');
-      setResearchActivities(response.data);
+      const researchData = response.data?.data || response.data || [];
+      setResearchActivities(Array.isArray(researchData) ? researchData : []);
     } catch (error) {
       console.error('Error fetching research activities:', error);
+      setResearchActivities([]);
     } finally {
       setLoading(false);
     }
@@ -134,7 +136,7 @@ export default function ManageResearchActivities() {
               </tr>
             </thead>
             <tbody className={`${darkMode ? 'bg-gray-800 divide-gray-700' : 'bg-white divide-gray-200'} divide-y`}>
-              {researchActivities.map((activity) => (
+              {Array.isArray(researchActivities) && researchActivities.length > 0 ? researchActivities.map((activity) => (
                 <tr key={activity.id}>
                   <td className="px-6 py-4 whitespace-nowrap">{activity.title}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -163,7 +165,13 @@ export default function ManageResearchActivities() {
                     </button>
                   </td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                    No research activities found. Click "Add Research Activity" to create one.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

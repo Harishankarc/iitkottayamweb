@@ -29,9 +29,23 @@ const AppFooter = () => {
 
   const fetchFooterLinks = async () => {
     try {
-      const response = await API.get('/api/footer-links');
-      if (response.success) {
-        setFooterLinks(response.data);
+      // Add timestamp to prevent caching
+      const response = await API.get(`/api/footer-links?_t=${Date.now()}`);
+      console.log('Footer API Response:', response);
+      
+      if (response.success && response.data) {
+        // Handle both nested and direct data structures
+        const footerData = response.data.data || response.data;
+        console.log('Footer data received:', footerData);
+        
+        // Ensure we have the correct structure
+        if (footerData.departments !== undefined) {
+          setFooterLinks(footerData);
+        } else {
+          console.warn('Invalid footer data structure:', footerData);
+        }
+      } else {
+        console.warn('API response not successful:', response);
       }
     } catch (error) {
       console.error('Error fetching footer links:', error);
@@ -41,12 +55,24 @@ const AppFooter = () => {
   };
 
   // Group main links by column
-  const linksByColumn = footerLinks.links.reduce((acc, link) => {
+  const linksByColumn = (footerLinks.links || []).reduce((acc, link) => {
     const col = link.column_index || 1;
     if (!acc[col]) acc[col] = [];
     acc[col].push(link);
     return acc;
   }, {});
+
+  // Debug: Log footer state
+  useEffect(() => {
+    console.log('Footer Rendering State:', {
+      departments: footerLinks.departments?.length || 0,
+      reports: footerLinks.reports?.length || 0,
+      social: footerLinks.social?.length || 0,
+      links: footerLinks.links?.length || 0,
+      legal: footerLinks.legal?.length || 0,
+      loading
+    });
+  }, [footerLinks, loading]);
 
   const bgMain = darkMode ? 'bg-gray-900/80' : 'bg-gray-50/90';
   const bgCard = darkMode ? 'bg-gray-800/70' : 'bg-white/80';
@@ -65,14 +91,14 @@ const AppFooter = () => {
   }
 
   return (
-    <footer className={`${bgMain} backdrop-blur-sm ${textPrimary}`}>
+    <footer className={`${bgMain} backdrop-blur-sm ${textPrimary} mt-12`}>
       {/* Departments */}
-      {footerLinks.departments.length > 0 && (
+      {(footerLinks.departments || []).length > 0 && (
         <div className={`${bgCard} backdrop-blur-md border-t-4 border-green-600`}>
           <div className="max-w-7xl mx-auto px-4 py-6">
             <h3 className="text-lg font-bold mb-4">Departments</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-              {footerLinks.departments.map((d) => (
+              {(footerLinks.departments || []).map((d) => (
                 <a 
                   key={d.id} 
                   href={d.url} 
@@ -89,11 +115,11 @@ const AppFooter = () => {
       )}
 
       {/* Reports */}
-      {footerLinks.reports.length > 0 && (
+      {(footerLinks.reports || []).length > 0 && (
         <div className={`${bgCard} backdrop-blur-md border-t ${borderColor} mt-px`}>
           <div className="max-w-7xl mx-auto px-4 py-4">
             <div className="flex flex-wrap gap-4 justify-center text-xs font-medium">
-              {footerLinks.reports.map((r) => (
+              {(footerLinks.reports || []).map((r) => (
                 <a 
                   key={r.id} 
                   href={r.url} 
@@ -113,9 +139,9 @@ const AppFooter = () => {
       <div className={`${bgMain} backdrop-blur-sm py-8`}>
         <div className="max-w-7xl mx-auto px-4">
           {/* Social Icons */}
-          {footerLinks.social.length > 0 && (
+          {(footerLinks.social || []).length > 0 && (
             <div className="flex justify-center gap-3 mb-8">
-              {footerLinks.social.map((social) => {
+              {(footerLinks.social || []).map((social) => {
                 const Icon = ICON_MAP[social.icon] || Linkedin;
                 return (
                   <a 
@@ -159,9 +185,9 @@ const AppFooter = () => {
       <div className="bg-gradient-to-r from-green-700/90 to-green-800/90 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-3 text-xs text-gray-100">
-            {footerLinks.legal.length > 0 && (
+            {(footerLinks.legal || []).length > 0 && (
               <div className="flex flex-wrap gap-3 justify-center">
-                {footerLinks.legal.map((item, i) => (
+                {(footerLinks.legal || []).map((item, i) => (
                   <React.Fragment key={item.id}>
                     <a 
                       href={item.url} 
@@ -171,7 +197,7 @@ const AppFooter = () => {
                     >
                       {item.label}
                     </a>
-                    {i < footerLinks.legal.length - 1 && <span className="text-gray-300">|</span>}
+                    {i < (footerLinks.legal || []).length - 1 && <span className="text-gray-300">|</span>}
                   </React.Fragment>
                 ))}
               </div>

@@ -62,6 +62,8 @@ const AVAILABLE_PAGES = [
   { pageName: 'cyber-security-club', pageTitle: 'Cyber Security Club', category: 'Clubs' },
   { pageName: 'ieee-student-branch', pageTitle: 'IEEE Student Branch', category: 'Clubs' },
   { pageName: 'acm', pageTitle: 'ACM Student Chapter', category: 'Clubs' },
+  // People
+  { pageName: 'gender-index', pageTitle: 'Gender Index', category: 'People' },
   // Others
   { pageName: 'media', pageTitle: 'Media', category: 'Others' },
   { pageName: 'gallery', pageTitle: 'Gallery', category: 'Others' },

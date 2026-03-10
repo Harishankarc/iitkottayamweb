@@ -1,392 +1,379 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, Users } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, Users, TrendingUp } from 'lucide-react';
 import API from '../../api/api';
 
 export default function ManageGenderIndex() {
-  const [people, setPeople] = useState([]);
+  const [contentBlocks, setContentBlocks] = useState([]);
+  const [tableData, setTableData] = useState({ headers: [], rows: [] });
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editingIndex, setEditingIndex] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
-    designation: '',
-    department: '',
-    email: '',
-    phone: '',
-    photo: '',
-    qualification: '',
-    specialization: '',
-    experience: '',
-    userType: 'gender-index',
-    isActive: true
+    gender: 'Male',
+    category: '',
+    count: 0
   });
 
   useEffect(() => {
-    fetchPeople();
+    fetchGenderIndex();
   }, []);
 
-  const fetchPeople = async () => {
+  const fetchGenderIndex = async () => {
     try {
+      setLoading(true);
       const response = await fetch(`${API.baseURL}/api/content-blocks/page/gender-index`);
       const data = await response.json();
+      
       if (data.success && data.data) {
-        // Convert ContentBlocks to a format compatible with the existing UI
+        setContentBlocks(data.data);
+        
+        // Find the table block
         const tableBlock = data.data.find(block => block.blockType === 'table');
         if (tableBlock && tableBlock.content) {
-          const tableData = typeof tableBlock.content === 'string' 
+          const content = typeof tableBlock.content === 'string' 
             ? JSON.parse(tableBlock.content) 
             : tableBlock.content;
-          
-          // Convert table rows to people-like format
-          const convertedData = tableData.rows.map((row, index) => ({
-            id: `row-${index}`,
-            name: row[1] || 'Unknown', // Category column
-            designation: row[0] || 'Unknown', // Gender column
-            department: row[2] || '0', // Count column
-            specialization: '',
-            isActive: true
-          }));
-          setPeople(convertedData);
+          setTableData(content);
+        } else {
+          // Initialize with default structure
+          setTableData({
+            headers: ['Gender', 'Category', 'Count'],
+            rows: [
+              ['Male', 'IIIT Kottayam', '0'],
+              ['Female', 'IIIT Kottayam', '0'],
+              ['Male', 'Professional & Technical', '0'],
+              ['Female', 'Professional & Technical', '0']
+            ]
+          });
         }
       }
     } catch (error) {
       console.error('Error fetching gender index:', error);
+      alert('Failed to load gender index data');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSave = async () => {
     try {
-      if (editingItem) {
-        await API.put(`/people/${editingItem.id}`, formData);
+      setSaving(true);
+      
+      // Find existing table block or create new one
+      const tableBlock = contentBlocks.find(block => block.blockType === 'table');
+      
+      if (tableBlock) {
+        // Update existing table block
+        const response = await fetch(`${API.baseURL}/api/content-blocks/${tableBlock.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            blockId: tableBlock.blockId || 'gender-index-table',
+            content: tableData
+          })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          alert('Gender index updated successfully!');
+          fetchGenderIndex();
+        } else {
+          throw new Error(result.error);
+        }
       } else {
-        await API.post('/people', formData);
+        // Create new table block
+        const response = await fetch(`${API.baseURL}/api/content-blocks`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            blockId: 'gender-index-table',
+            pageName: 'gender-index',
+            blockType: 'table',
+            content: tableData,
+            blockOrder: 1,
+            isVisible: true
+          })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          alert('Gender index created successfully!');
+          fetchGenderIndex();
+        } else {
+          throw new Error(result.error);
+        }
       }
-      fetchPeople();
-      setShowModal(false);
-      resetForm();
     } catch (error) {
-      console.error('Error saving gender index entry:', error);
+      console.error('Error saving gender index:', error);
+      alert('Failed to save gender index: ' + error.message);
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this entry?')) return;
+  const handleAddRow = () => {
+    setFormData({
+      gender: 'Male',
+      category: '',
+      count: 0
+    });
+    setEditingIndex(null);
+    setShowForm(true);
+  };
+
+  const handleEditRow = (index) => {
+    const row = tableData.rows[index];
+    setFormData({
+      gender: row[0],
+      category: row[1],
+      count: parseInt(row[2]) || 0
+    });
+    setEditingIndex(index);
+    setShowForm(true);
+  };
+
+  const handleDeleteRow = (index) => {
+    if (window.confirm('Are you sure you want to delete this entry?')) {
+      const newRows = tableData.rows.filter((_, i) => i !== index);
+      setTableData({ ...tableData, rows: newRows });
+    }
+  };
+
+  const handleSubmitForm = (e) => {
+    e.preventDefault();
     
-    try {
-      await API.delete(`/people/${id}`);
-      fetchPeople();
-    } catch (error) {
-      console.error('Error deleting gender index entry:', error);
+    const newRow = [formData.gender, formData.category, formData.count.toString()];
+    
+    if (editingIndex !== null) {
+      // Edit existing row
+      const newRows = [...tableData.rows];
+      newRows[editingIndex] = newRow;
+      setTableData({ ...tableData, rows: newRows });
+    } else {
+      // Add new row
+      setTableData({ ...tableData, rows: [...tableData.rows, newRow] });
     }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      designation: '',
-      department: '',
-      email: '',
-      phone: '',
-      photo: '',
-      qualification: '',
-      specialization: '',
-      experience: '',
-      userType: 'gender-index',
-      isActive: true
-    });
-    setEditingItem(null);
-  };
-
-  const openEditModal = (item) => {
-    setEditingItem(item);
-    setFormData({
-      name: item.name,
-      designation: item.designation,
-      department: item.department || '',
-      email: item.email || '',
-      phone: item.phone || '',
-      photo: item.photo || '',
-      qualification: item.qualification || '',
-      specialization: item.specialization || '',
-      experience: item.experience || '',
-      userType: 'gender-index',
-      isActive: item.isActive
-    });
-    setShowModal(true);
-  };
-
-  const filteredPeople = people.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.designation && item.designation.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  // Calculate statistics
-  const stats = {
-    total: people.length,
-    byCategory: people.reduce((acc, person) => {
-      const cat = person.designation || 'Other';
-      acc[cat] = (acc[cat] || 0) + 1;
-      return acc;
-    }, {})
+    
+    setShowForm(false);
+    setFormData({ gender: 'Male', category: '', count: 0 });
+    setEditingIndex(null);
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: API.color1 }}></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading gender index data...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Notice Box */}
-      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
-        <div className="flex items-start">
-          <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-blue-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">Content Management Notice</h3>
-            <div className="mt-1 text-sm text-blue-700">
-              <p>
-                Gender Index is now managed through <strong>Content Management &gt; Manage Pages</strong>. 
-                To edit the gender statistics table, please go to Content Management section and select the "gender-index" page.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-between items-center">
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Manage Gender Index</h1>
-          <p className="text-gray-600 mt-1">Manage gender diversity statistics and data</p>
+          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+            <Users className="text-green-600" />
+            Manage Gender Index
+          </h1>
+          <p className="text-gray-600 mt-1">Update gender statistics for IIIT Kottayam</p>
         </div>
-        <button
-          onClick={() => { resetForm(); setShowModal(true); }}
-          className="flex items-center px-4 py-2 text-white rounded-lg opacity-50 cursor-not-allowed"
-          style={{ backgroundColor: API.color1 }}
-          disabled
-          title="Please use Content Management > Manage Pages to edit Gender Index"
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          Add Entry (Disabled)
-        </button>
-      </div>
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Entries</p>
-              <h3 className="text-3xl font-bold mt-2" style={{ color: API.color1 }}>{stats.total}</h3>
-            </div>
-            <Users className="h-12 w-12 opacity-20" style={{ color: API.color1 }} />
-          </div>
-        </div>
-        {Object.entries(stats.byCategory).slice(0, 2).map(([category, count]) => (
-          <div key={category} className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">{category}</p>
-                <h3 className="text-3xl font-bold mt-2" style={{ color: API.color1 }}>{count}</h3>
-              </div>
-              <Users className="h-12 w-12 opacity-20" style={{ color: API.color1 }} />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="bg-white rounded-lg shadow-md p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search gender index..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border rounded-lg"
-          />
+        <div className="flex gap-3">
+          <button
+            onClick={handleAddRow}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+          >
+            <Plus size={20} />
+            Add Entry
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50"
+          >
+            <Save size={20} />
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Category
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Type
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Count/Data
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Details
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredPeople.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-600">{item.designation}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-semibold" style={{ color: API.color1 }}>{item.department || '-'}</div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm text-gray-600">{item.specialization || '-'}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    disabled
-                    className="text-gray-400 cursor-not-allowed mr-4"
-                    title="Please use Content Management > Manage Pages"
-                  >
-                    <Edit className="h-5 w-5 inline" />
-                  </button>
-                  <button
-                    disabled
-                    className="text-gray-400 cursor-not-allowed"
-                    title="Please use Content Management > Manage Pages"
-                  >
-                    <Trash2 className="h-5 w-5 inline" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b">
-              <h2 className="text-xl font-bold">{editingItem ? 'Edit Gender Index Entry' : 'Add Gender Index Entry'}</h2>
+      {/* Form Modal */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">
+                {editingIndex !== null ? 'Edit Entry' : 'Add New Entry'}
+              </h2>
+              <button onClick={() => setShowForm(false)} className="text-gray-500 hover:text-gray-700">
+                <X size={24} />
+              </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    placeholder="e.g. Faculty, Students, Staff"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
-                  <select
-                    required
-                    value={formData.designation}
-                    onChange={(e) => setFormData({...formData, designation: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  >
-                    <option value="">Select Type</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Others">Others</option>
-                    <option value="Total">Total</option>
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Count/Number *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.department}
-                    onChange={(e) => setFormData({...formData, department: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    placeholder="e.g. 45, 120"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Percentage (optional)</label>
-                  <input
-                    type="text"
-                    value={formData.qualification}
-                    onChange={(e) => setFormData({...formData, qualification: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                    placeholder="e.g. 37.5%"
-                  />
-                </div>
-              </div>
+            
+            <form onSubmit={handleSubmitForm} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Additional Details</label>
-                <textarea
-                  value={formData.specialization}
-                  onChange={(e) => setFormData({...formData, specialization: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  rows="3"
-                  placeholder="Any additional information or notes"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                <select
+                  value={formData.gender}
+                  onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                >
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                 <input
                   type="text"
-                  value={formData.experience}
-                  onChange={(e) => setFormData({...formData, experience: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="e.g. 2024-2025"
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="e.g., IIIT Kottayam, Professional & Technical"
+                  required
                 />
               </div>
-              <div className="flex items-center">
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Count</label>
                 <input
-                  type="checkbox"
-                  id="isActive"
-                  checked={formData.isActive}
-                  onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
-                  className="h-4 w-4 rounded"
-                  style={{ accentColor: API.color1 }}
+                  type="number"
+                  value={formData.count}
+                  onChange={(e) => setFormData({ ...formData, count: parseInt(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  min="0"
+                  required
                 />
-                <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">
-                  Active
-                </label>
               </div>
-              <div className="flex justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => { setShowModal(false); resetForm(); }}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
+
+              <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="px-4 py-2 text-white rounded-lg hover:opacity-90"
-                  style={{ backgroundColor: API.color1 }}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
                 >
-                  {editingItem ? 'Update' : 'Create'}
+                  {editingIndex !== null ? 'Update' : 'Add'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg"
+                >
+                  Cancel
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Statistics Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingUp className="text-blue-600" size={20} />
+            <h3 className="font-semibold text-blue-900">IIIT Kottayam Students</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div>
+              <p className="text-blue-700">Male: {tableData.rows.find(r => r[0] === 'Male' && r[1] === 'IIIT Kottayam')?.[2] || '0'}</p>
+            </div>
+            <div>
+              <p className="text-blue-700">Female: {tableData.rows.find(r => r[0] === 'Female' && r[1] === 'IIIT Kottayam')?.[2] || '0'}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Users className="text-green-600" size={20} />
+            <h3 className="font-semibold text-green-900">Professional & Technical</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div>
+              <p className="text-green-700">Male: {tableData.rows.find(r => r[0] === 'Male' && r[1] === 'Professional & Technical')?.[2] || '0'}</p>
+            </div>
+            <div>
+              <p className="text-green-700">Female: {tableData.rows.find(r => r[0] === 'Female' && r[1] === 'Professional & Technical')?.[2] || '0'}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Data Table */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              {tableData.headers.map((header, index) => (
+                <th
+                  key={index}
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  {header}
+                </th>
+              ))}
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {tableData.rows.map((row, rowIndex) => (
+              <tr key={rowIndex} className="hover:bg-gray-50">
+                {row.map((cell, cellIndex) => (
+                  <td key={cellIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {cell}
+                  </td>
+                ))}
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => handleEditRow(rowIndex)}
+                      className="text-blue-600 hover:text-blue-900"
+                      title="Edit"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteRow(rowIndex)}
+                      className="text-red-600 hover:text-red-900"
+                      title="Delete"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        
+        {tableData.rows.length === 0 && (
+          <div className="text-center py-12 text-gray-500">
+            No data available. Click "Add Entry" to start.
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+        <h3 className="text-sm font-semibold text-yellow-900 mb-2">💡 Note</h3>
+        <ul className="text-sm text-yellow-800 space-y-1 list-disc list-inside">
+          <li>Common categories: "IIIT Kottayam" (students), "Professional & Technical" (staff)</li>
+          <li>Make sure to click "Save Changes" after editing the table</li>
+          <li>You can also manage this page through: Admin → Site Content → Content Manager → Gender Index</li>
+        </ul>
+      </div>
     </div>
   );
 }

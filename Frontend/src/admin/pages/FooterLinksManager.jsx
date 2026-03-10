@@ -46,8 +46,10 @@ export default function FooterLinksManager() {
     try {
       setLoading(true);
       const response = await API.get('/api/footer-links/all');
-      if (response.success) {
-        setLinks(response.flat || []);
+      if (response.success && response.data) {
+        // Handle both nested and direct data
+        const linksData = response.data.data || response.data;
+        setLinks(Array.isArray(linksData) ? linksData : []);
       }
     } catch (error) {
       console.error('Error fetching footer links:', error);

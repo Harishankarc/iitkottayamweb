@@ -26,7 +26,10 @@ export default function ManageFacilities() {
   const fetchFacilities = async () => {
     try {
       const response = await API.get('/api/facilities');
-      setFacilities(response.data || []);
+      // API.get returns { success: true, data: {...backendResponse} }
+      // Backend returns { success: true, data: [...facilities] }
+      const facilitiesData = response.data?.data || response.data || [];
+      setFacilities(Array.isArray(facilitiesData) ? facilitiesData : []);
     } catch (error) {
       console.error('Error fetching facilities:', error);
       setFacilities([]);
@@ -93,10 +96,10 @@ export default function ManageFacilities() {
     setShowModal(true);
   };
 
-  const filteredFacilities = facilities.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredFacilities = Array.isArray(facilities) ? facilities.filter(item =>
+    item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (item.type && item.type.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  ) : [];
 
   if (loading) {
     return (

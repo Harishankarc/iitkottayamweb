@@ -13,7 +13,7 @@ export default function NavbarManager() {
     label: '',
     url: '',
     displayOrder: 0,
-    isVisible: true,
+    isActive: true,
     openInNewTab: false,
     showOnMobile: true,
     showOnTablet: true,
@@ -28,9 +28,10 @@ export default function NavbarManager() {
 
   const fetchLinks = async () => {
     try {
-      const response = await API.get('/api/navbar-links/all');
+      const response = await API.get(`/api/navbar-links?_t=${Date.now()}`);
       if (response.success) {
-        setLinks(response.data || []);
+        const linksData = response.data.data || response.data;
+        setLinks(Array.isArray(linksData) ? linksData : []);
       }
     } catch (error) {
       console.error('Error fetching navbar links:', error);
@@ -46,7 +47,7 @@ export default function NavbarManager() {
       label: link.label,
       url: link.url,
       displayOrder: link.displayOrder,
-      isVisible: link.isVisible,
+      isActive: link.isActive,
       openInNewTab: link.openInNewTab,
       showOnMobile: link.showOnMobile,
       showOnTablet: link.showOnTablet,
@@ -91,7 +92,7 @@ export default function NavbarManager() {
     try {
       await API.put(`/api/navbar-links/${link.id}`, {
         ...link,
-        isVisible: !link.isVisible
+        isActive: !link.isActive
       });
       await fetchLinks();
     } catch (error) {
@@ -107,7 +108,7 @@ export default function NavbarManager() {
       label: '',
       url: '',
       displayOrder: 0,
-      isVisible: true,
+      isActive: true,
       openInNewTab: false,
       showOnMobile: true,
       showOnTablet: true,
@@ -122,7 +123,7 @@ export default function NavbarManager() {
       label: '',
       url: '',
       displayOrder: links.length + 1,
-      isVisible: true,
+      isActive: true,
       openInNewTab: false,
       showOnMobile: true,
       showOnTablet: true,
@@ -223,11 +224,11 @@ export default function NavbarManager() {
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    checked={formData.isVisible}
-                    onChange={(e) => setFormData({ ...formData, isVisible: e.target.checked })}
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                     className="w-4 h-4"
                   />
-                  <span className="text-sm text-gray-700">Visible</span>
+                  <span className="text-sm text-gray-700">Active</span>
                 </label>
 
                 <label className="flex items-center gap-2">
@@ -333,13 +334,13 @@ export default function NavbarManager() {
                       <button
                         onClick={() => handleToggleVisibility(link)}
                         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                          link.isVisible
+                          link.isActive
                             ? 'bg-green-100 text-green-800'
                             : 'bg-gray-100 text-gray-800'
                         }`}
                       >
-                        {link.isVisible ? <Eye size={14} className="mr-1" /> : <EyeOff size={14} className="mr-1" />}
-                        {link.isVisible ? 'Visible' : 'Hidden'}
+                        {link.isActive ? <Eye size={14} className="mr-1" /> : <EyeOff size={14} className="mr-1" />}
+                        {link.isActive ? 'Active' : 'Inactive'}
                       </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

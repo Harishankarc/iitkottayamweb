@@ -70,7 +70,6 @@ import ManageResearchPublications from './admin/pages/ManageResearchPublications
 import ManageHeroSliders from './admin/pages/ManageHeroSliders';
 import ManageCompanyLogos from './admin/pages/ManageCompanyLogos';
 import ManageNIRF from './admin/pages/ManageNIRF';
-import ManageFooter from './admin/pages/ManageFooter';
 import ManageNavigation from './admin/pages/ManageNavigation';
 import ManageSiteSettings from './admin/pages/ManageSiteSettings';
 import Settings from './admin/pages/Settings';
@@ -127,8 +126,7 @@ function App() {
             <Route path="hero-sliders" element={<ManageHeroSliders />} />
             <Route path="company-logos" element={<ManageCompanyLogos />} />
             <Route path="nirf" element={<ManageNIRF />} />
-            <Route path="footer" element={<ManageFooter />} />
-            <Route path="footer-links" element={<FooterLinksManager />} />
+            <Route path="footer" element={<FooterLinksManager />} />
             <Route path="navigation" element={<ManageNavigation />} />
             <Route path="navbar" element={<NavbarManager />} />
             <Route path="content" element={<UnifiedContentManager />} />
