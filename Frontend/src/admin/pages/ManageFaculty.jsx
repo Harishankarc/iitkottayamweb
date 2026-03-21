@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, Mail, Phone, ExternalLink } from 'lucide-react';
+import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import API from '../../api/api';
 import ImageUploader from '../components/ImageUploader';
 
@@ -101,24 +101,16 @@ export default function ManageFaculty() {
         ? `${API.baseURL}/api/faculty/${editingItem.id}`
         : `${API.baseURL}/api/faculty`;
 
+      // Only send fields that are editable in the current admin form.
       const payload = {
-        ...formData,
+        name: formData.name,
+        designation: formData.designation,
         department: formData.department?.trim() || 'General',
-        email: formData.email ? normalizeEmail(formData.email) : null,
-        experience: formData.experience ? Number(formData.experience) : null,
-        researchInterests: formData.researchInterests
-          ? formData.researchInterests.split(',').map(item => item.trim()).filter(Boolean)
-          : [],
-        publications: formData.publications
-          ? formData.publications.split(',').map(item => item.trim()).filter(Boolean)
-          : [],
+        photo: formData.photo || '',
         bottomImageDetails: textToList(formData.bottomImageDetails),
-        rightSideDetails: textToList(formData.rightSideDetails)
+        rightSideDetails: textToList(formData.rightSideDetails),
+        isActive: !!formData.isActive
       };
-
-      if (payload.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
-        throw new Error('Please enter a valid email format, e.g. name@domain.com');
-      }
       
       const response = await fetch(url, {
         method: editingItem ? 'PUT' : 'POST',
@@ -283,23 +275,6 @@ export default function ManageFaculty() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredFaculty.map((member) => {
-          const rightSideDetails = toDetailArray(member.rightSideDetails);
-          const bottomImageDetails = toDetailArray(member.bottomImageDetails);
-          const researchInterests = toDetailArray(member.researchInterests);
-          const bottomDetailsToShow = bottomImageDetails.length > 0
-            ? bottomImageDetails
-            : [
-                member.department ? `${member.department} Department` : '',
-                member.phone || '',
-                member.email || ''
-              ].filter(Boolean);
-          const rightDetailsToShow = rightSideDetails.length > 0
-            ? rightSideDetails
-            : [
-                member.qualification || '',
-                ...researchInterests
-              ].filter(Boolean);
-
           return (
             <div key={member.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow">
               <div className="p-6">
@@ -328,97 +303,9 @@ export default function ManageFaculty() {
                 <p className="text-sm text-gray-600 mb-2">{member.designation}</p>
                 <p className="text-sm font-medium" style={{ color: API.color1 }}>{member.department}</p>
 
-                {member.qualification && (
-                  <div className="mt-3">
-                    <p className="text-xs font-semibold text-gray-700">Education</p>
-                    <p className="text-xs text-gray-600 mt-1">{member.qualification}</p>
-                  </div>
-                )}
-
-                {member.specialization && (
-                  <div className="mt-3">
-                    <p className="text-xs font-semibold text-gray-700">Specialization</p>
-                    <p className="text-xs text-gray-600 mt-1">{member.specialization}</p>
-                  </div>
-                )}
-
-                {member.experience != null && member.experience !== '' && (
-                  <div className="mt-3">
-                    <p className="text-xs font-semibold text-gray-700">Experience</p>
-                    <p className="text-xs text-gray-600 mt-1">{member.experience} years</p>
-                  </div>
-                )}
-
-                {bottomDetailsToShow.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-xs font-semibold text-gray-700">Details Under Image</p>
-                    <ul className="mt-1 space-y-1">
-                      {bottomDetailsToShow.map((detail, index) => (
-                        <li key={index} className="text-xs text-gray-600">{detail}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {rightDetailsToShow.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-xs font-semibold text-gray-700">Profile Highlights</p>
-                    <ul className="mt-1 space-y-1">
-                      {rightDetailsToShow.map((detail, index) => (
-                        <li key={index} className="text-xs text-gray-600">{detail}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {researchInterests.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-xs font-semibold text-gray-700 mb-1">Research Interests</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {researchInterests.map((interest, index) => (
-                        <span key={index} className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
-                          {interest}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-4 space-y-2 border-t pt-3">
-                  <p className="text-xs font-semibold text-gray-700">Contact</p>
-                  {member.email && (
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Mail className="h-4 w-4 mr-2" />
-                      <span className="break-all">{member.email}</span>
-                    </div>
-                  )}
-                  {member.phone && (
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Phone className="h-4 w-4 mr-2" />
-                      {member.phone}
-                    </div>
-                  )}
+                <div className="mt-4 border-t pt-3">
+                  <p className="text-xs text-gray-500">Full profile details are available in Edit.</p>
                 </div>
-
-                {(member.googleScholar || member.linkedIn || member.researchGate) && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {member.googleScholar && (
-                      <a href={member.googleScholar} target="_blank" rel="noreferrer" className="text-xs inline-flex items-center gap-1 text-blue-700 hover:underline">
-                        Scholar <ExternalLink className="h-3 w-3" />
-                      </a>
-                    )}
-                    {member.linkedIn && (
-                      <a href={member.linkedIn} target="_blank" rel="noreferrer" className="text-xs inline-flex items-center gap-1 text-blue-700 hover:underline">
-                        LinkedIn <ExternalLink className="h-3 w-3" />
-                      </a>
-                    )}
-                    {member.researchGate && (
-                      <a href={member.researchGate} target="_blank" rel="noreferrer" className="text-xs inline-flex items-center gap-1 text-blue-700 hover:underline">
-                        ResearchGate <ExternalLink className="h-3 w-3" />
-                      </a>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
           );
@@ -426,7 +313,7 @@ export default function ManageFaculty() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-white/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b">
               <h2 className="text-xl font-bold">{editingItem ? 'Edit Faculty' : 'Add Faculty'}</h2>
@@ -465,22 +352,24 @@ export default function ManageFaculty() {
               />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Left Side Bottom Details</label>
+                <p className="text-xs text-gray-500 mb-1">Use *Heading* on a line to create a heading.</p>
                 <textarea
                   rows={4}
                   value={formData.bottomImageDetails}
                   onChange={(e) => setFormData({...formData, bottomImageDetails: e.target.value})}
                   className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="Enter one per line, or comma separated"
+                  placeholder="*Contact*\nMathematics Department\n0123456789"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Right Side Full Details</label>
+                <p className="text-xs text-gray-500 mb-1">Use *Heading* on a line to create a heading.</p>
                 <textarea
                   rows={6}
                   value={formData.rightSideDetails}
                   onChange={(e) => setFormData({...formData, rightSideDetails: e.target.value})}
                   className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="Enter full right-side text (one per line or comma separated)"
+                  placeholder="*Education*\nPh.D. in Mathematics\n*Research*\nApplied Mathematics\nOptimization"
                 />
               </div>
               <div className="flex items-center">
