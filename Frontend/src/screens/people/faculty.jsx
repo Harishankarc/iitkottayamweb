@@ -1,380 +1,158 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, Search, GraduationCap, Globe, BookOpen, ChevronRight, Award, Briefcase, ExternalLink } from 'lucide-react';
+import { Mail, Phone, Search, GraduationCap, ExternalLink } from 'lucide-react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 
+const parseDetailList = (value) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      // Fallback to comma-separated parsing when non-JSON strings are received.
+    }
+    return value.split(',').map(item => item.trim()).filter(Boolean);
+  }
+  return [];
+};
 
 
-// Faculty Card Component - Enhanced Design with More Details
+
+// Faculty Card Component - Expanded horizontal layout with full details
 const FacultyCard = ({ faculty, color1, darkMode }) => {
-  const [isHovered, setIsHovered] = React.useState(false);
-  const [imageHovered, setImageHovered] = React.useState(false);
-  const [detailsHovered, setDetailsHovered] = React.useState(false);
-  
   return (
     <div
-      className={`group relative overflow-hidden rounded-2xl h-[600px] flex flex-col ${
-        isHovered ? 'shadow-2xl -translate-y-1' : 'shadow-lg'
-      } ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      style={{
-        border: `2px solid ${isHovered ? color1 : (darkMode ? '#374151' : '#E5E7EB')}`,
-        transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-        willChange: 'transform, box-shadow'
-      }}
+      className={`group overflow-hidden rounded-xl transition-all duration-300 hover:shadow-2xl ${
+        darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+      } border flex flex-col sm:flex-row h-full hover:-translate-y-1`}
     >
-      {/* Image Section */}
-      <div 
-        className={`relative overflow-hidden transition-all duration-500 ease-in-out ${
-          imageHovered ? 'h-full' : detailsHovered ? 'h-0 opacity-0' : 'h-64'
-        }`}
-        style={{ willChange: 'height, opacity' }}
-        onMouseEnter={() => setImageHovered(true)}
-        onMouseLeave={() => setImageHovered(false)}
-      >
-        <img
-          src={faculty.image}
-          alt={faculty.name}
-          className={`w-full h-full object-cover transition-transform duration-700 ease-out ${
-            imageHovered ? 'scale-105' : 'scale-100'
-          }`}
-          style={{ willChange: 'transform' }}
-          onError={(e) => {
-            e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(faculty.name)}&size=400&background=239244&color=ffffff&bold=true`;
-          }}
-        />
-        {/* Gradient Overlay - Lighter on Image Hover */}
-        <div 
-          className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-all duration-700 ${
-            imageHovered ? 'from-black/40 via-black/10' : 'from-black/80 via-black/20'
-          }`}
-        />
-        
-        {/* Role Badge - Hidden on Image Hover */}
-        <div 
-          className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-white font-bold text-sm backdrop-blur-sm transition-opacity duration-500 ${
-            imageHovered ? 'opacity-0' : 'opacity-100'
-          }`}
-          style={{ backgroundColor: `${color1}E6` }}
-        >
-          {faculty.role}
+      {/* Left: Image Section with details below */}
+      <div className="w-full sm:w-48 flex-shrink-0 flex flex-col bg-gradient-to-br from-gray-100 to-gray-200">
+        {/* Image */}
+        <div className="relative h-48 sm:h-56 overflow-hidden">
+          <img
+            src={faculty.image}
+            alt={faculty.name}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(faculty.name)}&size=500&background=239244&color=ffffff&bold=true`;
+            }}
+          />
         </div>
-
-        {/* Name and Designation on Image - Hidden on Image Hover */}
-        <div className={`absolute bottom-0 left-0 right-0 p-5 text-white transition-opacity duration-500 ${
-          imageHovered ? 'opacity-0' : 'opacity-100'
-        }`}>
-          <h3 className="text-xl font-bold mb-1 line-clamp-1">
+        {/* Role and details below image */}
+        <div className="p-3 space-y-2 border-t sm:border-t-0" style={{ borderColor: `${color1}30` }}>
+          <p className="text-xs font-semibold rounded-full px-2 py-1 text-center" style={{ backgroundColor: `${color1}20`, color: color1 }}>
+            {faculty.role}
+          </p>
+          {faculty.affiliation && (
+            <div className="flex items-center justify-center gap-1 text-center">
+              <GraduationCap className="w-3 h-3 flex-shrink-0" style={{ color: color1 }} />
+              <span className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{faculty.affiliation}</span>
+            </div>
+          )}
+          {faculty.bottomImageDetails && faculty.bottomImageDetails.length > 0 && (
+            <ul className={`pt-1 space-y-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              {faculty.bottomImageDetails.map((detail, index) => (
+                <li key={index} className="text-[11px] leading-snug text-center">
+                  {detail}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+      {/* Right: Full content section */}
+      <div className="p-5 sm:p-6 flex-1 flex flex-col space-y-4 overflow-y-auto" style={{ maxHeight: '600px' }}>
+        {/* Name and Designation */}
+        <div>
+          <h3 className={`text-xl font-bold leading-tight mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
             {faculty.name}
           </h3>
-          <p className="text-sm opacity-90 line-clamp-1">
-            {faculty.designation}
-          </p>
-        </div>
-      </div>
-
-      {/* Content Section */}
-      <div 
-        className={`transition-all duration-500 ease-in-out ${
-          imageHovered ? 'h-0 opacity-0 overflow-hidden' : 'flex-1 overflow-y-auto'
-        } ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
-        style={{ willChange: 'height, opacity' }}
-        onMouseEnter={() => setDetailsHovered(true)}
-        onMouseLeave={() => setDetailsHovered(false)}
-      >
-        <div className={`p-5 space-y-4 ${detailsHovered ? 'pt-8' : ''}`}>
-        {/* Name and Designation - Show in Details Hover */}
-        {detailsHovered && (
-          <div className="mb-4">
-            <h3 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              {faculty.name}
-            </h3>
-            <p 
-              className="text-sm font-semibold px-3 py-1.5 rounded inline-block mb-2"
-              style={{
-                backgroundColor: `${color1}20`,
-                color: color1
-              }}
-            >
-              {faculty.role}
-            </p>
-            <p className={`text-base ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          {faculty.designation && (
+            <p className={`text-sm font-semibold mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-800'}`}>
               {faculty.designation}
             </p>
-          </div>
-        )}
-
-        {/* Department/Affiliation - Always show */}
-        {!detailsHovered && faculty.affiliation && (
-          <div className="flex items-center gap-2">
-            <GraduationCap className="w-4 h-4 flex-shrink-0" style={{ color: color1 }} />
-            <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {faculty.affiliation}
-            </span>
-          </div>
-        )}
-
-        {/* Basic Contact - Show only email when not hovered */}
-        {!detailsHovered && faculty.email && (
-          <a 
-            href={`mailto:${faculty.email}`}
-            className={`flex items-center gap-2.5 group/email hover:translate-x-1 transition-transform`}
-          >
-            <div 
-              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `${color1}15` }}
-            >
-              <Mail className="w-4 h-4" style={{ color: color1 }} />
-            </div>
-            <span className={`text-sm truncate ${darkMode ? 'text-gray-300 group-hover/email:text-white' : 'text-gray-700 group-hover/email:text-gray-900'}`}>
-              {faculty.email}
-            </span>
-          </a>
-        )}
-
-        {/* Phone - Show when not hovered */}
-        {!detailsHovered && faculty.phone && (
-          <a 
-            href={`tel:${faculty.phone.replace(/[^0-9+]/g, '')}`}
-            className={`flex items-center gap-2.5 group/phone hover:translate-x-1 transition-transform`}
-          >
-            <div 
-              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `${color1}15` }}
-            >
-              <Phone className="w-4 h-4" style={{ color: color1 }} />
-            </div>
-            <span className={`text-sm ${darkMode ? 'text-gray-300 group-hover/phone:text-white' : 'text-gray-700 group-hover/phone:text-gray-900'}`}>
-              {faculty.phone}
-            </span>
-          </a>
-        )}
-
-        {/* Qualification Preview - Show when not hovered */}
-        {!detailsHovered && faculty.education && (
-          <div className={`px-3 py-2 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
-            <div className="flex items-center gap-2">
-              <Award className="w-3.5 h-3.5 flex-shrink-0" style={{ color: color1 }} />
-              <span className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'} line-clamp-1`}>
-                {faculty.education}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Research Interests Preview - Show 2-3 tags when not hovered */}
-        {!detailsHovered && faculty.researchInterests && faculty.researchInterests.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {faculty.researchInterests.slice(0, 3).map((interest, index) => (
-              <span
-                key={index}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                  darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
-                }`}
-              >
-                {interest}
-              </span>
-            ))}
-            {faculty.researchInterests.length > 3 && (
-              <span
-                className="px-2.5 py-1 rounded-full text-xs font-medium"
-                style={{ backgroundColor: `${color1}20`, color: color1 }}
-              >
-                +{faculty.researchInterests.length - 3}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Education/Qualifications - Show only on hover */}
-        {detailsHovered && faculty.education && (
-          <div className={`text-xs px-3 py-2 rounded-lg ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-50 text-gray-700'}`}>
-            <div className="flex items-center gap-2 mb-1">
-              <Award className="w-3.5 h-3.5" style={{ color: color1 }} />
-              <span className="font-semibold">Qualification</span>
-            </div>
-            <span>{faculty.education}</span>
-          </div>
-        )}
-
-        {/* Specialization - Show only on hover */}
-        {detailsHovered && faculty.interests && faculty.interests.length > 0 && (
-          <div>
-            <p className={`text-xs font-semibold mb-2 uppercase tracking-wider ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Specialization
-            </p>
-            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {faculty.interests}
-            </p>
-          </div>
-        )}
-
-        {/* Experience - Show only on hover */}
-        {detailsHovered && faculty.experience > 0 && (
-          <div className="flex items-center gap-2">
-            <Briefcase className="w-4 h-4 flex-shrink-0" style={{ color: color1 }} />
-            <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {faculty.experience} years of experience
-            </span>
-          </div>
-        )}
-
-        {/* Research Interests from researchInterests field - Show only on hover */}
-        {detailsHovered && faculty.researchInterests && faculty.researchInterests.length > 0 && (
-          <div>
-            <p className={`text-xs font-semibold mb-2 uppercase tracking-wider ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Research Focus
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {faculty.researchInterests.map((interest, index) => (
-                <span
-                  key={index}
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
-                    darkMode ? 'bg-gray-700 text-gray-300 border-gray-600' : 'bg-gray-100 text-gray-700 border-gray-300'
-                  }`}
-                >
-                  {interest}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Publications Count */}
-        {detailsHovered && faculty.publications && faculty.publications.length > 0 && (
-          <div className={`px-3 py-2 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4" style={{ color: color1 }} />
-              <span className={`text-sm font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                {faculty.publications.length} Publication{faculty.publications.length > 1 ? 's' : ''}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Social Links */}
-        {detailsHovered && (faculty.googleScholar || faculty.linkedIn || faculty.researchGate) && (
-          <div>
-            <p className={`text-xs font-semibold mb-2 uppercase tracking-wider ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Academic Profiles
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {faculty.googleScholar && (
-                <a 
-                  href={faculty.googleScholar}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  Google Scholar
-                </a>
-              )}
-              {faculty.linkedIn && (
-                <a 
-                  href={faculty.linkedIn}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  LinkedIn
-                </a>
-              )}
-              {faculty.researchGate && (
-                <a 
-                  href={faculty.researchGate}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
-                >
-                  <ExternalLink className="w-3 h-3" />
-                  ResearchGate
-                </a>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Contact Info - Show full details on hover */}
-        {detailsHovered && (
-        <div className="space-y-2.5">
-          {faculty.email && (
-            <a 
-              href={`mailto:${faculty.email}`}
-              className={`flex items-center gap-2.5 group/email hover:translate-x-1 transition-transform`}
-            >
-              <div 
-                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: `${color1}15` }}
-              >
-                <Mail className="w-4 h-4" style={{ color: color1 }} />
-              </div>
-              <span className={`text-sm truncate ${darkMode ? 'text-gray-300 group-hover/email:text-white' : 'text-gray-700 group-hover/email:text-gray-900'}`}>
-                {faculty.email}
-              </span>
-            </a>
-          )}
-          
-          {faculty.phone && (
-            <a 
-              href={`tel:${faculty.phone.replace(/[^0-9+]/g, '')}`}
-              className={`flex items-center gap-2.5 group/phone hover:translate-x-1 transition-transform`}
-            >
-              <div 
-                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: `${color1}15` }}
-              >
-                <Phone className="w-4 h-4" style={{ color: color1 }} />
-              </div>
-              <span className={`text-sm ${darkMode ? 'text-gray-300 group-hover/phone:text-white' : 'text-gray-700 group-hover/phone:text-gray-900'}`}>
-                {faculty.phone}
-              </span>
-            </a>
-          )}
-
-          {faculty.room && (
-            <div className="flex items-center gap-2.5">
-              <div 
-                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: `${color1}15` }}
-              >
-                <MapPin className="w-4 h-4" style={{ color: color1 }} />
-              </div>
-              <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                {faculty.room}
-              </span>
-            </div>
-          )}
-
-          {faculty.website && faculty.website !== '#' && (
-            <a 
-              href={faculty.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2.5 group/web hover:translate-x-1 transition-transform"
-            >
-              <div 
-                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: `${color1}15` }}
-              >
-                <Globe className="w-4 h-4" style={{ color: color1 }} />
-              </div>
-              <span className={`text-sm font-medium ${darkMode ? 'text-gray-300 group-hover/web:text-white' : 'text-gray-700 group-hover/web:text-gray-900'}`}>
-                Visit Website
-              </span>
-            </a>
           )}
         </div>
+        {/* Education */}
+        {faculty.education && (
+          <div className="border-t pt-3" style={{ borderColor: `${color1}20` }}>
+            <p className={`text-xs font-bold uppercase mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} style={{ color: color1 }}>
+              Education
+            </p>
+            <p className={`text-sm leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              {faculty.education}
+            </p>
+          </div>
         )}
-      </div>
+        {faculty.rightSideDetails && faculty.rightSideDetails.length > 0 && (
+          <div className="border-t pt-3" style={{ borderColor: `${color1}20` }}>
+            <p className={`text-xs font-bold uppercase mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} style={{ color: color1 }}>
+              Profile Highlights
+            </p>
+            <ul className={`space-y-1.5 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              {faculty.rightSideDetails.map((detail, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <span className="flex-shrink-0 mt-1.5" style={{ color: color1 }}>•</span>
+                  <span>{detail}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {/* Research Interests */}
+        {faculty.interests && faculty.interests.length > 0 && (
+          <div className="border-t pt-3" style={{ borderColor: `${color1}20` }}>
+            <p className={`text-xs font-bold uppercase mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} style={{ color: color1 }}>
+              Research Interests
+            </p>
+            <ul className={`space-y-1.5 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              {faculty.interests.map((interest, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <span className="flex-shrink-0 mt-1.5" style={{ color: color1 }}>•</span>
+                  <span>{interest}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {/* Contact Information */}
+        <div className="border-t pt-3 mt-auto" style={{ borderColor: `${color1}20` }}>
+          <p className={`text-xs font-bold uppercase mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} style={{ color: color1 }}>
+            Contact
+          </p>
+          <div className="space-y-2">
+            {faculty.phone && (
+              <a href={`tel:${faculty.phone.replace(/[^0-9+]/g, '')}`} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity group/phone">
+                <Phone className="w-4 h-4 flex-shrink-0" style={{ color: color1 }} />
+                <span className={`text-sm ${darkMode ? 'text-gray-400 group-hover/phone:text-gray-300' : 'text-gray-600 group-hover/phone:text-gray-900'}`}>
+                  {faculty.phone}
+                </span>
+              </a>
+            )}
+            {faculty.email && (
+              <a href={`mailto:${faculty.email}`} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity group/email">
+                <Mail className="w-4 h-4 flex-shrink-0" style={{ color: color1 }} />
+                <span className={`text-sm break-all ${darkMode ? 'text-gray-400 group-hover/email:text-gray-300' : 'text-gray-600 group-hover/email:text-gray-900'}`}>
+                  {faculty.email}
+                </span>
+              </a>
+            )}
+            {faculty.website && faculty.website !== '#' && (
+              <a
+                href={faculty.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold hover:opacity-80 transition-opacity mt-2"
+                style={{ color: color1 }}
+              >
+                Visit Profile
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -414,6 +192,8 @@ export default function Faculty() {
               website: item.googleScholar || item.linkedIn || item.researchGate || '#',
               experience: item.experience || 0,
               publications: item.publications || [],
+              bottomImageDetails: parseDetailList(item.bottomImageDetails),
+              rightSideDetails: parseDetailList(item.rightSideDetails),
               googleScholar: item.googleScholar || '',
               linkedIn: item.linkedIn || '',
               researchGate: item.researchGate || '',
@@ -525,7 +305,7 @@ export default function Faculty() {
             <p className={`mt-4 text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading faculty data...</p>
           </div>
         ) : filteredFaculty.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
             {filteredFaculty.map((faculty) => (
               <FacultyCard key={faculty.id} faculty={faculty} color1={color1} darkMode={darkMode} />
             ))}

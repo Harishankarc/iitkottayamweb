@@ -632,7 +632,7 @@ const HeroSlider = ({ events, color1 }) => {
   // Return loading state if no events
   if (!events || events.length === 0) {
     return (
-      <div className="relative w-full h-[350px] sm:h-[450px] md:h-[550px] lg:h-[70vh] xl:h-[80vh] overflow-hidden bg-gray-900 flex items-center justify-center">
+      <div className="relative w-full h-[280px] sm:h-[360px] md:h-[440px] lg:h-[55vh] xl:h-[65vh] overflow-hidden bg-gray-900 flex items-center justify-center">
         <div className="text-white text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300" style={{ borderTopColor: color1 }}></div>
           <p className="mt-4 text-lg">Loading...</p>
@@ -643,7 +643,7 @@ const HeroSlider = ({ events, color1 }) => {
 
   return (
     // 1. TALLER HEIGHT: h-[600px] on mobile, h-[80vh] on desktop (approx 80% of screen height)
-    <div className="relative w-full h-[350px] sm:h-[450px] md:h-[550px] lg:h-[70vh] xl:h-[80vh] overflow-hidden group">
+    <div className="relative w-full h-[280px] sm:h-[360px] md:h-[440px] lg:h-[55vh] xl:h-[65vh] overflow-hidden group">
       
       {events.map((event, i) => (
         <div

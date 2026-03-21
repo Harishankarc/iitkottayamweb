@@ -21,10 +21,44 @@ const AppFooter = () => {
     links: [],
     legal: []
   });
+  const [visitorCount, setVisitorCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchFooterLinks();
+  }, []);
+
+  useEffect(() => {
+    const trackVisitor = async () => {
+      try {
+        let visitorId = localStorage.getItem('iiit_visitor_id');
+        if (!visitorId) {
+          visitorId = `v_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+          localStorage.setItem('iiit_visitor_id', visitorId);
+        }
+
+        const trackedInSession = sessionStorage.getItem('iiit_visitor_tracked');
+
+        if (!trackedInSession) {
+          const trackRes = await API.post('/api/visitors/track', { visitorId });
+          const trackedData = trackRes?.data?.data || trackRes?.data;
+          if (trackedData?.totalVisits !== undefined) {
+            setVisitorCount(trackedData.totalVisits);
+          }
+          sessionStorage.setItem('iiit_visitor_tracked', '1');
+        } else {
+          const countRes = await API.get('/api/visitors/count');
+          const countData = countRes?.data?.data || countRes?.data;
+          if (countData?.totalVisits !== undefined) {
+            setVisitorCount(countData.totalVisits);
+          }
+        }
+      } catch (error) {
+        console.error('Error tracking visitors:', error);
+      }
+    };
+
+    trackVisitor();
   }, []);
 
   const fetchFooterLinks = async () => {
@@ -203,11 +237,13 @@ const AppFooter = () => {
               </div>
             )}
             <div className="text-center">
-              <p className="font-medium">GST: 32AAAAI9154L1ZJ | © 2025 IIIT Kottayam</p>
+              <p className="font-medium">
+                GST: 32AAAAI9154L1ZJ | © 2025 IIIT Kottayam
+              </p>
             </div>
           </div>
           <p className="text-center text-gray-200 text-xs mt-2">
-            Updated: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString('en-US', {hour12: false})}
+            Total Visitors: {visitorCount.toLocaleString()}
           </p>
         </div>
       </div>

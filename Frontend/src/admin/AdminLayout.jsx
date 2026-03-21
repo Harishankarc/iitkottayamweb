@@ -29,7 +29,8 @@ import {
   School,
   UserSquare2,
   Presentation,
-  Palette
+  Palette,
+  Eye
 } from 'lucide-react';
 import API from '../api/api';
 
@@ -183,6 +184,13 @@ export default function AdminLayout() {
       label: 'Settings',
       icon: Settings,
       path: '/admin/settings',
+      hasDropdown: false
+    },
+    {
+      id: 'analytics',
+      label: 'Visitor Analytics',
+      icon: Eye,
+      path: '/admin/visitor-stats',
       hasDropdown: false
     }
   ];

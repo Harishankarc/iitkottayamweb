@@ -89,6 +89,7 @@ import ManageFacilities from './admin/pages/ManageFacilities';
 import ManageFdpPrograms from './admin/pages/ManageFdpPrograms';
 import ManageClubs from './screens/admin/ManageClubs';
 import ManageResearchActivities from './screens/admin/ManageResearchActivities';
+import AdminVisitorStats from './pages/AdminVisitorStats';
 import LMSLinks from './screens/footer/lmsLinks';
 import IDY2022 from './screens/footer/idy-2022';
 import SiteMap from './screens/footer/siteMap';
@@ -144,6 +145,7 @@ function App() {
             <Route path="fdp-programs" element={<ManageFdpPrograms />} />
             <Route path="research-activities" element={<ManageResearchActivities />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="visitor-stats" element={<AdminVisitorStats />} />
           </Route>
 
           {/* Public Routes - With NavBar/Footer */}

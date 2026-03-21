@@ -1,24 +1,69 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, Mail, Phone } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Mail, Phone, ExternalLink } from 'lucide-react';
 import API from '../../api/api';
 import ImageUploader from '../components/ImageUploader';
+
+const normalizeEmail = (value) => {
+  if (typeof value !== 'string') return value;
+
+  const email = value
+    .trim()
+    .replace(/\s*(?:\(|\[)?at(?:\)|\])?\s*/gi, '@')
+    .replace(/\s*(?:\(|\[)?dot(?:\)|\])?\s*/gi, '.')
+    .replace(/\s+/g, '')
+    .toLowerCase();
+
+  return email;
+};
+
+const textToList = (value) => {
+  if (!value || typeof value !== 'string') return [];
+  const trimmed = value.trim();
+  if (!trimmed) return [];
+  if (trimmed.includes('\n')) {
+    return trimmed.split('\n').map(item => item.trim()).filter(Boolean);
+  }
+  return trimmed.split(',').map(item => item.trim()).filter(Boolean);
+};
+
+const toDetailArray = (value) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      // Fall back to comma-separated values.
+    }
+    return value.split(',').map((item) => item.trim()).filter(Boolean);
+  }
+  return [];
+};
 
 export default function ManageFaculty() {
   const [faculty, setFaculty] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     designation: '',
-    department: '',
+    department: 'General',
     email: '',
     phone: '',
     photo: '',
     qualification: '',
     specialization: '',
     experience: '',
+    researchInterests: '',
+    publications: '',
+    googleScholar: '',
+    linkedIn: '',
+    researchGate: '',
+    bottomImageDetails: '',
+    rightSideDetails: '',
     isActive: true
   });
 
@@ -28,14 +73,21 @@ export default function ManageFaculty() {
 
   const fetchFaculty = async () => {
     try {
+      setFetchError('');
       const token = localStorage.getItem('token');
       const response = await fetch(`${API.baseURL}/api/faculty`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to load faculty data');
+      }
       const data = await response.json();
       setFaculty(data.data || []);
     } catch (error) {
       console.error('Error fetching faculty:', error);
+      setFaculty([]);
+      setFetchError(error.message || 'Unable to load faculty data. Check backend server.');
     } finally {
       setLoading(false);
     }
@@ -48,6 +100,25 @@ export default function ManageFaculty() {
       const url = editingItem 
         ? `${API.baseURL}/api/faculty/${editingItem.id}`
         : `${API.baseURL}/api/faculty`;
+
+      const payload = {
+        ...formData,
+        department: formData.department?.trim() || 'General',
+        email: formData.email ? normalizeEmail(formData.email) : null,
+        experience: formData.experience ? Number(formData.experience) : null,
+        researchInterests: formData.researchInterests
+          ? formData.researchInterests.split(',').map(item => item.trim()).filter(Boolean)
+          : [],
+        publications: formData.publications
+          ? formData.publications.split(',').map(item => item.trim()).filter(Boolean)
+          : [],
+        bottomImageDetails: textToList(formData.bottomImageDetails),
+        rightSideDetails: textToList(formData.rightSideDetails)
+      };
+
+      if (payload.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
+        throw new Error('Please enter a valid email format, e.g. name@domain.com');
+      }
       
       const response = await fetch(url, {
         method: editingItem ? 'PUT' : 'POST',
@@ -55,16 +126,20 @@ export default function ManageFaculty() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
-      if (response.ok) {
-        fetchFaculty();
-        setShowModal(false);
-        resetForm();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to save faculty details');
       }
+
+      fetchFaculty();
+      setShowModal(false);
+      resetForm();
     } catch (error) {
       console.error('Error saving faculty:', error);
+      alert(error.message || 'Unable to save faculty details');
     }
   };
 
@@ -87,37 +162,80 @@ export default function ManageFaculty() {
     setFormData({
       name: '',
       designation: '',
-      department: '',
+      department: 'General',
       email: '',
       phone: '',
+      photo: '',
       qualification: '',
       specialization: '',
       experience: '',
+      researchInterests: '',
+      publications: '',
+      googleScholar: '',
+      linkedIn: '',
+      researchGate: '',
+      bottomImageDetails: '',
+      rightSideDetails: '',
       isActive: true
     });
     setEditingItem(null);
   };
 
   const openEditModal = (item) => {
+    const fallbackBottomDetails = [
+      item.department ? `${item.department} Department` : '',
+      item.phone || '',
+      item.email || ''
+    ].filter(Boolean);
+
+    const interests = Array.isArray(item.researchInterests)
+      ? item.researchInterests
+      : toDetailArray(item.specialization || '');
+    const fallbackRightDetails = [
+      item.qualification || '',
+      ...interests
+    ].filter(Boolean);
+
+    const resolvedBottomDetails = Array.isArray(item.bottomImageDetails)
+      ? item.bottomImageDetails
+      : toDetailArray(item.bottomImageDetails || '');
+    const resolvedRightDetails = Array.isArray(item.rightSideDetails)
+      ? item.rightSideDetails
+      : toDetailArray(item.rightSideDetails || '');
+
     setEditingItem(item);
     setFormData({
       name: item.name,
       designation: item.designation,
-      department: item.department,
-      email: item.email,
+      department: item.department || 'General',
+      email: item.email || '',
       phone: item.phone || '',
-      qualification: item.qualification,
+      photo: item.photo || '',
+      qualification: item.qualification || '',
       specialization: item.specialization || '',
       experience: item.experience || '',
+      researchInterests: Array.isArray(item.researchInterests)
+        ? item.researchInterests.join(', ')
+        : (item.researchInterests || ''),
+      publications: Array.isArray(item.publications)
+        ? item.publications.join(', ')
+        : (item.publications || ''),
+      googleScholar: item.googleScholar || '',
+      linkedIn: item.linkedIn || '',
+      researchGate: item.researchGate || '',
+      bottomImageDetails: (resolvedBottomDetails.length > 0 ? resolvedBottomDetails : fallbackBottomDetails).join('\n'),
+      rightSideDetails: (resolvedRightDetails.length > 0 ? resolvedRightDetails : fallbackRightDetails).join('\n'),
       isActive: item.isActive
     });
     setShowModal(true);
   };
 
-  const filteredFaculty = faculty.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.department.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredFaculty = faculty.filter(item => {
+    const term = searchTerm.toLowerCase();
+    const name = (item?.name || '').toLowerCase();
+    const department = (item?.department || '').toLowerCase();
+    return name.includes(term) || department.includes(term);
+  });
 
   if (loading) {
     return (
@@ -157,47 +275,154 @@ export default function ManageFaculty() {
         </div>
       </div>
 
+      {fetchError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-sm">
+          {fetchError}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredFaculty.map((member) => (
-          <div key={member.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="h-16 w-16 rounded-full flex items-center justify-center text-white text-2xl font-bold"
-                     style={{ backgroundColor: API.color1 }}>
-                  {member.name.charAt(0)}
+        {filteredFaculty.map((member) => {
+          const rightSideDetails = toDetailArray(member.rightSideDetails);
+          const bottomImageDetails = toDetailArray(member.bottomImageDetails);
+          const researchInterests = toDetailArray(member.researchInterests);
+          const bottomDetailsToShow = bottomImageDetails.length > 0
+            ? bottomImageDetails
+            : [
+                member.department ? `${member.department} Department` : '',
+                member.phone || '',
+                member.email || ''
+              ].filter(Boolean);
+          const rightDetailsToShow = rightSideDetails.length > 0
+            ? rightSideDetails
+            : [
+                member.qualification || '',
+                ...researchInterests
+              ].filter(Boolean);
+
+          return (
+            <div key={member.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow">
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="h-16 w-16 rounded-full overflow-hidden border-2" style={{ borderColor: `${API.color1}33` }}>
+                    <img
+                      src={member.photo ? API.getImageUrl(member.photo) : `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&size=200&background=239244&color=ffffff&bold=true`}
+                      alt={member.name}
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&size=200&background=239244&color=ffffff&bold=true`;
+                      }}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => openEditModal(member)} className="text-blue-600 hover:text-blue-900">
+                      <Edit className="h-5 w-5" />
+                    </button>
+                    <button onClick={() => handleDelete(member.id)} className="text-red-600 hover:text-red-900">
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={() => openEditModal(member)} className="text-blue-600 hover:text-blue-900">
-                    <Edit className="h-5 w-5" />
-                  </button>
-                  <button onClick={() => handleDelete(member.id)} className="text-red-600 hover:text-red-900">
-                    <Trash2 className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1">{member.name}</h3>
-              <p className="text-sm text-gray-600 mb-2">{member.designation}</p>
-              <p className="text-sm font-medium" style={{ color: API.color1 }}>{member.department}</p>
-              <div className="mt-4 space-y-2">
-                {member.email && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Mail className="h-4 w-4 mr-2" />
-                    {member.email}
+
+                <h3 className="text-lg font-bold text-gray-900 mb-1">{member.name}</h3>
+                <p className="text-sm text-gray-600 mb-2">{member.designation}</p>
+                <p className="text-sm font-medium" style={{ color: API.color1 }}>{member.department}</p>
+
+                {member.qualification && (
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold text-gray-700">Education</p>
+                    <p className="text-xs text-gray-600 mt-1">{member.qualification}</p>
                   </div>
                 )}
-                {member.phone && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Phone className="h-4 w-4 mr-2" />
-                    {member.phone}
+
+                {member.specialization && (
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold text-gray-700">Specialization</p>
+                    <p className="text-xs text-gray-600 mt-1">{member.specialization}</p>
                   </div>
                 )}
-              </div>
-              <div className="mt-4">
-                <span className="text-xs text-gray-500">{member.qualification}</span>
+
+                {member.experience != null && member.experience !== '' && (
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold text-gray-700">Experience</p>
+                    <p className="text-xs text-gray-600 mt-1">{member.experience} years</p>
+                  </div>
+                )}
+
+                {bottomDetailsToShow.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold text-gray-700">Details Under Image</p>
+                    <ul className="mt-1 space-y-1">
+                      {bottomDetailsToShow.map((detail, index) => (
+                        <li key={index} className="text-xs text-gray-600">{detail}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {rightDetailsToShow.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold text-gray-700">Profile Highlights</p>
+                    <ul className="mt-1 space-y-1">
+                      {rightDetailsToShow.map((detail, index) => (
+                        <li key={index} className="text-xs text-gray-600">{detail}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {researchInterests.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold text-gray-700 mb-1">Research Interests</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {researchInterests.map((interest, index) => (
+                        <span key={index} className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                          {interest}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-4 space-y-2 border-t pt-3">
+                  <p className="text-xs font-semibold text-gray-700">Contact</p>
+                  {member.email && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Mail className="h-4 w-4 mr-2" />
+                      <span className="break-all">{member.email}</span>
+                    </div>
+                  )}
+                  {member.phone && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Phone className="h-4 w-4 mr-2" />
+                      {member.phone}
+                    </div>
+                  )}
+                </div>
+
+                {(member.googleScholar || member.linkedIn || member.researchGate) && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {member.googleScholar && (
+                      <a href={member.googleScholar} target="_blank" rel="noreferrer" className="text-xs inline-flex items-center gap-1 text-blue-700 hover:underline">
+                        Scholar <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                    {member.linkedIn && (
+                      <a href={member.linkedIn} target="_blank" rel="noreferrer" className="text-xs inline-flex items-center gap-1 text-blue-700 hover:underline">
+                        LinkedIn <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                    {member.researchGate && (
+                      <a href={member.researchGate} target="_blank" rel="noreferrer" className="text-xs inline-flex items-center gap-1 text-blue-700 hover:underline">
+                        ResearchGate <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {showModal && (
@@ -207,7 +432,7 @@ export default function ManageFaculty() {
               <h2 className="text-xl font-bold">{editingItem ? 'Edit Faculty' : 'Add Faculty'}</h2>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
                   <input
@@ -229,37 +454,6 @@ export default function ManageFaculty() {
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Department *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.department}
-                  onChange={(e) => setFormData({...formData, department: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                </div>
-              </div>
               <ImageUploader
                 value={formData.photo || ''}
                 onChange={(url) => { 
@@ -269,34 +463,24 @@ export default function ManageFaculty() {
                 folder="faculty"
                 aspectRatio="1/1"
               />
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Qualification *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.qualification}
-                    onChange={(e) => setFormData({...formData, qualification: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Experience (years)</label>
-                  <input
-                    type="number"
-                    value={formData.experience}
-                    onChange={(e) => setFormData({...formData, experience: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Left Side Bottom Details</label>
+                <textarea
+                  rows={4}
+                  value={formData.bottomImageDetails}
+                  onChange={(e) => setFormData({...formData, bottomImageDetails: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="Enter one per line, or comma separated"
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Specialization</label>
-                <input
-                  type="text"
-                  value={formData.specialization}
-                  onChange={(e) => setFormData({...formData, specialization: e.target.value})}
+                <label className="block text-sm font-medium text-gray-700 mb-1">Right Side Full Details</label>
+                <textarea
+                  rows={6}
+                  value={formData.rightSideDetails}
+                  onChange={(e) => setFormData({...formData, rightSideDetails: e.target.value})}
                   className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="Enter full right-side text (one per line or comma separated)"
                 />
               </div>
               <div className="flex items-center">
