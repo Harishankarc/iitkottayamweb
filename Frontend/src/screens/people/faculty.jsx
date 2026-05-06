@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Search, GraduationCap, ArrowRight } from 'lucide-react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
-import {email , phone , building} from 'lucide-react';
 
 const parseDetailList = (value) => {
   if (Array.isArray(value)) return value;
@@ -73,7 +72,6 @@ const FacultyCard = ({ faculty, color1, darkMode }) => {
           <div className="flex-1 flex flex-col justify-start overflow-hidden">
             <div className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
               <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: color1 }}>Department</p>
-              //*Add building symbol and phone symbol here*//
               <p className="text-[11px] leading-snug break-words">{faculty.department || 'Not Available'}</p>
 
               <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wide" style={{ color: color1 }}>Email</p>
