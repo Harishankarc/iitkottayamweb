@@ -740,7 +740,9 @@ export default function ManageContentBlocks() {
           { blockId: 'fdp-hero', sectionName: 'hero', blockType: 'hero', blockLabel: 'Hero',
             content: { title: 'FDP & Webinars', subtitle: 'Continuous Learning & Development' }, blockOrder: 0 },
           { blockId: 'fdp-about', sectionName: 'about', blockType: 'paragraph', blockLabel: 'About',
-            content: { text: 'IIIT Kottayam regularly organizes Faculty Development Programs and webinars on emerging technologies and pedagogical innovations.' }, blockOrder: 1 }
+            content: { text: 'IIIT Kottayam regularly organizes Faculty Development Programs and webinars on emerging technologies and pedagogical innovations.' }, blockOrder: 1 },
+          { blockId: 'fdp-cta', sectionName: 'cta', blockType: 'button', blockLabel: 'Access FDP Details',
+            content: { title: 'Access FDP Details', description: 'Open the FDP details page for programmes, workshops, and webinars.', buttonText: 'Access FDP Details', link: '/fdp' }, blockOrder: 2 }
         ],
         'trendles-club': [
           { blockId: 'trendles-hero', sectionName: 'hero', blockType: 'hero', blockLabel: 'Hero',

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Search, GraduationCap } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Search, GraduationCap, ArrowRight } from 'lucide-react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
+import {email , phone , building} from 'lucide-react';
 
 const parseDetailList = (value) => {
   if (Array.isArray(value)) return value;
@@ -17,79 +19,46 @@ const parseDetailList = (value) => {
   return [];
 };
 
-const parseDetailEntries = (items) => {
-  if (!Array.isArray(items)) return [];
-  return items
-    .map((item) => (typeof item === 'string' ? item.trim() : ''))
-    .filter(Boolean)
-    .map((item) => {
-      const headingMatch = item.match(/^\*{1,2}\s*(.+?)\s*\*{1,2}$/) || item.match(/^#+\s+(.+)$/);
-      if (headingMatch) {
-        return { type: 'heading', text: headingMatch[1].trim() };
-      }
-      return { type: 'item', text: item };
-    });
+const MAIN_SECTION_MAX_LINES = 7;
+const MAIN_SECTION_MAX_LINE_LENGTH = 42;
+
+const normalizeMainSection = (text) => {
+  if (!text || typeof text !== 'string') return '';
+  const normalized = text.replace(/\r\n/g, '\n').replace(/\\/g, '\n');
+  return normalized
+    .split('\n')
+    .slice(0, MAIN_SECTION_MAX_LINES)
+    .map((line) => line.slice(0, MAIN_SECTION_MAX_LINE_LENGTH))
+    .join('\n');
 };
 
-const chunkDetails = (items, size) => {
-  if (!Array.isArray(items) || items.length === 0) return [];
-  const chunks = [];
-  for (let i = 0; i < items.length; i += size) {
-    chunks.push(items.slice(i, i + size));
-  }
-  return chunks;
+const parseMainSection = (text) => {
+  if (!text || typeof text !== 'string') return [];
+  const normalized = text.replace(/\\/g, '\n');
+  return normalized.split('\n').map(item => item.trim()).filter(Boolean).map((item) => {
+    const boldMatch = item.match(/^\*{2}\s*(.+?)\s*\*{2}$/);
+    if (boldMatch) {
+      return { type: 'bold', text: boldMatch[1].trim() };
+    }
+    return { type: 'item', text: item };
+  });
 };
 
 // Faculty Card Component - Expanded horizontal layout with full details
 const FacultyCard = ({ faculty, color1, darkMode }) => {
-  const bottomEntries = parseDetailEntries(faculty.bottomImageDetails || []);
-  const rightEntries = parseDetailEntries(faculty.rightSideDetails || []);
-  const bottomChunks = chunkDetails(bottomEntries, 6);
-  const rightChunks = chunkDetails(rightEntries, 20);
-
-  const [bottomIndex, setBottomIndex] = useState(0);
-  const [rightIndex, setRightIndex] = useState(0);
-  const [bottomVisible, setBottomVisible] = useState(true);
-  const [rightVisible, setRightVisible] = useState(true);
-
-  useEffect(() => {
-    if (bottomChunks.length <= 1) return;
-
-    const interval = setInterval(() => {
-      setBottomVisible(false);
-      setTimeout(() => {
-        setBottomIndex((prev) => (prev + 1) % bottomChunks.length);
-        setBottomVisible(true);
-      }, 220);
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [bottomChunks.length]);
-
-  useEffect(() => {
-    if (rightChunks.length <= 1) return;
-
-    const interval = setInterval(() => {
-      setRightVisible(false);
-      setTimeout(() => {
-        setRightIndex((prev) => (prev + 1) % rightChunks.length);
-        setRightVisible(true);
-      }, 220);
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [rightChunks.length]);
+  const mainSectionText = (faculty.mainSection || '').trim();
+  const mainSectionPreview = normalizeMainSection(mainSectionText);
 
   return (
     <div
-      className={`group overflow-hidden rounded-xl transition-all duration-300 hover:shadow-2xl ${
+      className={`overflow-hidden rounded-xl ${
         darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-      } border flex flex-col sm:flex-row h-[460px] hover:-translate-y-1`}
+      } border flex flex-col sm:flex-row h-[322px]`}
     >
       {/* Left: Image Section with details below */}
       <div className="w-full sm:w-48 flex-shrink-0 flex flex-col bg-gradient-to-br from-gray-100 to-gray-200 h-full">
         {/* Image */}
-        <div className="relative h-40 sm:h-48 overflow-hidden">
+        <div className="relative h-[122px] sm:h-[158px] overflow-hidden">
           <img
             src={faculty.image}
             alt={faculty.name}
@@ -99,29 +68,25 @@ const FacultyCard = ({ faculty, color1, darkMode }) => {
             }}
           />
         </div>
-        {/* Role and details below image */}
-        <div className="p-1.5 border-t sm:border-t-0 flex-1 flex flex-col overflow-hidden" style={{ borderColor: `${color1}30` }}>
-          {bottomChunks.length > 0 && (
-            <div className="flex-1 flex flex-col justify-start overflow-hidden">
-              <div className={`transition-opacity duration-300 ${bottomVisible ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                {bottomChunks[bottomIndex].map((entry, index) => (
-                  entry.type === 'heading' ? (
-                    <p key={`${bottomIndex}-h-${index}`} className="text-xs font-bold uppercase text-center tracking-wide py-0.5" style={{ color: color1 }}>
-                      {entry.text}
-                    </p>
-                  ) : (
-                    <p key={`${bottomIndex}-i-${index}`} className="text-[10px] leading-snug text-center py-0.5">
-                      {entry.text}
-                    </p>
-                  )
-                ))}
-              </div>
+        {/* Default contact details below image */}
+        <div className="p-2 border-t sm:border-t-0 flex-1 flex flex-col overflow-hidden" style={{ borderColor: `${color1}30` }}>
+          <div className="flex-1 flex flex-col justify-start overflow-hidden">
+            <div className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: color1 }}>Department</p>
+              //*Add building symbol and phone symbol here*//
+              <p className="text-[11px] leading-snug break-words">{faculty.department || 'Not Available'}</p>
+
+              <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wide" style={{ color: color1 }}>Email</p>
+              <p className="text-[11px] leading-snug break-all">{faculty.email || 'Not Available'}</p>
+
+              <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wide" style={{ color: color1 }}>Phone</p>
+              <p className="text-[11px] leading-snug break-words">{faculty.phone || 'Not Available'}</p>
             </div>
-          )}
+          </div>
         </div>
       </div>
       {/* Right: Full content section */}
-      <div className="p-2.5 sm:p-3 flex-1 flex flex-col overflow-hidden h-full">
+      <div className="p-2 sm:p-2.5 flex-1 flex flex-col overflow-hidden h-full">
         {/* Name and Designation */}
         <div className="flex-shrink-0">
           <h3 className={`text-lg font-bold leading-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -134,24 +99,38 @@ const FacultyCard = ({ faculty, color1, darkMode }) => {
           )}
         </div>
 
-        {rightChunks.length > 0 && (
-          <div className="border-t flex-1 overflow-hidden" style={{ borderColor: `${color1}20` }}>
-            <ul className={`space-y-0 text-sm transition-opacity duration-300 ${rightVisible ? 'opacity-100' : 'opacity-0'} ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              {rightChunks[rightIndex].map((entry, index) => (
-                entry.type === 'heading' ? (
-                  <li key={`${rightIndex}-h-${index}`} className="font-bold uppercase tracking-wide" style={{ color: color1 }}>
-                    {entry.text}
-                  </li>
+        <div className="border-t flex-1 overflow-hidden pt-2" style={{ borderColor: `${color1}20` }}>
+          <div className="space-y-1.5">
+            {faculty.mainSection ? (
+              parseMainSection(mainSectionPreview).map((item, idx) => (
+                item.type === 'bold' ? (
+                  <p key={`bold-${idx}`} className="text-xs font-bold text-black">
+                    {item.text}
+                  </p>
                 ) : (
-                  <li key={`${rightIndex}-i-${index}`} className="flex items-start gap-1">
-                    <span className="flex-shrink-0" style={{ color: color1 }}>•</span>
-                    <span className="flex-1 leading-snug">{entry.text}</span>
-                  </li>
+                  <p key={`item-${idx}`} className={`text-xs leading-snug ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {item.text}
+                  </p>
                 )
-              ))}
-            </ul>
+              ))
+            ) : (
+              <p className={`text-sm leading-snug ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Details will be updated soon.
+              </p>
+            )}
           </div>
-        )}
+        </div>
+
+        <div className="mt-2 flex-shrink-0">
+          <Link
+            to={`/people/faculty/${faculty.id}`}
+            className="inline-flex items-center gap-1 text-xs font-semibold"
+            style={{ color: color1 }}
+          >
+            View full details
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -181,6 +160,11 @@ export default function Faculty() {
               name: item.name,
               designation: item.designation,
               role: item.designation || 'Faculty',
+              department: item.department || '',
+              email: item.email || '',
+              phone: item.phone || '',
+              mainSection: item.mainSection || '',
+              fullDetails: parseDetailList(item.fullDetails),
               bottomImageDetails: parseDetailList(item.bottomImageDetails),
               rightSideDetails: parseDetailList(item.rightSideDetails),
               image: API.getImageUrl(item.photo) || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&size=400&background=239244&color=ffffff&bold=true`
@@ -201,13 +185,13 @@ export default function Faculty() {
 
   const filteredFaculty = facultyData.filter((faculty) => {
     const term = searchTerm.toLowerCase();
-    const rightDetailsText = (faculty.rightSideDetails || []).join(' ').toLowerCase();
-    const bottomDetailsText = (faculty.bottomImageDetails || []).join(' ').toLowerCase();
+    const fullDetailsText = (faculty.fullDetails || []).join(' ').toLowerCase();
+    const mainSectionText = (faculty.mainSection || '').toLowerCase();
     const matchesSearch = 
       faculty.name.toLowerCase().includes(term) ||
       faculty.designation.toLowerCase().includes(term) ||
-      rightDetailsText.includes(term) ||
-      bottomDetailsText.includes(term);
+      mainSectionText.includes(term) ||
+      fullDetailsText.includes(term);
     
     const matchesRole = filterRole === 'All' || faculty.role === filterRole;
     

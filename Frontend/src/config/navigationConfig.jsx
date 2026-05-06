@@ -124,10 +124,15 @@ export const navigationConfig = [
     link: 'https://iiitkottayam.ac.in/data/pdf/recruiterscorner.pdf'
   },
   {
-    id: 'media',
-    label: '@Media',
-    hasDropdown: false,
-    link: '/media'
+    id: 'more',
+    label: 'More',
+    hasDropdown: true,
+    submenu: [
+      {id : 'media', label: '@Media', link: '/media' },
+      { id: 'download', label: 'Download', link: '/download' },
+      { id: 'contact', label: 'Contact', link: '/contact' },
+      {id : 'rti', label: 'RTI', link: '/rti' }
+    ]
   },
   
 

@@ -18,6 +18,7 @@ import BTechCseAI_DS from './screens/course/btechCse(AI&DS)';
 import Administration from './screens/people/administration';
 import HeadofDepartment from './screens/people/hod';
 import Faculty from './screens/people/faculty';
+import FacultyDetails from './screens/people/facultyDetails';
 import Technical from './screens/people/technical';
 import ProfessionalSupportStaff from './screens/people/ProfessionalSupportStaff';
 import BTechStudents from './screens/people/btechStudents';
@@ -176,6 +177,7 @@ function App() {
                 <Route path="/people/administration" element={<Administration />} />
                 <Route path="/people/hod" element={<HeadofDepartment />} />
                 <Route path="/people/faculty" element={<Faculty />} />
+                <Route path="/people/faculty/:id" element={<FacultyDetails />} />
                 <Route path="/people/technical" element={<Technical />} />
                 <Route path="/people/support-staff" element={<ProfessionalSupportStaff />} />
                 <Route path="/people/research-scholars" element={<ResearchScholars />} />

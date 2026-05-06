@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Upload, X, Image as ImageIcon, Link as LinkIcon, Loader } from 'lucide-react';
 import API from '../../api/api';
 
@@ -14,6 +14,20 @@ export default function ImageUploader({
 }) {
   const [uploading, setUploading] = useState(false);
   const [showUrlMode, setShowUrlMode] = useState(false);
+  const [localPreview, setLocalPreview] = useState('');
+  const [previewError, setPreviewError] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (localPreview && localPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(localPreview);
+      }
+    };
+  }, [localPreview]);
+
+  useEffect(() => {
+    setPreviewError(false);
+  }, [value, localPreview]);
 
   const handleFileUpload = async (file) => {
     if (!file) return;
@@ -29,6 +43,14 @@ export default function ImageUploader({
       alert('Please select an image file');
       return;
     }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setLocalPreview(typeof reader.result === 'string' ? reader.result : '');
+      setPreviewError(false);
+      setShowUrlMode(false);
+    };
+    reader.readAsDataURL(file);
 
     setUploading(true);
     const formData = new FormData();
@@ -88,6 +110,8 @@ export default function ImageUploader({
 
   const handleDelete = () => {
     if (window.confirm('Delete this image?')) {
+      setLocalPreview('');
+      setPreviewError(false);
       onChange('');
     }
   };
@@ -98,41 +122,41 @@ export default function ImageUploader({
         {label} {required && <span className="text-red-500">*</span>}
       </label>
 
-      {value && !showUrlMode ? (
+      {(value || localPreview) && !showUrlMode ? (
         // Image Preview with Actions
-        <div className="border-2 border-gray-300 rounded-xl p-5 bg-gradient-to-br from-gray-50 to-gray-100">
-          <div className="flex items-start gap-4">
-            <div className="relative group">
+        <div className="rounded-3xl border border-gray-200 bg-gradient-to-br from-white via-slate-50 to-emerald-50 p-5 shadow-sm">
+          <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-center">
+            <div className="relative mx-auto lg:mx-0 flex h-44 w-44 items-center justify-center rounded-full border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-3 shadow-inner">
+              <div className="absolute inset-3 rounded-full bg-slate-100" />
               <img 
-                src={API.getImageUrl(value)} 
+                src={localPreview || API.getImageUrl(value) || value} 
                 alt={label}
-                className="w-40 h-40 object-cover rounded-lg border-2 border-gray-300 shadow-md"
+                className="relative z-10 h-full w-full rounded-full border-4 border-white object-cover shadow-lg"
                 style={aspectRatio ? { aspectRatio } : {}}
                 onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/128?text=Error';
+                  if (!previewError) {
+                    setPreviewError(true);
+                  }
                 }}
               />
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all rounded-lg flex items-center justify-center">
-                <label className="opacity-0 group-hover:opacity-100 cursor-pointer bg-white text-gray-800 px-4 py-2 rounded-lg text-sm font-semibold shadow-lg transition-all transform hover:scale-105">
-                  Replace
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileUpload(e.target.files[0])}
-                    className="hidden"
-                    disabled={uploading}
-                  />
-                </label>
-              </div>
+              {previewError && (
+                <div className="absolute inset-3 z-20 flex items-center justify-center rounded-full bg-slate-50 text-xs text-slate-500 px-4 text-center">
+                  Preview unavailable
+                </div>
+              )}
             </div>
 
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-600 mb-3 break-all font-mono bg-white px-3 py-2 rounded-lg border-2 border-gray-200">
-                {value}
-              </p>
+            <div className="min-w-0 space-y-4">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Current photo</p>
+                <p className="text-xs text-slate-500 break-all font-mono mt-1 bg-white/90 px-3 py-2 rounded-lg border border-gray-200">
+                  {value}
+                </p>
+              </div>
               <div className="flex flex-wrap gap-2">
-                <label className="p-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 cursor-pointer inline-flex items-center shadow-md hover:shadow-lg transition-all transform hover:scale-105" title="Replace">
-                  <Upload className="w-5 h-5" />
+                <label className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:from-blue-700 hover:to-blue-800" title="Replace">
+                  <Upload className="w-4 h-4" />
+                  Replace Photo
                   <input
                     type="file"
                     accept="image/*"
@@ -145,19 +169,21 @@ export default function ImageUploader({
                   <button
                     type="button"
                     onClick={() => setShowUrlMode(true)}
-                    className="p-2.5 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:from-gray-700 hover:to-gray-800 inline-flex items-center shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-slate-600 to-slate-700 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:from-slate-700 hover:to-slate-800"
                     title="Enter URL"
                   >
-                    <LinkIcon className="w-5 h-5" />
+                    <LinkIcon className="w-4 h-4" />
+                    Use URL
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={handleDelete}
-                  className="p-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 inline-flex items-center shadow-md hover:shadow-lg transition-all transform hover:scale-105"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-red-700 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:from-red-700 hover:to-red-800"
                   title="Delete"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
+                  Remove
                 </button>
               </div>
             </div>
@@ -170,7 +196,7 @@ export default function ImageUploader({
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
             onPaste={handlePaste}
-            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-500 transition-colors bg-gray-50 hover:bg-green-50"
+            className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-green-500 transition-colors bg-slate-50 hover:bg-green-50"
           >
             {uploading ? (
               <div className="space-y-3">
@@ -179,7 +205,9 @@ export default function ImageUploader({
               </div>
             ) : (
               <div className="space-y-3">
-                <ImageIcon className="w-12 h-12 text-gray-400 mx-auto" />
+                <div className="mx-auto w-16 h-16 rounded-2xl bg-white border border-gray-200 flex items-center justify-center shadow-sm">
+                  <ImageIcon className="w-8 h-8 text-gray-400" />
+                </div>
                 <div>
                   <label className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer inline-block">
                     <Upload className="w-4 h-4 inline mr-2" />

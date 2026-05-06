@@ -8,7 +8,7 @@ import { ExternalLink, Calendar, Users, BookOpen } from 'lucide-react';
 
 export default function FdpWebinar() {
   const { darkMode } = useTheme();
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const color1 = API.color1;
   const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,6 +69,24 @@ export default function FdpWebinar() {
   const heroBlock = contentBlocks.find(block => block.blockType === 'hero');
   const paragraphBlocks = contentBlocks.filter(block => block.blockType === 'paragraph');
   const listBlocks = contentBlocks.filter(block => block.blockType === 'list');
+  const buttonBlocks = contentBlocks.filter(block => block.blockType === 'button');
+
+  const resolveButtonLink = (block) => {
+    const rawLink = String(block?.content?.buttonLink || block?.content?.link || '').trim();
+    return rawLink || targetUrl;
+  };
+
+  const handleButtonClick = (link) => {
+    const destination = String(link || '').trim() || targetUrl;
+    if (!destination) return;
+
+    if (destination.startsWith('http://') || destination.startsWith('https://')) {
+      window.open(destination, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    navigate(destination.startsWith('/') ? destination : `/${destination}`);
+  };
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
@@ -144,6 +162,36 @@ export default function FdpWebinar() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        ))}
+
+        {/* Dynamic Button Blocks */}
+        {buttonBlocks.map((block, index) => (
+          <div key={index} className={`mb-12 p-8 rounded-2xl border-2 shadow-xl ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} style={{ borderColor: `${color1}20` }}>
+            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-3">
+                <h2 className="text-2xl md:text-3xl font-bold" style={{ color: color1 }}>
+                  {block.content.title || 'Access FDP Details'}
+                </h2>
+                {block.content.description && (
+                  <p className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {block.content.description}
+                  </p>
+                )}
+              </div>
+
+              {(block.content.buttonText || block.content.text) && (
+                <button
+                  type="button"
+                  onClick={() => handleButtonClick(resolveButtonLink(block))}
+                  className="inline-flex items-center justify-center gap-3 px-6 py-3 rounded-lg text-white font-semibold transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+                  style={{ backgroundColor: color1 }}
+                >
+                  <span>{block.content.buttonText || block.content.text || 'Learn More'}</span>
+                  <ExternalLink className="w-5 h-5" />
+                </button>
+              )}
             </div>
           </div>
         ))}
