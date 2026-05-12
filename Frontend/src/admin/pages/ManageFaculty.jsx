@@ -17,7 +17,6 @@ const BLOCK_TYPE_ICONS = {
   statistics: BarChart3,
   button: Pointer
 };
-
 const FACULTY_DETAIL_BLOCK_TYPES = [
   { value: 'hero', label: 'Hero Banner', icon: 'hero' },
   { value: 'heading', label: 'Heading', icon: 'heading' },
@@ -30,7 +29,6 @@ const FACULTY_DETAIL_BLOCK_TYPES = [
   { value: 'statistics', label: 'Statistics', icon: 'statistics' },
   { value: 'button', label: 'Button', icon: 'button' }
 ];
-
 const MAIN_SECTION_MAX_LINES = 7;
 const MAIN_SECTION_MAX_LINE_LENGTH = 42;
 
@@ -74,30 +72,77 @@ const parseDetailBlocksFromHtml = (htmlString) => {
   while ((match = sectionRegex.exec(htmlString)) !== null) {
     const content = match[1];
     let block = null;
-    if (content.includes('<h2 ') && content.includes('font-size:32px')) {
+    if (content.includes('<h1 ') || content.includes('<h2 ') || content.includes('<h3 ') || content.includes('<h4 ') || content.includes('<h5 ') || content.includes('<h6 ')) {
+      const headingMatch = content.match(/<h([1-6])[^>]*style="[^"]*font-size:([^";]+)[^"]*"[^>]*>([\s\S]*?)<\/h\1>/i) || content.match(/<h([1-6])[^>]*>([\s\S]*?)<\/h\1>/i);
+      if (headingMatch) {
+        const level = Number(headingMatch[1] || 2);
+        const headingText = headingMatch[3] || headingMatch[2] || '';
+        const iconMatch = headingText.match(/^([^<]+?)\s+(<.*)$/s);
+        block = {
+          blockType: 'heading',
+          content: {
+            icon: iconMatch ? iconMatch[1].trim() : '',
+            text: iconMatch ? iconMatch[2] : headingText,
+            level
+          },
+          rawHtml: match[0]
+        };
+      }
+    } else if (content.includes('border:1px solid #e5e7eb') && content.includes('line-height:1.75') && content.includes('color:#374151')) {
+      const titleMatch = content.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
+      const iconMatch = content.match(/<div[^>]*style="[^"]*font-size:18px[^\"]*"[^>]*>([\s\S]*?)<\/div>/i);
+      const linkMatch = content.match(/<a[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/i);
+      const textMatch = content.match(/<div[^>]*style="margin:0;line-height:1.75;color:#374151;"[^>]*>([\s\S]*?)<\/div>/i);
+      block = {
+        blockType: 'paragraph',
+        content: {
+          icon: iconMatch ? iconMatch[1].replace(/<[^>]+>/g, '').trim() : '',
+          title: titleMatch ? titleMatch[1] : '',
+          text: textMatch ? textMatch[1] : '',
+          linkText: linkMatch ? linkMatch[2] : '',
+          link: linkMatch ? linkMatch[1] : ''
+        },
+        rawHtml: match[0]
+      };
+    } else if (content.includes('<h2 ') && content.includes('font-size:32px')) {
       const titleMatch = content.match(/<h2[^>]*>(.+?)<\/h2>/i);
       const subMatch = content.match(/<h3[^>]*style="[^"]*font-size:20px[^"]*"[^>]*>(.+?)<\/h3>/i);
       const btnMatch = content.match(/<a[^>]*href="([^"]*)"[^>]*>(.+?)<\/a>/i);
-      block = { blockType: 'hero', content: { title: titleMatch ? titleMatch[1] : '', subtitle: subMatch ? subMatch[1] : '', description: '', backgroundImage: '', buttonText: btnMatch ? btnMatch[2] : '', buttonLink: btnMatch ? btnMatch[1] : '', badge: '' } };
+      block = { blockType: 'hero', content: { title: titleMatch ? titleMatch[1] : '', subtitle: subMatch ? subMatch[1] : '', description: '', backgroundImage: '', buttonText: btnMatch ? btnMatch[2] : '', buttonLink: btnMatch ? btnMatch[1] : '', badge: '' }, rawHtml: match[0] };
     } else if (content.includes('<h3 ') && content.includes('<ul')) {
       const titleMatch = content.match(/<h3[^>]*>(.+?)<\/h3>/i);
       const items = [...content.matchAll(/<li>(.+?)<\/li>/gi)].map(m => m[1]);
-      block = { blockType: 'list', content: { title: titleMatch ? titleMatch[1] : '', items: items.length > 0 ? items : [''], icon: '' } };
+      block = { blockType: 'list', content: { title: titleMatch ? titleMatch[1] : '', items: items.length > 0 ? items : [''], icon: '' }, rawHtml: match[0] };
     } else if (content.includes('<table')) {
       const titleMatch = content.match(/<h3[^>]*>(.+?)<\/h3>/i);
       const headers = [...content.matchAll(/<th[^>]*>(.+?)<\/th>/gi)].map(m => m[1]);
       const rows = [...content.matchAll(/<tr>(.+?)<\/tr>/gi)].map(rowMatch => [...rowMatch[1].matchAll(/<td[^>]*>(.+?)<\/td>/gi)].map(m => m[1]));
-      block = { blockType: 'table', content: { title: titleMatch ? titleMatch[1] : '', subtitle: '', headers: headers.length > 0 ? headers : [''], rows: rows.length > 0 ? rows : [['']] } };
+      block = { blockType: 'table', content: { title: titleMatch ? titleMatch[1] : '', subtitle: '', headers: headers.length > 0 ? headers : [''], rows: rows.length > 0 ? rows : [['']] }, rawHtml: match[0] };
     } else if (content.includes('<img') && content.includes('max-width:100%')) {
       const titleMatch = content.match(/<h3[^>]*>(.+?)<\/h3>/i);
       const imgMatch = content.match(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/i);
       const captionMatch = content.match(/<p[^>]*color:#6b7280[^>]*>(.+?)<\/p>/i);
-      block = { blockType: 'image', content: { title: titleMatch ? titleMatch[1] : '', url: imgMatch ? imgMatch[1] : '', alt: imgMatch ? imgMatch[2] : '', caption: captionMatch ? captionMatch[1] : '' } };
+      block = { blockType: 'image', content: { title: titleMatch ? titleMatch[1] : '', url: imgMatch ? imgMatch[1] : '', alt: imgMatch ? imgMatch[2] : '', caption: captionMatch ? captionMatch[1] : '' }, rawHtml: match[0] };
+    } else if (content.includes('grid-template-columns:repeat(auto-fit,minmax(160px,1fr))')) {
+      const titleMatch = content.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
+      const images = [...content.matchAll(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/gi)].map((m) => m[1]);
+      block = { blockType: 'gallery', content: { title: titleMatch ? titleMatch[1] : '', images: images.length > 0 ? images : [''] }, rawHtml: match[0] };
+    } else if (content.includes('display:flex;gap:14px;align-items:flex-start')) {
+      const iconMatch = content.match(/<div[^>]*style="font-size:28px;line-height:1;"[^>]*>([\s\S]*?)<\/div>/i);
+      const titleMatch = content.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
+      const descMatch = content.match(/<div[^>]*style="margin:0;color:#374151;line-height:1.7;"[^>]*>([\s\S]*?)<\/div>/i);
+      const linkMatch = content.match(/<a[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/i);
+      block = { blockType: 'card', content: { icon: iconMatch ? iconMatch[1].replace(/<[^>]+>/g, '').trim() : '', title: titleMatch ? titleMatch[1] : '', description: descMatch ? descMatch[1] : '', link: linkMatch ? linkMatch[1] : '' }, rawHtml: match[0] };
+    } else if (content.includes('grid-template-columns:repeat(auto-fit,minmax(160px,1fr))') || content.includes('background:#f8fffb')) {
+      const titleMatch = content.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
+      const stats = [...content.matchAll(/<div style="font-size:24px;font-weight:800;color:#239244;">([\s\S]*?)<\/div>\s*<div style="font-size:13px;color:#6b7280;">([\s\S]*?)<\/div>/gi)]
+        .map((m) => ({ value: m[1], label: m[2] }));
+      block = { blockType: 'statistics', content: { title: titleMatch ? titleMatch[1] : '', stats: stats.length > 0 ? stats : [{ value: '', label: '' }] }, rawHtml: match[0] };
     } else if (content.includes('display:flex;align-items:center;justify-content:space-between')) {
       const btnMatch = content.match(/<a[^>]*href="([^"]*)"[^>]*>(.+?)<\/a>/i);
       const titleMatch = content.match(/<h3[^>]*style="[^"]*font-size:20px[^"]*"[^>]*>(.+?)<\/h3>/i);
       const descMatch = content.match(/<p[^>]*style="margin:0;color:#374151[^>]*>(.+?)<\/p>/i);
-      block = { blockType: 'button', content: { title: titleMatch ? titleMatch[1] : '', description: descMatch ? descMatch[1] : '', buttonText: btnMatch ? btnMatch[2] : 'Learn More', link: btnMatch ? btnMatch[1] : '', variant: content.includes('#6b7280') ? 'secondary' : 'primary' } };
+      block = { blockType: 'button', content: { title: titleMatch ? titleMatch[1] : '', description: descMatch ? descMatch[1] : '', buttonText: btnMatch ? btnMatch[2] : 'Learn More', link: btnMatch ? btnMatch[1] : '', variant: content.includes('#6b7280') ? 'secondary' : 'primary' }, rawHtml: match[0] };
     }
     if (block) blocks.push({ ...block, hidden: false });
   }
@@ -114,28 +159,29 @@ const buildDetailBlockHtml = (blockType, content) => {
   const imageUrl = resolveMediaUrl(content?.url);
   const buttonLink = String(content?.link || '').trim() || '#';
   const buttonLabel = String(content?.buttonText || '').trim() || 'Learn More';
+  const richText = (value) => String(value || '').trim();
 
   switch (blockType) {
     case 'hero':
-      return `<section style="padding:24px;border:1px solid #d1fae5;border-radius:18px;margin:18px 0;background:linear-gradient(135deg,#f0fdf4,#ecfeff);">${heroBackgroundImage ? `<div style="margin-bottom:16px;"><img src="${escapeHtml(heroBackgroundImage)}" alt="${escapeHtml(content.title || 'Hero image')}" style="width:100%;border-radius:14px;max-height:320px;object-fit:cover;" /></div>` : ''}${content.badge ? `<div style="display:inline-block;padding:6px 12px;border-radius:999px;background:#239244;color:#fff;font-size:12px;font-weight:700;margin-bottom:12px;">${escapeHtml(content.badge)}</div>` : ''}${content.title ? `<h2 style="margin:0 0 10px 0;font-size:32px;font-weight:800;color:#111827;">${escapeHtml(content.title)}</h2>` : ''}${content.subtitle ? `<h3 style="margin:0 0 10px 0;font-size:20px;font-weight:600;color:#166534;">${escapeHtml(content.subtitle)}</h3>` : ''}${content.description ? `<p style="margin:0;color:#374151;line-height:1.7;">${escapeHtml(content.description)}</p>` : ''}${content.buttonText ? `<div style="margin-top:16px;"><a href="${escapeHtml(content.buttonLink || '#')}" style="display:inline-block;padding:10px 16px;border-radius:10px;background:#239244;color:#fff;text-decoration:none;font-weight:700;">${escapeHtml(content.buttonText)}</a></div>` : ''}</section>`;
+      return `<section style="padding:24px;border:1px solid #d1fae5;border-radius:18px;margin:18px 0;background:linear-gradient(135deg,#f0fdf4,#ecfeff);">${heroBackgroundImage ? `<div style="margin-bottom:16px;"><img src="${escapeHtml(heroBackgroundImage)}" alt="${escapeHtml(content.title || 'Hero image')}" style="width:100%;border-radius:14px;max-height:320px;object-fit:cover;" /></div>` : ''}${content.badge ? `<div style="display:inline-block;padding:6px 12px;border-radius:999px;background:#239244;color:#fff;font-size:12px;font-weight:700;margin-bottom:12px;">${escapeHtml(content.badge)}</div>` : ''}${content.title ? `<h2 style="margin:0 0 10px 0;font-size:32px;font-weight:800;color:#111827;">${richText(content.title)}</h2>` : ''}${content.subtitle ? `<h3 style="margin:0 0 10px 0;font-size:20px;font-weight:600;color:#166534;">${richText(content.subtitle)}</h3>` : ''}${content.description ? `<div style="margin:0;color:#374151;line-height:1.7;">${richText(content.description)}</div>` : ''}${content.buttonText ? `<div style="margin-top:16px;"><a href="${escapeHtml(content.buttonLink || '#')}" style="display:inline-block;padding:10px 16px;border-radius:10px;background:#239244;color:#fff;text-decoration:none;font-weight:700;">${richText(content.buttonText)}</a></div>` : ''}</section>`;
     case 'heading':
-      return `<section style="margin:18px 0;"><h${content.level || 2} style="margin:0;font-size:${content.level === 1 ? '32px' : content.level === 3 ? '24px' : '28px'};font-weight:800;color:#111827;">${content.icon ? `${escapeHtml(content.icon)} ` : ''}${escapeHtml(content.text)}</h${content.level || 2}></section>`;
+      return `<section style="margin:18px 0;"><h${content.level || 2} style="margin:0;font-size:${content.level === 1 ? '32px' : content.level === 3 ? '24px' : '28px'};font-weight:800;color:#111827;">${content.icon ? `${escapeHtml(content.icon)} ` : ''}${richText(content.text)}</h${content.level || 2}></section>`;
     case 'paragraph':
-      return `<section style="margin:18px 0;padding:18px 20px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;">${content.icon ? `<div style="margin-bottom:10px;font-size:18px;font-weight:700;color:#239244;">${escapeHtml(content.icon)} ${content.title ? escapeHtml(content.title) : ''}</div>` : (content.title ? `<h3 style="margin:0 0 10px 0;font-size:20px;font-weight:700;color:#239244;">${escapeHtml(content.title)}</h3>` : '')}${content.text ? `<p style="margin:0;line-height:1.75;color:#374151;">${escapeHtml(content.text)}</p>` : ''}${content.link ? `<div style="margin-top:12px;"><a href="${escapeHtml(content.link)}" style="color:#239244;font-weight:700;text-decoration:none;">${escapeHtml(content.linkText || 'Read more')}</a></div>` : ''}</section>`;
+      return `<section style="margin:18px 0;padding:18px 20px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;">${content.icon ? `<div style="margin-bottom:10px;font-size:18px;font-weight:700;color:#239244;">${escapeHtml(content.icon)} ${content.title ? richText(content.title) : ''}</div>` : (content.title ? `<h3 style="margin:0 0 10px 0;font-size:20px;font-weight:700;color:#239244;">${richText(content.title)}</h3>` : '')}${content.text ? `<div style="margin:0;line-height:1.75;color:#374151;">${richText(content.text)}</div>` : ''}${content.link ? `<div style="margin-top:12px;"><a href="${escapeHtml(content.link)}" style="color:#239244;font-weight:700;text-decoration:none;">${richText(content.linkText || 'Read more')}</a></div>` : ''}</section>`;
     case 'image':
       return `<section style="margin:18px 0;text-align:center;">${content.title ? `<h3 style="margin:0 0 10px 0;font-size:20px;font-weight:700;color:#111827;">${escapeHtml(content.title)}</h3>` : ''}${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(content.alt || content.title || 'Faculty image')}" style="max-width:100%;width:100%;max-height:500px;aspect-ratio:1/1;object-fit:cover;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.08);display:inline-block;" />` : ''}${content.caption ? `<p style="margin:10px 0 0;color:#6b7280;font-size:13px;">${escapeHtml(content.caption)}</p>` : ''}</section>`;
     case 'gallery':
-      return `<section style="margin:18px 0;"><h3 style="margin:0 0 12px 0;font-size:20px;font-weight:700;color:#111827;">${escapeHtml(content.title || '')}</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">${(content.images || []).filter(Boolean).map((itemUrl) => `<img src="${escapeHtml(resolveMediaUrl(itemUrl))}" alt="Gallery image" style="width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;border-radius:12px;display:block;" />`).join('')}</div></section>`;
+      return `<section style="margin:18px 0;"><h3 style="margin:0 0 12px 0;font-size:20px;font-weight:700;color:#111827;">${richText(content.title || '')}</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">${(content.images || []).filter(Boolean).map((itemUrl) => `<img src="${escapeHtml(resolveMediaUrl(itemUrl))}" alt="Gallery image" style="width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;border-radius:12px;display:block;" />`).join('')}</div></section>`;
     case 'list':
-      return `<section style="margin:18px 0;padding:18px 20px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;"><h3 style="margin:0 0 12px 0;font-size:20px;font-weight:700;color:#111827;">${escapeHtml(content.title || '')}</h3><ul style="margin:0;padding-left:20px;color:#374151;line-height:1.8;">${(content.items || []).filter(Boolean).map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul></section>`;
+      return `<section style="margin:18px 0;padding:18px 20px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;"><h3 style="margin:0 0 12px 0;font-size:20px;font-weight:700;color:#111827;">${richText(content.title || '')}</h3><ul style="margin:0;padding-left:20px;color:#374151;line-height:1.8;">${(content.items || []).filter(Boolean).map((item) => `<li>${richText(item)}</li>`).join('')}</ul></section>`;
     case 'card':
-      return `<section style="margin:18px 0;padding:18px;border:1px solid #e5e7eb;border-radius:16px;background:#fff;display:flex;gap:14px;align-items:flex-start;">${content.icon ? `<div style="font-size:28px;line-height:1;">${escapeHtml(content.icon)}</div>` : ''}<div>${content.title ? `<h3 style="margin:0 0 8px 0;font-size:20px;font-weight:700;color:#111827;">${escapeHtml(content.title)}</h3>` : ''}${content.description ? `<p style="margin:0;color:#374151;line-height:1.7;">${escapeHtml(content.description)}</p>` : ''}${content.link ? `<div style="margin-top:12px;"><a href="${escapeHtml(content.link)}" style="color:#239244;font-weight:700;text-decoration:none;">Learn more</a></div>` : ''}</div></section>`;
+      return `<section style="margin:18px 0;padding:18px;border:1px solid #e5e7eb;border-radius:16px;background:#fff;display:flex;gap:14px;align-items:flex-start;">${content.icon ? `<div style="font-size:28px;line-height:1;">${escapeHtml(content.icon)}</div>` : ''}<div>${content.title ? `<h3 style="margin:0 0 8px 0;font-size:20px;font-weight:700;color:#111827;">${richText(content.title)}</h3>` : ''}${content.description ? `<div style="margin:0;color:#374151;line-height:1.7;">${richText(content.description)}</div>` : ''}${content.link ? `<div style="margin-top:12px;"><a href="${escapeHtml(content.link)}" style="color:#239244;font-weight:700;text-decoration:none;">Learn more</a></div>` : ''}</div></section>`;
     case 'table':
       return `<section style="margin:18px 0;overflow:auto;">${content.title ? `<h3 style="margin:0 0 8px 0;font-size:20px;font-weight:700;color:#111827;">${escapeHtml(content.title)}</h3>` : ''}${content.subtitle ? `<p style="margin:0 0 12px 0;color:#6b7280;">${escapeHtml(content.subtitle)}</p>` : ''}<table style="width:100%;border-collapse:collapse;border:1px solid #d1d5db;border-radius:12px;overflow:hidden;"><thead><tr>${(content.headers || []).filter(Boolean).map((header) => `<th style="background:#ecfdf5;border:1px solid #d1d5db;padding:10px 12px;text-align:left;color:#111827;">${escapeHtml(header)}</th>`).join('')}</tr></thead><tbody>${(content.rows || []).map((row) => `<tr>${(row || []).map((cell) => `<td style="border:1px solid #d1d5db;padding:10px 12px;color:#374151;">${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></section>`;
     case 'statistics':
-      return `<section style="margin:18px 0;padding:18px;border:1px solid #d1fae5;border-radius:16px;background:#f8fffb;"><h3 style="margin:0 0 12px 0;font-size:20px;font-weight:700;color:#111827;">${escapeHtml(content.title || '')}</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">${(content.stats || []).filter(Boolean).map((stat) => `<div style="padding:14px;border-radius:12px;background:#fff;border:1px solid #d1d5db;"><div style="font-size:24px;font-weight:800;color:#239244;">${escapeHtml(stat.value)}</div><div style="font-size:13px;color:#6b7280;">${escapeHtml(stat.label)}</div></div>`).join('')}</div></section>`;
+      return `<section style="margin:18px 0;padding:18px;border:1px solid #d1fae5;border-radius:16px;background:#f8fffb;"><h3 style="margin:0 0 12px 0;font-size:20px;font-weight:700;color:#111827;">${richText(content.title || '')}</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">${(content.stats || []).filter(Boolean).map((stat) => `<div style="padding:14px;border-radius:12px;background:#fff;border:1px solid #d1d5db;"><div style="font-size:24px;font-weight:800;color:#239244;">${escapeHtml(stat.value)}</div><div style="font-size:13px;color:#6b7280;">${escapeHtml(stat.label)}</div></div>`).join('')}</div></section>`;
     case 'button':
-      return `<section style="margin:18px 0;padding:18px;border:1px solid #e5e7eb;border-radius:16px;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:16px;"><div>${content.title ? `<h3 style="margin:0 0 8px 0;font-size:20px;font-weight:700;color:#111827;">${escapeHtml(content.title)}</h3>` : ''}${content.description ? `<p style="margin:0;color:#374151;line-height:1.7;">${escapeHtml(content.description)}</p>` : ''}</div><a href="${escapeHtml(buttonLink)}" style="display:inline-block;padding:10px 16px;border-radius:10px;background:${content.variant === 'secondary' ? '#6b7280' : '#239244'};color:#fff;text-decoration:none;font-weight:700;white-space:nowrap;">${escapeHtml(buttonLabel)}</a></section>`;
+      return `<section style="margin:18px 0;padding:18px;border:1px solid #e5e7eb;border-radius:16px;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:16px;"><div>${content.title ? `<h3 style="margin:0 0 8px 0;font-size:20px;font-weight:700;color:#111827;">${richText(content.title)}</h3>` : ''}${content.description ? `<div style="margin:0;color:#374151;line-height:1.7;">${richText(content.description)}</div>` : ''}</div><a href="${escapeHtml(buttonLink)}" style="display:inline-block;padding:10px 16px;border-radius:10px;background:${content.variant === 'secondary' ? '#6b7280' : '#239244'};color:#fff;text-decoration:none;font-weight:700;white-space:nowrap;">${richText(buttonLabel)}</a></section>`;
     default:
       return '';
   }
@@ -210,7 +256,9 @@ export default function ManageFaculty() {
     try {
       setFetchError('');
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API.baseURL}/api/faculty`, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await fetch(`${API.baseURL}/api/faculty`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
       if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || 'Failed to load faculty data');
       const data = await response.json();
       setFaculty(data.data || []);
@@ -235,6 +283,7 @@ export default function ManageFaculty() {
   const openEditModal = (item) => {
     const resolvedFullDetails = Array.isArray(item.fullDetails) ? item.fullDetails : toDetailArray(item.fullDetails || '');
     const fallbackFullDetails = Array.isArray(item.rightSideDetails) ? item.rightSideDetails : toDetailArray(item.rightSideDetails || '');
+    const parsedBlocks = item.fullDetailsHtml ? parseDetailBlocksFromHtml(item.fullDetailsHtml) : [];
     setEditingItem(item);
     setFormData({
       name: item.name || '',
@@ -254,21 +303,12 @@ export default function ManageFaculty() {
       mainSection: normalizeMainSection(item.mainSection || ''),
       fullDetails: (resolvedFullDetails.length > 0 ? resolvedFullDetails : fallbackFullDetails).join('\n'),
       fullDetailsHtml: item.fullDetailsHtml || '',
-      useHtmlEditor: Boolean(item.fullDetailsHtml),
+      useHtmlEditor: parsedBlocks.length > 0,
       isActive: item.isActive !== false
     });
-    const parsedBlocks = item.fullDetailsHtml ? parseDetailBlocksFromHtml(item.fullDetailsHtml) : [];
     setDetailBlocks(parsedBlocks.length > 0 ? parsedBlocks : []);
-    if (parsedBlocks.length > 0) {
-      setDetailBuilder({
-        blockType: parsedBlocks[0].blockType,
-        content: parsedBlocks[0].content || createDefaultDetailBuilderContent(parsedBlocks[0].blockType)
-      });
-      setEditingBlockIndex(0);
-    } else {
-      setDetailBuilder(createBlockBuilderState('heading'));
-      setEditingBlockIndex(null);
-    }
+    setDetailBuilder(createBlockBuilderState('heading'));
+    setEditingBlockIndex(null);
     setActiveEditorStep(item.fullDetailsHtml ? 3 : 1);
     setShowModal(true);
   };
@@ -278,22 +318,33 @@ export default function ManageFaculty() {
     try {
       const token = localStorage.getItem('token');
       const url = editingItem ? `${API.baseURL}/api/faculty/${editingItem.id}` : `${API.baseURL}/api/faculty`;
+      const visibleBlocks = detailBlocks.filter((block) => !block.hidden);
       const fullDetailsHtmlToSave = formData.useHtmlEditor
-        ? detailBlocks.filter((block) => !block.hidden).map(block => buildDetailBlockHtml(block.blockType, block.content)).join('')
+        ? (visibleBlocks.length > 0 ? visibleBlocks.map((block) => block.rawHtml || buildDetailBlockHtml(block.blockType, block.content)).join('') : (formData.fullDetailsHtml || ''))
         : (formData.fullDetailsHtml || '');
+      // Merge with existing item values when editing to avoid accidental data loss
       const payload = {
-        name: formData.name,
-        designation: formData.designation,
-        department: formData.department?.trim() || 'General',
-        email: normalizeEmail(formData.email || ''),
-        phone: formData.phone?.trim() || '',
-        photo: formData.photo || '',
-        mainSection: normalizeMainSection(formData.mainSection || '').trim(),
-        fullDetails: textToList(formData.fullDetails),
-        fullDetailsHtml: fullDetailsHtmlToSave,
+        name: (formData.name || (editingItem && editingItem.name)) || '',
+        designation: (formData.designation || (editingItem && editingItem.designation)) || '',
+        department: (formData.department?.trim() || (editingItem && editingItem.department) || 'General'),
+        email: normalizeEmail((formData.email || (editingItem && editingItem.email)) || ''),
+        phone: (formData.phone?.trim() || (editingItem && editingItem.phone)) || '',
+        photo: (formData.photo || (editingItem && editingItem.photo)) || '',
+        mainSection: normalizeMainSection(formData.mainSection || (editingItem && editingItem.mainSection) || '').trim(),
+        fullDetails: (textToList(formData.fullDetails).length > 0 ? textToList(formData.fullDetails) : (editingItem && (Array.isArray(editingItem.fullDetails) ? editingItem.fullDetails : toDetailArray(editingItem.fullDetails))) || []),
+        fullDetailsHtml: (fullDetailsHtmlToSave && fullDetailsHtmlToSave.length > 0) ? fullDetailsHtmlToSave : ((editingItem && editingItem.fullDetailsHtml) || ''),
         isActive: !!formData.isActive
       };
-      const response = await fetch(url, { method: editingItem ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(payload) });
+      console.log('ManageFaculty payload preview:', { id: editingItem?.id, name: payload.name, fullDetailsHtmlLength: (payload.fullDetailsHtml || '').length, fullDetailsCount: (payload.fullDetails || []).length });
+      console.log('ManageFaculty saving fullDetailsHtml (first 500 chars):', (fullDetailsHtmlToSave || '').slice(0, 500));
+      const response = await fetch(url, {
+        method: editingItem ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(payload)
+      });
       if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || 'Failed to save faculty details');
       await fetchFaculty();
       setShowModal(false);
@@ -308,7 +359,10 @@ export default function ManageFaculty() {
     if (!window.confirm('Are you sure you want to delete this faculty member?')) return;
     try {
       const token = localStorage.getItem('token');
-      await fetch(`${API.baseURL}/api/faculty/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      await fetch(`${API.baseURL}/api/faculty/${id}`, {
+        method: 'DELETE',
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
       fetchFaculty();
     } catch (error) {
       console.error('Error deleting faculty:', error);
@@ -326,12 +380,12 @@ export default function ManageFaculty() {
     if (editingBlockIndex !== null) {
       setDetailBlocks((prev) => {
         const next = [...prev];
-        next[editingBlockIndex] = { blockType: detailBuilder.blockType, content: detailBuilder.content, hidden: next[editingBlockIndex]?.hidden === true };
+        next[editingBlockIndex] = { blockType: detailBuilder.blockType, content: detailBuilder.content, rawHtml: buildDetailBlockHtml(detailBuilder.blockType, detailBuilder.content), hidden: next[editingBlockIndex]?.hidden === true };
         return next;
       });
       setEditingBlockIndex(null);
     } else {
-      setDetailBlocks((prev) => [...prev, { blockType: detailBuilder.blockType, content: detailBuilder.content, hidden: false }]);
+      setDetailBlocks((prev) => [...prev, { blockType: detailBuilder.blockType, content: detailBuilder.content, rawHtml: buildDetailBlockHtml(detailBuilder.blockType, detailBuilder.content), hidden: false }]);
     }
     setDetailBuilder(createBlockBuilderState(detailBuilder.blockType));
   };
@@ -577,7 +631,23 @@ export default function ManageFaculty() {
             </div>
           </div>
         ) : (
-          <textarea rows={6} value={formData.fullDetails} onChange={(e) => setFormData({ ...formData, fullDetails: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-mono text-sm bg-white" placeholder="**Education**\nPh.D. in Computer Science, XYZ University\nM.Tech in Computer Science\n\n**Experience**\n10+ years teaching experience\n5+ years research experience" />
+          <div className="space-y-3">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="mb-3 flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900">Rich Text Editor</h4>
+                  <p className="text-xs text-slate-500">Use bold, italic, headings, and links here.</p>
+                </div>
+              </div>
+              <RichEditor
+                value={formData.fullDetailsHtml || ''}
+                onChange={(html) => setFormData({ ...formData, fullDetailsHtml: html })}
+              />
+            </div>
+            <p className="text-xs text-slate-500">
+              This content will be saved as HTML and shown on the public faculty page.
+            </p>
+          </div>
         )}
       </div>
     );
@@ -586,27 +656,164 @@ export default function ManageFaculty() {
   const renderDetailBuilderFields = () => {
     const content = detailBuilder.content || {};
 
+    const fieldLabel = (label) => (
+      <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">{label}</label>
+    );
+
+    const richField = (label, value, onChange) => (
+      <div className="space-y-1">
+        {fieldLabel(label)}
+        <RichEditor value={value || ''} onChange={onChange} />
+      </div>
+    );
+
+    const formatGuide = (
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">
+        <p className="font-semibold mb-1">Available formatting</p>
+        <p>Bold, italic, links, H2/H3 headings, paragraph, ordered/unordered lists, table, image, button, and card snippets.</p>
+      </div>
+    );
+
     switch (detailBuilder.blockType) {
       case 'hero':
-        return <div className="space-y-4"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Badge text" value={content.badge || ''} onChange={(e) => updateDetailBuilderContent('badge', e.target.value)} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Hero title" value={content.title || ''} onChange={(e) => updateDetailBuilderContent('title', e.target.value)} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Subtitle" value={content.subtitle || ''} onChange={(e) => updateDetailBuilderContent('subtitle', e.target.value)} /><textarea className="w-full px-3 py-2 border rounded-lg" rows={4} placeholder="Description" value={content.description || ''} onChange={(e) => updateDetailBuilderContent('description', e.target.value)} /><div className="grid grid-cols-2 gap-3"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Button text" value={content.buttonText || ''} onChange={(e) => updateDetailBuilderContent('buttonText', e.target.value)} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Button link" value={content.buttonLink || ''} onChange={(e) => updateDetailBuilderContent('buttonLink', e.target.value)} /></div><ImageUploader value={content.backgroundImage || ''} onChange={(url) => updateDetailBuilderContent('backgroundImage', url)} label="Background image" folder="faculty" /></div>;
+        return (
+          <div className="space-y-4">
+            {formatGuide}
+            <div>
+              {fieldLabel('Badge text')}
+              <input className="w-full px-3 py-2 border rounded-lg" placeholder="Badge text" value={content.badge || ''} onChange={(e) => updateDetailBuilderContent('badge', e.target.value)} />
+            </div>
+            {richField('Hero title', content.title, (html) => updateDetailBuilderContent('title', html))}
+            {richField('Subtitle', content.subtitle, (html) => updateDetailBuilderContent('subtitle', html))}
+            {richField('Description', content.description, (html) => updateDetailBuilderContent('description', html))}
+            <div className="grid grid-cols-2 gap-3">
+              {richField('Button text', content.buttonText, (html) => updateDetailBuilderContent('buttonText', html))}
+              <div>
+                {fieldLabel('Button link')}
+                <input className="w-full px-3 py-2 border rounded-lg" placeholder="Button link" value={content.buttonLink || ''} onChange={(e) => updateDetailBuilderContent('buttonLink', e.target.value)} />
+              </div>
+            </div>
+            <ImageUploader value={content.backgroundImage || ''} onChange={(url) => updateDetailBuilderContent('backgroundImage', url)} label="Background image" folder="faculty" />
+          </div>
+        );
       case 'heading':
-        return <div className="space-y-4"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Icon (optional)" value={content.icon || ''} onChange={(e) => updateDetailBuilderContent('icon', e.target.value)} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Heading text" value={content.text || ''} onChange={(e) => updateDetailBuilderContent('text', e.target.value)} /><select className="w-full px-3 py-2 border rounded-lg" value={content.level || 2} onChange={(e) => updateDetailBuilderContent('level', Number(e.target.value))}><option value={1}>H1</option><option value={2}>H2</option><option value={3}>H3</option><option value={4}>H4</option></select></div>;
+        return (
+          <div className="space-y-4">
+            {formatGuide}
+            <div>
+              {fieldLabel('Icon (optional)')}
+              <input className="w-full px-3 py-2 border rounded-lg" placeholder="Icon (optional)" value={content.icon || ''} onChange={(e) => updateDetailBuilderContent('icon', e.target.value)} />
+            </div>
+            {richField('Heading text', content.text, (html) => updateDetailBuilderContent('text', html))}
+            <div>
+              {fieldLabel('Heading level')}
+              <select className="w-full px-3 py-2 border rounded-lg" value={content.level || 2} onChange={(e) => updateDetailBuilderContent('level', Number(e.target.value))}><option value={1}>H1</option><option value={2}>H2</option><option value={3}>H3</option><option value={4}>H4</option></select>
+            </div>
+          </div>
+        );
       case 'paragraph':
-        return <div className="space-y-4"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Icon (optional)" value={content.icon || ''} onChange={(e) => updateDetailBuilderContent('icon', e.target.value)} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Title" value={content.title || ''} onChange={(e) => updateDetailBuilderContent('title', e.target.value)} /><textarea className="w-full px-3 py-2 border rounded-lg" rows={5} placeholder="Paragraph text" value={content.text || ''} onChange={(e) => updateDetailBuilderContent('text', e.target.value)} /><div className="grid grid-cols-2 gap-3"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Link text" value={content.linkText || ''} onChange={(e) => updateDetailBuilderContent('linkText', e.target.value)} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Link URL" value={content.link || ''} onChange={(e) => updateDetailBuilderContent('link', e.target.value)} /></div></div>;
+        return (
+          <div className="space-y-4">
+            {formatGuide}
+            <div>
+              {fieldLabel('Icon (optional)')}
+              <input className="w-full px-3 py-2 border rounded-lg" placeholder="Icon (optional)" value={content.icon || ''} onChange={(e) => updateDetailBuilderContent('icon', e.target.value)} />
+            </div>
+            {richField('Title', content.title, (html) => updateDetailBuilderContent('title', html))}
+            {richField('Paragraph text', content.text, (html) => updateDetailBuilderContent('text', html))}
+            <div className="grid grid-cols-2 gap-3">
+              {richField('Link text', content.linkText, (html) => updateDetailBuilderContent('linkText', html))}
+              <div>
+                {fieldLabel('Link URL')}
+                <input className="w-full px-3 py-2 border rounded-lg" placeholder="Link URL" value={content.link || ''} onChange={(e) => updateDetailBuilderContent('link', e.target.value)} />
+              </div>
+            </div>
+          </div>
+        );
       case 'image':
-        return <div className="space-y-4"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Image title" value={content.title || ''} onChange={(e) => updateDetailBuilderContent('title', e.target.value)} /><ImageUploader value={content.url || ''} onChange={(url) => updateDetailBuilderContent('url', url)} label="Upload image" folder="faculty" /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Alt text" value={content.alt || ''} onChange={(e) => updateDetailBuilderContent('alt', e.target.value)} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Caption (optional)" value={content.caption || ''} onChange={(e) => updateDetailBuilderContent('caption', e.target.value)} /></div>;
+        return (
+          <div className="space-y-4">
+            {formatGuide}
+            {richField('Image title', content.title, (html) => updateDetailBuilderContent('title', html))}
+            <ImageUploader value={content.url || ''} onChange={(url) => updateDetailBuilderContent('url', url)} label="Upload image" folder="faculty" />
+            <div>
+              {fieldLabel('Alt text')}
+              <input className="w-full px-3 py-2 border rounded-lg" placeholder="Alt text" value={content.alt || ''} onChange={(e) => updateDetailBuilderContent('alt', e.target.value)} />
+            </div>
+            {richField('Caption', content.caption, (html) => updateDetailBuilderContent('caption', html))}
+          </div>
+        );
       case 'gallery':
-        return <div className="space-y-4"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Gallery title" value={content.title || ''} onChange={(e) => updateDetailBuilderContent('title', e.target.value)} />{(content.images || []).map((image, index) => (<div key={index} className="space-y-2 rounded-lg border bg-white p-3"><div className="flex items-center justify-between"><span className="text-xs font-semibold text-gray-600">Image {index + 1}</span><button type="button" className="text-xs text-red-600" onClick={() => removeDetailBuilderArrayItem('images', index)}>Remove</button></div><ImageUploader value={image || ''} onChange={(url) => updateDetailBuilderArray('images', index, url)} label={`Image ${index + 1}`} folder="faculty" /></div>))}<button type="button" className="px-3 py-2 text-sm text-green-700 border border-green-600 rounded-lg hover:bg-green-50" onClick={() => addDetailBuilderArrayItem('images', '')}>+ Add Image</button></div>;
+        return (
+          <div className="space-y-4">
+            {formatGuide}
+            {richField('Gallery title', content.title, (html) => updateDetailBuilderContent('title', html))}
+            {(content.images || []).map((image, index) => (
+              <div key={index} className="space-y-2 rounded-lg border bg-white p-3">
+                <div className="flex items-center justify-between"><span className="text-xs font-semibold text-gray-600">Image {index + 1}</span><button type="button" className="text-xs text-red-600" onClick={() => removeDetailBuilderArrayItem('images', index)}>Remove</button></div>
+                <ImageUploader value={image || ''} onChange={(url) => updateDetailBuilderArray('images', index, url)} label={`Image ${index + 1}`} folder="faculty" />
+              </div>
+            ))}
+            <button type="button" className="px-3 py-2 text-sm text-green-700 border border-green-600 rounded-lg hover:bg-green-50" onClick={() => addDetailBuilderArrayItem('images', '')}>+ Add Image</button>
+          </div>
+        );
       case 'list':
-        return <div className="space-y-4"><input className="w-full px-3 py-2 border rounded-lg" placeholder="List title" value={content.title || ''} onChange={(e) => updateDetailBuilderContent('title', e.target.value)} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Icon (optional)" value={content.icon || ''} onChange={(e) => updateDetailBuilderContent('icon', e.target.value)} />{(content.items || []).map((item, index) => (<div key={index} className="flex gap-2"><input className="flex-1 px-3 py-2 border rounded-lg" placeholder={`Item ${index + 1}`} value={item || ''} onChange={(e) => updateDetailBuilderArray('items', index, e.target.value)} /><button type="button" className="px-3 py-2 text-red-600" onClick={() => removeDetailBuilderArrayItem('items', index)}>×</button></div>))}<button type="button" className="px-3 py-2 text-sm text-green-700 border border-green-600 rounded-lg hover:bg-green-50" onClick={() => addDetailBuilderArrayItem('items', '')}>+ Add Item</button></div>;
+        return (
+          <div className="space-y-4">
+            {formatGuide}
+            {richField('List title', content.title, (html) => updateDetailBuilderContent('title', html))}
+            <div>
+              {fieldLabel('Icon (optional)')}
+              <input className="w-full px-3 py-2 border rounded-lg" placeholder="Icon (optional)" value={content.icon || ''} onChange={(e) => updateDetailBuilderContent('icon', e.target.value)} />
+            </div>
+            {(content.items || []).map((item, index) => (
+              <div key={index} className="space-y-2 rounded-lg border bg-white p-3">
+                {richField(`Item ${index + 1}`, item, (html) => updateDetailBuilderArray('items', index, html))}
+                <button type="button" className="px-3 py-2 text-red-600 text-sm" onClick={() => removeDetailBuilderArrayItem('items', index)}>Remove</button>
+              </div>
+            ))}
+            <button type="button" className="px-3 py-2 text-sm text-green-700 border border-green-600 rounded-lg hover:bg-green-50" onClick={() => addDetailBuilderArrayItem('items', '')}>+ Add Item</button>
+          </div>
+        );
       case 'card':
-        return <div className="space-y-4"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Card title" value={content.title || ''} onChange={(e) => updateDetailBuilderContent('title', e.target.value)} /><textarea className="w-full px-3 py-2 border rounded-lg" rows={4} placeholder="Card description" value={content.description || ''} onChange={(e) => updateDetailBuilderContent('description', e.target.value)} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Icon / emoji" value={content.icon || ''} onChange={(e) => updateDetailBuilderContent('icon', e.target.value)} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Link URL (optional)" value={content.link || ''} onChange={(e) => updateDetailBuilderContent('link', e.target.value)} /></div>;
+        return (
+          <div className="space-y-4">
+            {formatGuide}
+            {richField('Card title', content.title, (html) => updateDetailBuilderContent('title', html))}
+            {richField('Card description', content.description, (html) => updateDetailBuilderContent('description', html))}
+            <div>
+              {fieldLabel('Icon / emoji')}
+              <input className="w-full px-3 py-2 border rounded-lg" placeholder="Icon / emoji" value={content.icon || ''} onChange={(e) => updateDetailBuilderContent('icon', e.target.value)} />
+            </div>
+            <div>
+              {fieldLabel('Link URL')}
+              <input className="w-full px-3 py-2 border rounded-lg" placeholder="Link URL (optional)" value={content.link || ''} onChange={(e) => updateDetailBuilderContent('link', e.target.value)} />
+            </div>
+          </div>
+        );
       case 'table':
         return <div className="space-y-4"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Table title" value={content.title || ''} onChange={(e) => updateDetailBuilderContent('title', e.target.value)} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Subtitle (optional)" value={content.subtitle || ''} onChange={(e) => updateDetailBuilderContent('subtitle', e.target.value)} /><div><div className="flex items-center justify-between mb-2"><span className="text-sm font-semibold text-gray-700">Headers</span><button type="button" className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700" onClick={() => addDetailBuilderArrayItem('headers', '')}>+ Add Header</button></div>{(content.headers || []).map((header, index) => (<div key={index} className="flex gap-2 mb-2"><input className="flex-1 px-3 py-2 border rounded-lg" placeholder={`Header ${index + 1}`} value={header || ''} onChange={(e) => updateDetailBuilderArray('headers', index, e.target.value)} /><button type="button" className="px-3 py-2 text-red-600" onClick={() => removeDetailBuilderArrayItem('headers', index)}>×</button></div>))}</div><div><div className="flex items-center justify-between mb-2"><span className="text-sm font-semibold text-gray-700">Rows</span><button type="button" className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700" onClick={() => addDetailBuilderArrayItem('rows', [''])}>+ Add Row</button></div>{(content.rows || []).map((row, rowIndex) => (<div key={rowIndex} className="rounded-lg border bg-white p-3 mb-2"><div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.max((content.headers || []).length, 1)}, minmax(0, 1fr))` }}>{(row || []).map((cell, cellIndex) => (<input key={cellIndex} className="w-full px-3 py-2 border rounded-lg" placeholder={`R${rowIndex + 1}C${cellIndex + 1}`} value={cell || ''} onChange={(e) => { const nextRows = [...(content.rows || [])]; const nextRow = Array.isArray(nextRows[rowIndex]) ? [...nextRows[rowIndex]] : []; nextRow[cellIndex] = e.target.value; nextRows[rowIndex] = nextRow; updateDetailBuilderContent('rows', nextRows); }} />))}</div></div>))}</div></div>;
       case 'statistics':
-        return <div className="space-y-4"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Statistics title" value={content.title || ''} onChange={(e) => updateDetailBuilderContent('title', e.target.value)} />{(content.stats || []).map((stat, index) => (<div key={index} className="rounded-lg border bg-white p-3"><div className="grid grid-cols-2 gap-2 mb-2"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Value" value={stat.value || ''} onChange={(e) => { const nextStats = [...(content.stats || [])]; nextStats[index] = { ...nextStats[index], value: e.target.value }; updateDetailBuilderContent('stats', nextStats); }} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Label" value={stat.label || ''} onChange={(e) => { const nextStats = [...(content.stats || [])]; nextStats[index] = { ...nextStats[index], label: e.target.value }; updateDetailBuilderContent('stats', nextStats); }} /></div><button type="button" className="text-xs text-red-600" onClick={() => removeDetailBuilderArrayItem('stats', index)}>Remove statistic</button></div>))}<button type="button" className="px-3 py-2 text-sm text-green-700 border border-green-600 rounded-lg hover:bg-green-50" onClick={() => addDetailBuilderArrayItem('stats', { value: '', label: '' })}>+ Add Statistic</button></div>;
+        return <div className="space-y-4">{formatGuide}{richField('Statistics title', content.title, (html) => updateDetailBuilderContent('title', html))}{(content.stats || []).map((stat, index) => (<div key={index} className="rounded-lg border bg-white p-3"><div className="grid grid-cols-2 gap-2 mb-2"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Value" value={stat.value || ''} onChange={(e) => { const nextStats = [...(content.stats || [])]; nextStats[index] = { ...nextStats[index], value: e.target.value }; updateDetailBuilderContent('stats', nextStats); }} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Label" value={stat.label || ''} onChange={(e) => { const nextStats = [...(content.stats || [])]; nextStats[index] = { ...nextStats[index], label: e.target.value }; updateDetailBuilderContent('stats', nextStats); }} /></div><button type="button" className="text-xs text-red-600" onClick={() => removeDetailBuilderArrayItem('stats', index)}>Remove statistic</button></div>))}<button type="button" className="px-3 py-2 text-sm text-green-700 border border-green-600 rounded-lg hover:bg-green-50" onClick={() => addDetailBuilderArrayItem('stats', { value: '', label: '' })}>+ Add Statistic</button></div>;
       case 'button':
-        return <div className="space-y-4"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Title" value={content.title || ''} onChange={(e) => updateDetailBuilderContent('title', e.target.value)} /><textarea className="w-full px-3 py-2 border rounded-lg" rows={3} placeholder="Description" value={content.description || ''} onChange={(e) => updateDetailBuilderContent('description', e.target.value)} /><div className="grid grid-cols-2 gap-3"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Button text" value={content.buttonText || ''} onChange={(e) => updateDetailBuilderContent('buttonText', e.target.value)} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Link URL" value={content.link || ''} onChange={(e) => updateDetailBuilderContent('link', e.target.value)} /></div><select className="w-full px-3 py-2 border rounded-lg" value={content.variant || 'primary'} onChange={(e) => updateDetailBuilderContent('variant', e.target.value)}><option value="primary">Primary</option><option value="secondary">Secondary</option></select></div>;
+        return (
+          <div className="space-y-4">
+            {formatGuide}
+            {richField('Title', content.title, (html) => updateDetailBuilderContent('title', html))}
+            {richField('Description', content.description, (html) => updateDetailBuilderContent('description', html))}
+            <div className="grid grid-cols-2 gap-3">
+              {richField('Button text', content.buttonText, (html) => updateDetailBuilderContent('buttonText', html))}
+              <div>
+                {fieldLabel('Link URL')}
+                <input className="w-full px-3 py-2 border rounded-lg" placeholder="Link URL" value={content.link || ''} onChange={(e) => updateDetailBuilderContent('link', e.target.value)} />
+              </div>
+            </div>
+            <div>
+              {fieldLabel('Button style')}
+              <select className="w-full px-3 py-2 border rounded-lg" value={content.variant || 'primary'} onChange={(e) => updateDetailBuilderContent('variant', e.target.value)}><option value="primary">Primary</option><option value="secondary">Secondary</option></select>
+            </div>
+          </div>
+        );
       default:
         return <div className="rounded-xl border border-dashed p-4 text-sm text-gray-500">This block type does not have a custom editor yet.</div>;
     }

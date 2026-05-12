@@ -88,6 +88,8 @@ import ManageMTechStudents from './admin/pages/ManageMTechStudents';
 import ManageGenderIndex from './admin/pages/ManageGenderIndex';
 import ManageFacilities from './admin/pages/ManageFacilities';
 import ManageFdpPrograms from './admin/pages/ManageFdpPrograms';
+import ManageContentSections from './admin/pages/ManageContentSections';
+import ManageLatestNewsUpdates from './admin/pages/ManageLatestNewsUpdates';
 import ManageClubs from './screens/admin/ManageClubs';
 import ManageResearchActivities from './screens/admin/ManageResearchActivities';
 import AdminVisitorStats from './pages/AdminVisitorStats';
@@ -144,6 +146,12 @@ function App() {
             <Route path="facilities" element={<ManageFacilities />} />
             <Route path="clubs" element={<ManageClubs />} />
             <Route path="fdp-programs" element={<ManageFdpPrograms />} />
+            <Route path="latest-news-updates" element={<ManageLatestNewsUpdates />} />
+            <Route path="latest-news-updates/:subsection" element={<ManageLatestNewsUpdates />} />
+                        <Route path="content-sections" element={<ManageContentSections />} />
+                        <Route path="content-sections/:sectionName" element={<ManageContentSections />} />
+                        {/* simplified subsection routes, e.g. /admin/latest-news-updates/campus-update */}
+                        <Route path=":sectionName/:subsection" element={<ManageContentSections />} />
             <Route path="research-activities" element={<ManageResearchActivities />} />
             <Route path="settings" element={<Settings />} />
             <Route path="visitor-stats" element={<AdminVisitorStats />} />
@@ -177,7 +185,7 @@ function App() {
                 <Route path="/people/administration" element={<Administration />} />
                 <Route path="/people/hod" element={<HeadofDepartment />} />
                 <Route path="/people/faculty" element={<Faculty />} />
-                <Route path="/people/faculty/:id" element={<FacultyDetails />} />
+                <Route path="/people/faculty/:slug" element={<FacultyDetails />} />
                 <Route path="/people/technical" element={<Technical />} />
                 <Route path="/people/support-staff" element={<ProfessionalSupportStaff />} />
                 <Route path="/people/research-scholars" element={<ResearchScholars />} />

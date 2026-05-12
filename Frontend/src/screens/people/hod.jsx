@@ -17,51 +17,67 @@ const HODCard = ({ hod, color1, darkMode }) => {
     >
       {/* Colored Top Bar */}
       <div 
-        className="h-2 w-full"
+        className="h-1 w-full"
         style={{
           background: `linear-gradient(90deg, ${color1}, ${color1}cc)`
         }}
       />
 
       {/* Content Container */}
-      <div className="p-8">
+      <div className="p-3">
         {/* Profile Image with Border */}
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-2">
           <div className="relative">
             <div 
-              className="absolute inset-0 rounded-2xl blur-xl opacity-30 transition-opacity duration-300"
+              className="absolute inset-0 rounded-full blur-xl opacity-30 transition-opacity duration-300"
               style={{ 
                 backgroundColor: color1,
-                opacity: isHovered ? 0.4 : 0.2
+                opacity: isHovered ? 0.4 : 0.2,
+                width: '96px',
+                height: '96px'
               }}
             />
             <div 
-              className="relative rounded-2xl overflow-hidden border-4 transition-all duration-300"
+              className="relative rounded-full overflow-hidden border-4 transition-all duration-300 flex items-center justify-center"
               style={{
-                borderColor: isHovered ? color1 : (darkMode ? '#374151' : '#E5E7EB')
+                borderColor: isHovered ? color1 : (darkMode ? '#374151' : '#E5E7EB'),
+                width: '96px',
+                height: '96px',
+                backgroundColor: color1
               }}
             >
               <img
                 src={hod.image}
                 alt={hod.name}
-                className="w-36 h-36 object-cover"
-                onError={(e) => e.currentTarget.src = `https://placehold.co/144x144/e8f5f0/239244?text=${hod.name.charAt(0)}`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.warn(`⚠️ Image failed to load for ${hod.name}: ${hod.image}`);
+                  e.currentTarget.style.display = 'none';
+                }}
               />
+              <span 
+                className="absolute text-white text-3xl font-bold"
+                style={{
+                  display: hod.image && !hod.image.includes('placehold') ? 'none' : 'block'
+                }}
+              >
+                {hod.name.charAt(0)}
+              </span>
             </div>
           </div>
         </div>
 
         {/* Name and Title */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-2">
           <h3 
-            className={`text-2xl font-bold mb-2 ${
+            className={`text-base font-bold mb-1 ${
               darkMode ? 'text-gray-100' : 'text-gray-900'
             }`}
           >
             {hod.name}
           </h3>
           <div 
-            className="inline-block px-4 py-1.5 rounded-full text-xs font-bold mb-3"
+            className="inline-block px-3 py-1 rounded-full text-xs font-bold mb-2"
             style={{
               backgroundColor: `${color1}15`,
               color: color1
@@ -69,37 +85,37 @@ const HODCard = ({ hod, color1, darkMode }) => {
           >
             Head of Department
           </div>
-          <p className={`text-sm font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <p className={`text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
             {hod.department}
           </p>
         </div>
 
         {/* Divider */}
-        <div className={`h-px w-full mb-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} />
+        <div className={`h-px w-full mb-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} />
 
         {/* Contact Information - Stacked */}
-        <div className="space-y-4">
+        <div className="space-y-1">
           {/* Phone Numbers */}
           {hod.phones.map((phone, index) => (
             <div 
               key={index}
-              className={`flex items-center gap-3 p-3 rounded-lg ${
+              className={`flex items-center gap-1.5 p-1.5 rounded-lg ${
                 darkMode ? 'bg-gray-700/50' : 'bg-gray-50'
               }`}
             >
               <div 
-                className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+                className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center"
                 style={{ backgroundColor: `${color1}15` }}
               >
-                <Phone className="w-4 h-4" style={{ color: color1 }} />
+                <Phone className="w-2.5 h-2.5" style={{ color: color1 }} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <p className={`text-xs font-semibold mb-0 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                   Phone {hod.phones.length > 1 ? index + 1 : ''}
                 </p>
                 <a 
                   href={`tel:${phone.replace(/[^0-9+]/g, '')}`}
-                  className={`text-sm hover:underline ${
+                  className={`text-xs hover:underline ${
                     darkMode ? 'text-gray-200' : 'text-gray-800'
                   }`}
                 >
@@ -111,23 +127,23 @@ const HODCard = ({ hod, color1, darkMode }) => {
 
           {/* Email */}
           <div 
-            className={`flex items-center gap-3 p-3 rounded-lg ${
+            className={`flex items-center gap-1.5 p-1.5 rounded-lg ${
               darkMode ? 'bg-gray-700/50' : 'bg-gray-50'
             }`}
           >
             <div 
-              className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+              className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center"
               style={{ backgroundColor: `${color1}15` }}
             >
-              <Mail className="w-4 h-4" style={{ color: color1 }} />
+              <Mail className="w-2.5 h-2.5" style={{ color: color1 }} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <p className={`text-xs font-semibold mb-0 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 Email
               </p>
               <a 
                 href={`mailto:${hod.email}`}
-                className={`text-sm hover:underline break-all ${
+                className={`text-xs hover:underline break-all ${
                   darkMode ? 'text-gray-200' : 'text-gray-800'
                 }`}
               >
@@ -138,21 +154,21 @@ const HODCard = ({ hod, color1, darkMode }) => {
 
           {/* Room Location */}
           <div 
-            className={`flex items-center gap-3 p-3 rounded-lg ${
+            className={`flex items-center gap-1.5 p-1.5 rounded-lg ${
               darkMode ? 'bg-gray-700/50' : 'bg-gray-50'
             }`}
           >
             <div 
-              className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+              className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center"
               style={{ backgroundColor: `${color1}15` }}
             >
-              <MapPin className="w-4 h-4" style={{ color: color1 }} />
+              <MapPin className="w-2.5 h-2.5" style={{ color: color1 }} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <p className={`text-xs font-semibold mb-0 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 Office
               </p>
-              <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+              <p className={`text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                 {hod.room}
               </p>
             </div>
@@ -181,15 +197,22 @@ export default function HeadofDepartment() {
         if (data.success && data.data && Array.isArray(data.data)) {
           const transformedData = data.data
             .filter(person => person.isActive !== false)
-            .map(person => ({
-              id: person.id,
-              name: person.name || 'Unknown',
-              department: person.designation || person.department || 'Department',
-              phones: person.phone ? [person.phone] : [],
-              email: person.email || '',
-              room: person.qualification || person.room || 'N/A',
-              image: API.getImageUrl(person.photo) || `https://placehold.co/128x128/22a05e/ffffff?text=${person.name?.charAt(0) || 'H'}`
-            }));
+            .map(person => {
+              const imageUrl = person.photo 
+                ? API.getImageUrl(person.photo)
+                : null;
+              console.log(`📸 HOD "${person.name}" - Photo field: ${person.photo}, Formatted URL: ${imageUrl}`);
+              
+              return {
+                id: person.id,
+                name: person.name || 'Unknown',
+                department: person.designation || person.department || 'Department',
+                phones: person.phone ? [person.phone] : [],
+                email: person.email || '',
+                room: person.qualification || person.room || 'N/A',
+                image: imageUrl || `https://placehold.co/128x128/22a05e/ffffff?text=${person.name?.charAt(0) || 'H'}`
+              };
+            });
           setHodData(transformedData);
         } else {
           console.error('Invalid response format:', data);

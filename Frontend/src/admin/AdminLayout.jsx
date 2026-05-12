@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Newspaper, 
@@ -39,6 +39,7 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const [user, setUser] = React.useState(null);
   const [expandedSections, setExpandedSections] = React.useState(['content', 'institute', 'course', 'people', 'facilities', 'iic-clubs', 'research', 'placement', 'media']);
+  const [contentSections, setContentSections] = React.useState([]);
 
   React.useEffect(() => {
     // Get user from localStorage
@@ -51,11 +52,43 @@ export default function AdminLayout() {
     }
   }, [navigate]);
 
+  React.useEffect(() => {
+    // Fetch dynamic content sections to show under Media -> Content Sections
+    let mounted = true;
+    const fetchSections = async () => {
+      try {
+        const res = await API.get('/api/content-sections');
+        if (mounted && res?.success && Array.isArray(res.data)) {
+          setContentSections(res.data);
+        }
+      } catch (err) {
+        // ignore - sidebar can work without dynamic sections
+        console.error('Failed to load content sections for admin sidebar', err);
+      }
+    };
+    fetchSections();
+    return () => { mounted = false; };
+  }, []);
+
+  const latestNewsSection = contentSections.find(
+    (section) => section.sectionName === 'latest-news-updates' || section.sectionTitle === 'Latest News & Updates'
+  );
+
+  const latestNewsSubsections = latestNewsSection?.subsections?.length
+    ? [...latestNewsSection.subsections].sort((a, b) => (a.order || 0) - (b.order || 0))
+    : [
+        { id: 'announcement', title: 'Announcement' },
+        { id: 'campus-update', title: 'Campus Update' },
+        { id: 'quick-update', title: 'Quick Update' }
+      ];
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/');
   };
+
+  const location = useLocation();
 
   const toggleSection = (sectionId) => {
     setExpandedSections(prev => 
@@ -167,6 +200,29 @@ export default function AdminLayout() {
       submenu: [
         { icon: Briefcase, label: 'Placement Records', path: '/admin/placements' },
         { icon: Building2, label: 'Company Logos', path: '/admin/company-logos' }
+      ]
+    },
+    // {
+    //   id: 'latest-news-updates',
+    //   label: 'Latest News & Updates',
+    //   icon: Monitor,
+    //   hasDropdown: true,
+    //   submenu: latestNewsSubsections.map((subsection) => ({
+    //     icon: Newspaper,
+    //     label: subsection.title,
+    //     // simplified path: /admin/latest-news-updates/<subsection-id>
+    //     path: `/admin/latest-news-updates/${encodeURIComponent(subsection.id || (subsection.title || '').toLowerCase().replace(/\s+/g, '-'))}`
+    //   }))
+    // },
+    {
+      id: 'latest-news-updates',
+      label: 'Latest News & Updates',
+      icon : Monitor,
+      hasDropdown: true,
+      submenu: [
+        { icon: Newspaper, label: 'Announcements', path: '/admin/latest-news-updates/announcement' },
+        { icon: Newspaper, label: 'Campus Updates', path: '/admin/latest-news-updates/campus-update' },
+        { icon: Newspaper, label: 'Quick Updates', path: '/admin/latest-news-updates/quick-update' }
       ]
     },
     {
@@ -300,26 +356,28 @@ export default function AdminLayout() {
                     {/* Dropdown Items */}
                     {expandedSections.includes(section.id) && (
                       <div className="mt-1 ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
-                        {section.submenu.map((item) => (
-                          <NavLink
-                            key={item.path}
-                            to={item.path}
-                            className={({ isActive }) => `
-                              group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
-                              ${isActive 
-                                ? 'text-white shadow-md' 
-                                : 'text-gray-600 hover:bg-white hover:shadow-sm'
-                              }
-                            `}
-                            style={({ isActive }) => isActive ? { 
-                              background: `linear-gradient(135deg, ${API.color1}, #059669)` 
-                            } : {}}
-                          >
-                            {({ isActive }) => (
+                        {section.submenu.map((item) => {
+                          // compute active by comparing pathname + search so query-differentiated links don't all appear active
+                          let isActive = false;
+                          try {
+                            const url = new URL(item.path, window.location.origin);
+                            isActive = location.pathname === url.pathname && location.search === url.search;
+                          } catch (e) {
+                            // fallback: compare pathname only
+                            isActive = location.pathname === item.path;
+                          }
+                          return (
+                            <NavLink
+                              key={item.path}
+                              to={item.path}
+                              className={() => `
+                                group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
+                                ${isActive ? 'text-white shadow-md' : 'text-gray-600 hover:bg-white hover:shadow-sm'}
+                              `}
+                              style={() => isActive ? { background: `linear-gradient(135deg, ${API.color1}, #059669)` } : {}}
+                            >
                               <>
-                                <item.icon className={`h-4 w-4 mr-2.5 transition-transform group-hover:scale-110 ${
-                                  isActive ? '' : 'text-gray-500'
-                                }`} />
+                                <item.icon className={`h-4 w-4 mr-2.5 transition-transform group-hover:scale-110 ${isActive ? '' : 'text-gray-500'}`} />
                                 <span className="text-xs">{item.label}</span>
                                 {isActive && (
                                   <div className="ml-auto">
@@ -327,9 +385,32 @@ export default function AdminLayout() {
                                   </div>
                                 )}
                               </>
-                            )}
-                          </NavLink>
-                        ))}
+                            </NavLink>
+                          );
+                        })}
+
+                        {/* If this is the Media section, render dynamic content sections under Content Sections */}
+                        {section.id === 'media' && contentSections.length > 0 && (
+                          <div className="mt-2">
+                            <div className="text-xs font-semibold text-gray-500 px-3 py-2">Content Sections</div>
+                            <div className="space-y-1">
+                              {contentSections.map((cs) => (
+                                <NavLink
+                                  key={cs.id}
+                                  to={`/admin/content-sections/${cs.id}`}
+                                  className={({ isActive }) => `
+                                    group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ml-2 mr-2
+                                    ${isActive ? 'text-white shadow-md' : 'text-gray-600 hover:bg-white hover:shadow-sm'}
+                                  `}
+                                  style={({ isActive }) => isActive ? { background: `linear-gradient(135deg, ${API.color1}, #059669)` } : {}}
+                                >
+                                  <Layout className={`h-4 w-4 mr-2 text-gray-500`} />
+                                  <span className="text-xs truncate">{cs.sectionTitle || cs.sectionName}</span>
+                                </NavLink>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

@@ -71,6 +71,35 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange }, refP
     if (ref.current) onChange(ref.current.innerHTML);
   };
 
+  const insertLink = () => {
+    const url = window.prompt('Enter link URL');
+    if (!url || !ref.current) return;
+
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) {
+      ref.current.insertAdjacentHTML('beforeend', `<a href="${url}" target="_blank" rel="noreferrer">Link text</a>`);
+      onChange(ref.current.innerHTML);
+      return;
+    }
+
+    const range = sel.getRangeAt(0);
+    const selectedText = sel.toString();
+    if (!selectedText) {
+      range.deleteContents();
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.target = '_blank';
+      anchor.rel = 'noreferrer';
+      anchor.textContent = 'Link text';
+      range.insertNode(anchor);
+      onChange(ref.current.innerHTML);
+      return;
+    }
+
+    document.execCommand('createLink', false, url);
+    if (ref.current) onChange(ref.current.innerHTML);
+  };
+
   const insertTable = () => {
     const html = '<table class="fa-table" border="1" cellpadding="4"><tr><th>Header</th><th>Header</th></tr><tr><td>Cell</td><td>Cell</td></tr></table>';
     if (ref.current) {
@@ -167,6 +196,7 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange }, refP
       <div className="mb-2 flex gap-2">
         <button type="button" onClick={() => exec('bold')} className="px-2 py-1 border rounded" data-testid="re-bold">B</button>
         <button type="button" onClick={() => exec('italic')} className="px-2 py-1 border rounded" data-testid="re-italic">I</button>
+        <button type="button" onClick={insertLink} className="px-2 py-1 border rounded" data-testid="re-link">Link</button>
         <button type="button" onClick={() => exec('formatBlock', '<H2>')} className="px-2 py-1 border rounded" data-testid="re-h2">H2</button>
         <button type="button" onClick={() => exec('formatBlock', '<H3>')} className="px-2 py-1 border rounded" data-testid="re-h3">H3</button>
         <button type="button" onClick={() => exec('insertParagraph')} className="px-2 py-1 border rounded" data-testid="re-p">P</button>

@@ -9,13 +9,7 @@ export default function ManageAnnouncements() {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({
-    title: '',
-    message: '',
-    type: 'info',
-    priority: 'medium',
-    startDate: '',
-    endDate: '',
-    isActive: true
+    title: ''
   });
 
   useEffect(() => {
@@ -24,14 +18,19 @@ export default function ManageAnnouncements() {
 
   const fetchAnnouncements = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API.baseURL}/api/announcements`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      setAnnouncements(data.data || []);
+      setLoading(true);
+      const response = await API.get('/api/announcements?limit=100');
+      console.log('📡 Fetch Announcements Response:', response);
+      if (response.success && Array.isArray(response.data)) {
+        setAnnouncements(response.data);
+      } else if (response.success && response.data?.data) {
+        setAnnouncements(response.data.data);
+      } else {
+        setAnnouncements([]);
+      }
     } catch (error) {
       console.error('Error fetching announcements:', error);
+      setAnnouncements([]);
     } finally {
       setLoading(false);
     }
@@ -40,27 +39,30 @@ export default function ManageAnnouncements() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      const url = editingItem 
-        ? `${API.baseURL}/api/announcements/${editingItem.id}`
-        : `${API.baseURL}/api/announcements`;
+      console.log('📝 Saving announcement:', formData);
+      let response;
       
-      const response = await fetch(url, {
-        method: editingItem ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        fetchAnnouncements();
+      if (editingItem) {
+        response = await API.put(`/api/announcements/${editingItem.id}`, formData);
+      } else {
+        response = await API.post('/api/announcements', formData);
+      }
+      
+      console.log('📤 Save Response:', response);
+      
+      if (response.success) {
+        console.log('✅ Announcement saved successfully');
+        await fetchAnnouncements();
         setShowModal(false);
         resetForm();
+        alert('Announcement saved successfully!');
+      } else {
+        console.error('❌ Save failed:', response.error);
+        alert('Failed to save announcement: ' + (response.error || 'Unknown error'));
       }
     } catch (error) {
       console.error('Error saving announcement:', error);
+      alert('Error saving announcement: ' + error.message);
     }
   };
 
@@ -68,26 +70,27 @@ export default function ManageAnnouncements() {
     if (!window.confirm('Are you sure you want to delete this announcement?')) return;
     
     try {
-      const token = localStorage.getItem('token');
-      await fetch(`${API.baseURL}/api/announcements/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      fetchAnnouncements();
+      console.log('🗑️ Deleting announcement:', id);
+      const response = await API.delete(`/api/announcements/${id}`);
+      console.log('Delete Response:', response);
+      
+      if (response.success) {
+        console.log('✅ Announcement deleted successfully');
+        await fetchAnnouncements();
+        alert('Announcement deleted successfully!');
+      } else {
+        console.error('❌ Delete failed:', response.error);
+        alert('Failed to delete announcement');
+      }
     } catch (error) {
       console.error('Error deleting announcement:', error);
+      alert('Error deleting announcement');
     }
   };
 
   const resetForm = () => {
     setFormData({
-      title: '',
-      message: '',
-      type: 'info',
-      priority: 'medium',
-      startDate: '',
-      endDate: '',
-      isActive: true
+      title: ''
     });
     setEditingItem(null);
   };
@@ -95,13 +98,7 @@ export default function ManageAnnouncements() {
   const openEditModal = (item) => {
     setEditingItem(item);
     setFormData({
-      title: item.title,
-      message: item.message,
-      type: item.type,
-      priority: item.priority,
-      startDate: item.startDate?.split('T')[0] || '',
-      endDate: item.endDate?.split('T')[0] || '',
-      isActive: item.isActive
+      title: item.title
     });
     setShowModal(true);
   };
@@ -206,7 +203,7 @@ export default function ManageAnnouncements() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 backdrop-blur-sm bg-white/10 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b">
               <h2 className="text-xl font-bold">{editingItem ? 'Edit Announcement' : 'Add Announcement'}</h2>
@@ -221,78 +218,6 @@ export default function ManageAnnouncements() {
                   onChange={(e) => setFormData({...formData, title: e.target.value})}
                   className="w-full px-3 py-2 border rounded-lg"
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Message *</label>
-                <textarea
-                  required
-                  rows="4"
-                  value={formData.message}
-                  onChange={(e) => setFormData({...formData, message: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                  <select
-                    value={formData.type}
-                    onChange={(e) => setFormData({...formData, type: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  >
-                    <option value="info">Info</option>
-                    <option value="success">Success</option>
-                    <option value="warning">Warning</option>
-                    <option value="error">Error</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                  <select
-                    value={formData.priority}
-                    onChange={(e) => setFormData({...formData, priority: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.startDate}
-                    onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date *</label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.endDate}
-                    onChange={(e) => setFormData({...formData, endDate: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="isActive"
-                  checked={formData.isActive}
-                  onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
-                  className="h-4 w-4 rounded"
-                  style={{ accentColor: API.color1 }}
-                />
-                <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">
-                  Active
-                </label>
               </div>
               <div className="flex justify-end gap-3 pt-4">
                 <button

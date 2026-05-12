@@ -508,10 +508,10 @@ export function renderContentBlock(block, options = {}) {
             className="block"
           >
             <div 
-              className="rounded-lg p-8 md:p-10 shadow-xl border relative overflow-hidden group transition-all duration-300 hover:shadow-2xl"
+              className="rounded-lg p-8 md:p-10 shadow-xl border relative overflow-hidden transition-all duration-300"
               style={{ backgroundColor: color1, borderColor: color1 }}
             >
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ backgroundImage: `linear-gradient(to right, ${color1}1A, ${color1}0D)` }}></div>
+              <div className="absolute inset-0 opacity-0 transition-opacity duration-500" style={{ backgroundImage: `linear-gradient(to right, ${color1}1A, ${color1}0D)` }}></div>
               <div className="relative flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="flex-1 text-center md:text-left">
                   <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
@@ -523,11 +523,11 @@ export function renderContentBlock(block, options = {}) {
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-2 px-5 py-3 bg-white/20 backdrop-blur-sm rounded-2xl border-2 border-white/40 group-hover:bg-white group-hover:border-white transition-all duration-300 group-hover:scale-110">
-                  <span className="group-hover:text-[#239244] font-bold text-sm transition-colors duration-300 text-white">
+                <div className="flex items-center gap-2 px-5 py-3 bg-white/20 backdrop-blur-sm rounded-2xl border-2 border-white/40 transition-all duration-300 hover:scale-110">
+                  <span className="font-bold text-sm transition-colors duration-300 text-white">
                     {content.buttonText || 'Learn More'}
                   </span>
-                  <svg className="w-5 h-5 text-white group-hover:text-[#239244] group-hover:translate-x-2 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-white hover:translate-x-2 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>

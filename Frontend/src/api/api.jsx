@@ -33,10 +33,10 @@ class API {
   }
 
   // Helper function to get auth headers
-  static getAuthHeaders() {
+  static getAuthHeaders(isFormData = false) {
     const token = localStorage.getItem('token');
     return {
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       'X-Language': localStorage.getItem('language') || 'en',
       ...(token && { 'Authorization': `Bearer ${token}` })
     };
@@ -46,10 +46,11 @@ class API {
   static async fetchWithRetry(url, options = {}, retries = 3) {
     for (let i = 0; i < retries; i++) {
       try {
+        const isFormData = options.body instanceof FormData;
         const response = await fetch(url, {
           ...options,
           headers: {
-             ...this.getAuthHeaders(),
+             ...this.getAuthHeaders(isFormData),
             ...options.headers,
            
           }
@@ -59,9 +60,13 @@ class API {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        const data = await response.json();
-        console.log('API Response:', data);
-        return { success: true, data };
+        const parsed = await response.json();
+        console.log('API Response:', parsed);
+        // Normalize responses: if server returned { success, data }, unwrap it
+        if (parsed && typeof parsed === 'object' && Object.prototype.hasOwnProperty.call(parsed, 'data') && Object.prototype.hasOwnProperty.call(parsed, 'success')) {
+          return { success: Boolean(parsed.success), data: parsed.data };
+        }
+        return { success: true, data: parsed };
       } catch (error) {
         console.error(`Fetch attempt ${i + 1} failed:`, error);
         
@@ -90,10 +95,20 @@ class API {
 
   // POST request
   static async post(endpoint, data) {
-    return this.fetchWithRetry(`${this.baseURL}${endpoint}`, {
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
+    const options = {
+      method: 'POST'
+    };
+
+    // Handle FormData differently (for file uploads)
+    if (data instanceof FormData) {
+      options.body = data;
+      // Don't set Content-Type header for FormData - let browser set it with boundary
+      return this.fetchWithRetry(`${this.baseURL}${endpoint}`, options);
+    }
+
+    // Regular JSON request
+    options.body = JSON.stringify(data);
+    return this.fetchWithRetry(`${this.baseURL}${endpoint}`, options);
   }
 
   // PUT request

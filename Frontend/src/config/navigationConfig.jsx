@@ -58,7 +58,7 @@ export const navigationConfig = [
       { id: 'research-scholars', label: 'Research Scholars', link: '/people/research-scholars' },
       { id: 'btech-students', label: 'B.Tech Students', link: '/people/btech-students' },
       { id: 'mtech-students', label: 'M.Tech Students', link: '/people/mtech-students' },
-      { id: 'gender-index', label: 'Gender Index', link: '/people/gender-index' }
+      // { id: 'gender-index', label: 'Gender Index', link: '/people/gender-index' }
     ]
   },
   {

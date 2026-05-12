@@ -17,9 +17,10 @@ export default function AnnouncementBanner() {
         setLoading(true);
         setError(null);
         const response = await API.get('/api/announcements?limit=10');
+        console.log('AnnouncementBanner API response:', response);
         
-        if (response.success && response.data?.data?.length > 0) {
-          const activeAnnouncements = response.data.data
+        if (response.success && Array.isArray(response.data) && response.data.length > 0) {
+          const activeAnnouncements = response.data
             .map(item => item.title);
           setAnnouncements(activeAnnouncements);
         } else {

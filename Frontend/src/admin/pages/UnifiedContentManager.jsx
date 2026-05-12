@@ -747,9 +747,10 @@ export default function UnifiedContentManager() {
 
       case 'table':
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Table Title */}
             <div>
-              <label className="block text-sm font-medium mb-2">Table Title</label>
+              <label className="block text-sm font-semibold mb-2 text-gray-700">1️⃣ Table Title</label>
               <input
                 type="text"
                 value={block.content.title || ''}
@@ -757,40 +758,203 @@ export default function UnifiedContentManager() {
                   ...block,
                   content: { ...block.content, title: e.target.value }
                 })}
-                className="w-full px-4 py-2 border rounded-lg"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="e.g., Fee Structure, Faculty List"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Headers (comma separated)</label>
-              <input
-                type="text"
-                value={(block.content.headers || []).join(', ')}
-                onChange={(e) => setEditingBlock({
-                  ...block,
-                  content: { ...block.content, headers: e.target.value.split(',').map(h => h.trim()).filter(h => h) }
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-                placeholder="Column 1, Column 2, Column 3"
-              />
+
+            {/* Column Management */}
+            <div className="border-2 border-green-300 rounded-lg p-4 bg-green-50">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <label className="block text-sm font-semibold text-green-900">2️⃣ Column Headers</label>
+                  <p className="text-xs text-green-700 mt-1">Total Columns: <span className="font-bold">{(block.content.headers || []).length}</span></p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingBlock({
+                      ...block,
+                      content: { 
+                        ...block.content, 
+                        headers: [...(block.content.headers || []), '']
+                      }
+                    })}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold text-sm"
+                  >
+                    + Add Column
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if ((block.content.headers || []).length > 0) {
+                        const headers = block.content.headers.slice(0, -1);
+                        const rows = (block.content.rows || []).map(row => row.slice(0, -1));
+                        setEditingBlock({
+                          ...block,
+                          content: { ...block.content, headers, rows }
+                        });
+                      }
+                    }}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold text-sm"
+                  >
+                    - Remove Last
+                  </button>
+                </div>
+              </div>
+
+              {(block.content.headers || []).length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-green-700 mb-3">👈 Click "+ Add Column" to start adding column headers</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {(block.content.headers || []).map((header, index) => (
+                    <div key={index} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-green-200">
+                      <span className="inline-block w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                        {index + 1}
+                      </span>
+                      <input
+                        type="text"
+                        value={header}
+                        onChange={(e) => {
+                          const headers = [...block.content.headers];
+                          headers[index] = e.target.value;
+                          setEditingBlock({
+                            ...block,
+                            content: { ...block.content, headers }
+                          });
+                        }}
+                        className="flex-1 px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                        placeholder={`Column ${index + 1} name`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Rows (one row per line, cells separated by |)</label>
-              <textarea
-                value={(block.content.rows || []).map(r => r.join(' | ')).join('\n')}
-                onChange={(e) => setEditingBlock({
-                  ...block,
-                  content: { 
-                    ...block.content, 
-                    rows: e.target.value.split('\n')
-                      .filter(line => line.trim())
-                      .map(line => line.split('|').map(cell => cell.trim()))
-                  }
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-                rows={8}
-                placeholder="Cell 1 | Cell 2 | Cell 3&#10;Cell 4 | Cell 5 | Cell 6"
-              />
-            </div>
+
+            {/* Row Management */}
+            {(block.content.headers || []).length > 0 && (
+              <div className="border-2 border-blue-300 rounded-lg p-4 bg-blue-50">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-blue-900">3️⃣ Table Data (Rows)</label>
+                    <p className="text-xs text-blue-700 mt-1">Total Rows: <span className="font-bold">{(block.content.rows || []).length}</span> | Columns per row: <span className="font-bold">{(block.content.headers || []).length}</span></p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newRow = Array((block.content.headers || []).length).fill('');
+                        setEditingBlock({
+                          ...block,
+                          content: { 
+                            ...block.content, 
+                            rows: [...(block.content.rows || []), newRow]
+                          }
+                        });
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-sm"
+                    >
+                      + Add Row
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if ((block.content.rows || []).length > 0) {
+                          const rows = block.content.rows.slice(0, -1);
+                          setEditingBlock({
+                            ...block,
+                            content: { ...block.content, rows }
+                          });
+                        }
+                      }}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold text-sm"
+                    >
+                      - Remove Last
+                    </button>
+                  </div>
+                </div>
+
+                {(block.content.rows || []).length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-blue-700">👈 Click "+ Add Row" to start adding data</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {(block.content.rows || []).map((row, rowIndex) => (
+                      <div key={rowIndex} className="bg-white p-4 rounded-lg border-2 border-blue-200">
+                        <div className="text-xs font-semibold text-blue-700 mb-3">Row {rowIndex + 1}:</div>
+                        <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${(block.content.headers || []).length}, 1fr)` }}>
+                          {row.map((cell, cellIndex) => (
+                            <div key={cellIndex} className="space-y-1">
+                              <label className="text-xs font-semibold text-gray-600 block">
+                                {(block.content.headers || [])[cellIndex] || `Col ${cellIndex + 1}`}
+                              </label>
+                              <input
+                                type="text"
+                                value={cell || ''}
+                                onChange={(e) => {
+                                  const rows = [...block.content.rows];
+                                  rows[rowIndex] = [...rows[rowIndex]];
+                                  rows[rowIndex][cellIndex] = e.target.value;
+                                  setEditingBlock({
+                                    ...block,
+                                    content: { ...block.content, rows }
+                                  });
+                                }}
+                                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder="Enter data"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Table Preview */}
+            {(block.content.headers || []).length > 0 && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">📊 Preview</label>
+                <div className="border-2 border-gray-300 rounded-lg overflow-x-auto bg-gray-50 p-3">
+                  <table className="w-full border-collapse text-sm">
+                    <thead>
+                      <tr className="bg-green-600 text-white">
+                        {(block.content.headers || []).map((header, idx) => (
+                          <th key={idx} className="border border-gray-300 px-3 py-2 text-left font-semibold">
+                            {header || `Col ${idx + 1}`}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(block.content.rows || []).length === 0 ? (
+                        <tr>
+                          <td colSpan={(block.content.headers || []).length} className="border border-gray-300 px-3 py-2 text-center text-gray-400">
+                            No data rows yet
+                          </td>
+                        </tr>
+                      ) : (
+                        (block.content.rows || []).map((row, rowIdx) => (
+                          <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                            {row.map((cell, cellIdx) => (
+                              <td key={cellIdx} className="border border-gray-300 px-3 py-2">
+                                {cell || '—'}
+                              </td>
+                            ))}
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         );
 

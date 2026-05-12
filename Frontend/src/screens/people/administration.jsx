@@ -23,36 +23,36 @@ const ProfileCard = ({ person, color1, darkMode }) => {
     >
       {/* Header Section with Gradient Background */}
       <div 
-        className="relative p-6 pb-16"
+        className="relative p-3 pb-12"
         style={{
           background: `linear-gradient(135deg, ${color1}, ${color1}ee)`
         }}
       >
         {/* Decorative Background Elements */}
-        <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white opacity-10 transform translate-x-16 -translate-y-16" />
-        <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-white opacity-10 transform -translate-x-12 translate-y-12" />
+        <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white opacity-10 transform translate-x-12 -translate-y-12" />
+        <div className="absolute bottom-0 left-0 w-16 h-16 rounded-full bg-white opacity-10 transform -translate-x-8 translate-y-8" />
         
         {/* Name on Green Background */}
-        <h3 className="text-xl font-bold text-white relative z-10 mb-2">
+        <h3 className="text-base font-bold text-white relative z-10 mb-1">
           {person.name}
         </h3>
       </div>
       
       {/* Profile Image - Circular, centered, overlapping */}
-      <div className="flex justify-center" style={{ marginTop: '-60px' }}>
+      <div className="flex justify-center" style={{ marginTop: '-45px' }}>
         <div className="relative">
           <div 
             className={`rounded-full p-1 transition-all duration-300 ${
               darkMode ? 'bg-gray-800' : 'bg-white'
             }`}
             style={{
-              boxShadow: isHovered ? '0 10px 30px rgba(0,0,0,0.3)' : '0 5px 15px rgba(0,0,0,0.2)'
+              boxShadow: isHovered ? '0 8px 24px rgba(0,0,0,0.25)' : '0 4px 12px rgba(0,0,0,0.15)'
             }}
           >
             <img
               src={person.image}
               alt={person.name}
-              className={`w-28 h-28 rounded-full object-cover transition-transform duration-300 ${
+              className={`w-20 h-20 rounded-full object-cover transition-transform duration-300 ${
                 isHovered ? 'scale-105' : 'scale-100'
               }`}
               onError={(e) => e.currentTarget.src = `https://placehold.co/112x112/22a05e/ffffff?text=${person.name.charAt(0)}`}
@@ -62,16 +62,16 @@ const ProfileCard = ({ person, color1, darkMode }) => {
       </div>
       
       {/* Card Body */}
-      <div className="px-6 pb-6 pt-4">
+      <div className="px-3 pb-3 pt-2">
         {/* Title and Department */}
-        <div className="text-center mb-4">
-          <h4 className={`text-lg font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+        <div className="text-center mb-2">
+          <h4 className={`text-sm font-bold mb-1 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
             {person.title}
           </h4>
           {person.roles.map((role, index) => (
             <p 
               key={index} 
-              className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} leading-relaxed`}
+              className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'} leading-tight`}
             >
               {role}
             </p>
@@ -79,24 +79,24 @@ const ProfileCard = ({ person, color1, darkMode }) => {
         </div>
         
         {/* Divider */}
-        <div className={`h-px w-full mb-4 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} />
+        <div className={`h-px w-full mb-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} />
         
         {/* Contact Information - Stacked */}
-        <div className="space-y-3">
-          <div className={`flex items-start gap-3 p-2.5 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+        <div className="space-y-1.5">
+          <div className={`flex items-start gap-2 p-1.5 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
             <div 
-              className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
+              className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center"
               style={{ backgroundColor: `${color1}20` }}
             >
-              <Mail className="w-4 h-4" style={{ color: color1 }} />
+              <Mail className="w-3 h-3" style={{ color: color1 }} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 Email
               </p>
               <a 
                 href={`mailto:${person.email}`}
-                className={`text-sm break-all hover:underline ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}
+                className={`text-xs break-all hover:underline ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}
                 onClick={(e) => e.stopPropagation()}
               >
                 {person.email}
@@ -104,35 +104,35 @@ const ProfileCard = ({ person, color1, darkMode }) => {
             </div>
           </div>
           
-          <div className={`flex items-start gap-3 p-2.5 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+          <div className={`flex items-start gap-2 p-1.5 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
             <div 
-              className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
+              className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center"
               style={{ backgroundColor: `${color1}20` }}
             >
-              <Phone className="w-4 h-4" style={{ color: color1 }} />
+              <Phone className="w-3 h-3" style={{ color: color1 }} />
             </div>
             <div className="flex-1">
-              <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 Phone
               </p>
-              <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+              <p className={`text-xs ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
                 {person.phone}
               </p>
             </div>
           </div>
           
-          <div className={`flex items-start gap-3 p-2.5 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+          <div className={`flex items-start gap-2 p-1.5 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
             <div 
-              className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
+              className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center"
               style={{ backgroundColor: `${color1}20` }}
             >
-              <MapPin className="w-4 h-4" style={{ color: color1 }} />
+              <BookOpenText className="w-3 h-3" style={{ color: color1 }} />
             </div>
             <div className="flex-1">
-              <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Location
+              <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                Qualification
               </p>
-              <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+              <p className={`text-xs ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
                 {person.room}
               </p>
             </div>
@@ -257,11 +257,18 @@ export default function Administration() {
   useEffect(() => {
     const fetchAdministration = async () => {
       try {
+        console.log('👨‍💼 Fetching administration data...');
         const response = await fetch(`${API.baseURL}/api/people/type/administration`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const data = await response.json();
-        console.log('API Response:', data);
+        console.log('👨‍💼 API Response:', data);
         
         if (data.success && data.data && Array.isArray(data.data)) {
+          console.log(`✅ Loaded ${data.data.length} administration records`);
           // Transform API data to match component structure
           const transformedData = data.data
             .filter(person => person.isActive !== false)
@@ -275,13 +282,16 @@ export default function Administration() {
               image: API.getImageUrl(person.photo) || `https://placehold.co/128x128/22a05e/ffffff?text=${person.name?.charAt(0) || 'A'}`,
               category: person.specialization || 'general' // Use specialization field as category
             }));
+          console.log('✅ Transformed data:', transformedData.length, 'records');
           setAdministrationData(transformedData);
         } else {
-          console.error('Invalid response format:', data);
+          console.error('❌ Invalid response format:', data);
+          console.warn('Expected: { success: true, data: [...] }');
           setAdministrationData([]);
         }
       } catch (error) {
-        console.error('Error fetching administration data:', error);
+        console.error('❌ Error fetching administration data:', error);
+        console.error('Check if /api/people/type/administration endpoint exists');
         setAdministrationData([]);
       } finally {
         setLoading(false);
@@ -367,8 +377,8 @@ export default function Administration() {
           ) : (
             <>
           {activeTab === 'General' && (
-            <div className="space-y-8">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="space-y-6">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {administrationData.filter(person => person.category === 'general').map((person, index) => (
                   <ProfileCard key={index} person={person} color1={color1} darkMode={darkMode} />
                 ))}
@@ -401,7 +411,7 @@ export default function Administration() {
 
               {/* Search Results Grid */}
               {searchTerm && filteredResults.length > 0 && (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredResults.map((person, index) => (
                     <ProfileCard key={index} person={person} color1={color1} darkMode={darkMode} />
                   ))}

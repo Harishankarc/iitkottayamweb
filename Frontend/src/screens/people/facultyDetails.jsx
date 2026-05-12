@@ -32,6 +32,13 @@ const parseDetailEntries = (items) => {
 		});
 };
 
+const slugifyFacultyName = (name, designation = '') => {
+	const baseText = `${name || ''} ${designation || ''}`.trim().toLowerCase();
+	return baseText
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '') || 'faculty';
+};
+
 const DetailSection = ({ title, icon: Icon, items, darkMode, color1 }) => {
 	if (!items || items.length === 0) return null;
 
@@ -59,7 +66,7 @@ const DetailSection = ({ title, icon: Icon, items, darkMode, color1 }) => {
 };
 
 export default function FacultyDetails() {
-	const { id } = useParams();
+	const { slug } = useParams();
 	const navigate = useNavigate();
 	const { darkMode } = useTheme();
 	const color1 = API.color1;
@@ -72,13 +79,23 @@ export default function FacultyDetails() {
 			try {
 				setLoading(true);
 				setError('');
-				const response = await API.get(`/api/faculty/${id}`);
+				const response = await fetch(`${API.baseURL}/api/faculty`);
+				if (!response.ok) {
+					throw new Error('Unable to load faculty details');
+				}
+				const data = await response.json();
+				const facultyList = data.data || [];
+				const resolvedSlug = String(slug || '').trim().toLowerCase();
+				const matchedFaculty = facultyList.find((item) => {
+					const itemSlug = slugifyFacultyName(item.name, item.designation);
+					return itemSlug === resolvedSlug || String(item.id) === resolvedSlug;
+				});
 
-				if (!response.success || !response.data?.success) {
-					throw new Error(response.error || response.data?.message || 'Unable to load faculty details');
+				if (!matchedFaculty) {
+					throw new Error('Faculty details not found');
 				}
 
-				setFaculty(response.data.data);
+				setFaculty(matchedFaculty);
 			} catch (fetchError) {
 				setError(fetchError.message || 'Unable to load faculty details');
 			} finally {
@@ -86,10 +103,10 @@ export default function FacultyDetails() {
 			}
 		};
 
-		if (id) {
+		if (slug) {
 			fetchFaculty();
 		}
-	}, [id]);
+	}, [slug]);
 
 	const fullDetailEntries = parseDetailEntries((faculty?.fullDetails && faculty.fullDetails.length > 0) ? faculty.fullDetails : (faculty?.rightSideDetails || []));
 	const fullDetailsHtml = faculty?.fullDetailsHtml || '';

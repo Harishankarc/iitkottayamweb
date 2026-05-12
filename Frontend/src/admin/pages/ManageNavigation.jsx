@@ -24,9 +24,12 @@ export default function ManageNavigation() {
 
   const fetchNavItems = async () => {
     try {
-      const result = await API.get('/api/navigation');
+      const result = await API.get('/api/navigation/admin/all');
+      console.log('📍 Fetch Navigation Items Response:', result);
       if (result.success) {
-        setNavItems(result.data.data || []);
+        const navArray = Array.isArray(result.data) ? result.data : (result.data?.data || []);
+        console.log('📍 Navigation Items Array:', navArray);
+        setNavItems(navArray);
       } else {
         console.error('Error fetching navigation:', result.error);
         alert('Failed to load navigation items. Please try again.');
@@ -70,12 +73,14 @@ export default function ManageNavigation() {
         children: convertChildrenToJSON(formData.children)
       };
       
+      console.log('📝 Saving navigation item:', dataToSend);
       const result = editingItem 
         ? await API.put(`/api/navigation/${editingItem.id}`, dataToSend)
         : await API.post('/api/navigation', dataToSend);
       
+      console.log('📝 Save Response:', result);
       if (result.success) {
-        fetchNavItems();
+        await fetchNavItems();
         setShowModal(false);
         resetForm();
         alert(editingItem ? 'Navigation item updated successfully!' : 'Navigation item created successfully!');
@@ -91,9 +96,11 @@ export default function ManageNavigation() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this navigation item?')) return;
     try {
+      console.log('🗑️ Deleting navigation item:', id);
       const result = await API.delete(`/api/navigation/${id}`);
+      console.log('🗑️ Delete Response:', result);
       if (result.success) {
-        fetchNavItems();
+        await fetchNavItems();
         alert('Navigation item deleted successfully!');
       } else {
         alert('Failed to delete navigation item: ' + result.error);

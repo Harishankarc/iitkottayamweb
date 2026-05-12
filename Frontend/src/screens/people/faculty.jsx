@@ -18,6 +18,48 @@ const parseDetailList = (value) => {
   return [];
 };
 
+// Role hierarchy for sorting
+const ROLE_HIERARCHY = {
+  'Professor': 1,
+  'Associate Professor': 2,
+  'Assistant Professor': 3,
+  'Lecturer': 4,
+  'Faculty': 5
+};
+
+const getRoleOrder = (role) => {
+  return ROLE_HIERARCHY[role] || 999;
+};
+
+// Normalize role: trim, lowercase for comparison, then find canonical form
+const normalizeRoleForComparison = (role) => {
+  if (!role) return 'faculty';
+  return role.trim().toLowerCase().replace(/\s+/g, ' '); // Normalize spaces
+};
+
+// Get the canonical (display) role name from a raw role value
+const getCanonicalRole = (role) => {
+  if (!role) return 'Faculty';
+  const normalized = role.trim().toLowerCase().replace(/\s+/g, ' '); // Remove extra spaces
+  
+  // Map common variations to canonical names
+  const roleMap = {
+    'professor': 'Professor',
+    'associate professor': 'Associate Professor',
+    'assoc. professor': 'Associate Professor',
+    'assoc professor': 'Associate Professor',
+    'asst. professor': 'Assistant Professor',
+    'asst professor': 'Assistant Professor',
+    'assistant professor': 'Assistant Professor',
+    'lecturer': 'Lecturer',
+    'faculty': 'Faculty'
+  };
+  
+  const canonical = roleMap[normalized];
+  console.log(`🏫 Role mapping: "${role}" → normalized: "${normalized}" → canonical: "${canonical || 'NOT FOUND'}"`);
+  return canonical || role.trim();
+};
+
 const MAIN_SECTION_MAX_LINES = 7;
 const MAIN_SECTION_MAX_LINE_LENGTH = 42;
 
@@ -41,6 +83,13 @@ const parseMainSection = (text) => {
     }
     return { type: 'item', text: item };
   });
+};
+
+const slugifyFacultyName = (name, designation = '') => {
+  const baseText = `${name || ''} ${designation || ''}`.trim().toLowerCase();
+  return baseText
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'faculty';
 };
 
 // Faculty Card Component - Expanded horizontal layout with full details
@@ -121,7 +170,7 @@ const FacultyCard = ({ faculty, color1, darkMode }) => {
 
         <div className="mt-2 flex-shrink-0">
           <Link
-            to={`/people/faculty/${faculty.id}`}
+            to={`/people/faculty/${faculty.slug}`}
             className="inline-flex items-center gap-1 text-xs font-semibold"
             style={{ color: color1 }}
           >
@@ -155,9 +204,10 @@ export default function Faculty() {
             .filter(item => item.isActive)
             .map(item => ({
               id: item.id,
+              slug: slugifyFacultyName(item.name, item.designation),
               name: item.name,
               designation: item.designation,
-              role: item.designation || 'Faculty',
+              role: getCanonicalRole(item.designation || 'Faculty'),
               department: item.department || '',
               email: item.email || '',
               phone: item.phone || '',
@@ -179,7 +229,19 @@ export default function Faculty() {
     fetchFaculty();
   }, []);
 
-  const roles = ['All', ...new Set(facultyData.map(f => f.role))];
+  const roles = ['All', ...Array.from(
+    new Map(
+      facultyData
+        .map(f => f.role || 'Faculty')
+        .map(role => [normalizeRoleForComparison(role), getCanonicalRole(role)])
+    ).values()
+  )].sort((a, b) => {
+    if (a === 'All') return -1;
+    if (b === 'All') return 1;
+    return getRoleOrder(a) - getRoleOrder(b);
+  });
+  
+  console.log('📚 Final roles array:', roles);
 
   const filteredFaculty = facultyData.filter((faculty) => {
     const term = searchTerm.toLowerCase();
@@ -194,30 +256,23 @@ export default function Faculty() {
     const matchesRole = filterRole === 'All' || faculty.role === filterRole;
     
     return matchesSearch && matchesRole;
+  }).sort((a, b) => {
+    // Sort by role hierarchy first
+    const roleComparison = getRoleOrder(a.role) - getRoleOrder(b.role);
+    if (roleComparison !== 0) return roleComparison;
+    
+    // Then sort by name alphabetically
+    return a.name.localeCompare(b.name);
   });
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Hero Section - Minimal Design */}
-      <div className={`py-4 sm:py-5 md:py-6 px-4 sm:px-6 md:px-8 lg:px-10 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium mb-2 border" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
-            <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4" style={{ color: color1 }} />
-            Our Educators
-          </div>
-          <h1 className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-            Faculty
-          </h1>
-          <p className={`text-sm sm:text-base max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            Dedicated educators and researchers shaping the future of technology.
-          </p>
-        </div>
-      </div>
+    
 
       {/* Main Content */}
-      <div className="mx-auto py-4 sm:py-6 md:py-8 px-4 sm:px-6 md:px-8 lg:px-10 max-w-screen-2xl">
+      <div className="w-full py-4 sm:py-6 md:py-8 px-4 sm:px-6 md:px-8 lg:px-10">
         {/* Combined Search and Filter Box */}
-        <div className={`mb-8 sm:mb-10 md:mb-12 top-4 z-40 max-w-4xl mx-auto rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
+        <div className={`mb-8 sm:mb-10 md:mb-12 top-4 z-40 w-full rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
           <div className="p-4 sm:p-5 md:p-6 lg:p-8">
             {/* Filter Buttons */}
             <div className="flex flex-wrap gap-2 sm:gap-3 justify-center mb-4 sm:mb-5 md:mb-6">
@@ -281,7 +336,7 @@ export default function Faculty() {
             ))}
           </div>
         ) : (
-          <div className={`text-center p-12 sm:p-14 md:p-16 rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg max-w-4xl mx-auto`}>
+          <div className={`text-center p-12 sm:p-14 md:p-16 rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
             <GraduationCap className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-5 md:mb-6 opacity-50" style={{ color: color1 }} />
             <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">No Results Found</h3>
             <p className={`text-base sm:text-lg md:text-xl ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>

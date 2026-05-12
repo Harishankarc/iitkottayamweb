@@ -31,16 +31,20 @@ export default function ManageHOD() {
     try {
       const response = await fetch(`${API.baseURL}/api/people/type/hod`);
       const data = await response.json();
-      console.log('HOD API Response:', data);
+      console.log('👥 Admin HOD API Response:', data);
       
       if (data.success && data.data && Array.isArray(data.data)) {
+        console.log(`📋 Loaded ${data.data.length} HOD records`);
+        data.data.forEach(hod => {
+          console.log(`  - ${hod.name}: photo="${hod.photo || 'NOT SET'}"`);
+        });
         setPeople(data.data);
       } else {
-        console.error('Invalid response format:', data);
+        console.error('❌ Invalid response format:', data);
         setPeople([]);
       }
     } catch (error) {
-      console.error('Error fetching HOD:', error);
+      console.error('❌ Error fetching HOD:', error);
       setPeople([]);
     } finally {
       setLoading(false);
@@ -50,16 +54,20 @@ export default function ManageHOD() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log('👤 Saving HOD with data:', formData);
       if (editingItem) {
+        console.log(`📝 Updating HOD ID ${editingItem.id}`);
         await API.put(`/api/people/${editingItem.id}`, formData);
       } else {
+        console.log('➕ Creating new HOD');
         await API.post('/api/people', formData);
       }
+      console.log('✅ HOD saved successfully');
       fetchPeople();
       setShowModal(false);
       resetForm();
     } catch (error) {
-      console.error('Error saving HOD:', error);
+      console.error('❌ Error saving HOD:', error);
     }
   };
 

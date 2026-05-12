@@ -25,9 +25,12 @@ export default function ManageHeroSliders() {
 
   const fetchSliders = async () => {
     try {
-      const result = await API.get('/api/hero-sliders');
+      const result = await API.get('/api/hero-sliders/admin/all');
+      console.log('🎬 Fetch Hero Sliders Response:', result);
       if (result.success) {
-        setSliders(result.data.data || []);
+        const slidersArray = Array.isArray(result.data) ? result.data : (result.data?.data || []);
+        console.log('🎬 Sliders Array:', slidersArray);
+        setSliders(slidersArray);
       } else {
         console.error('Error fetching sliders:', result.error);
         alert('Failed to load hero sliders. Please try again.');
@@ -43,12 +46,14 @@ export default function ManageHeroSliders() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log('📸 Saving slider:', formData);
       const result = editingItem 
         ? await API.put(`/api/hero-sliders/${editingItem.id}`, formData)
         : await API.post('/api/hero-sliders', formData);
       
+      console.log('📸 Save Response:', result);
       if (result.success) {
-        fetchSliders();
+        await fetchSliders();
         setShowModal(false);
         resetForm();
         alert(editingItem ? 'Hero slider updated successfully!' : 'Hero slider created successfully!');
@@ -147,11 +152,21 @@ export default function ManageHeroSliders() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => openEditModal(slider)} className="text-blue-600 hover:text-blue-900">
+                <button 
+                  onClick={() => openEditModal(slider)} 
+                  className="flex-1 sm:flex-none px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center gap-2"
+                  title="Edit this slider"
+                >
                   <Edit className="h-5 w-5" />
+                  <span className="hidden sm:inline">Edit</span>
                 </button>
-                <button onClick={() => handleDelete(slider.id)} className="text-red-600 hover:text-red-900">
+                <button 
+                  onClick={() => handleDelete(slider.id)} 
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors flex items-center gap-2"
+                  title="Delete this slider"
+                >
                   <Trash2 className="h-5 w-5" />
+                  <span className="hidden sm:inline">Delete</span>
                 </button>
               </div>
             </div>
@@ -160,8 +175,14 @@ export default function ManageHeroSliders() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div 
+          className="fixed inset-0 backdrop-blur-sm bg-white/10 flex items-center justify-center p-4 z-50"
+          onClick={() => { setShowModal(false); resetForm(); }}
+        >
+          <div 
+            className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6">
               <h2 className="text-xl font-bold mb-4" style={{ color: API.color1 }}>
                 {editingItem ? 'Edit Slider' : 'Add New Slider'}

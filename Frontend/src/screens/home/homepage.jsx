@@ -7,6 +7,9 @@ import img3 from '../../assets/images/img3.jpg';
 
 import { useTheme } from "../../context/createContext.jsx";
 import AnnouncementBanner from "../../components/announcementbanner.jsx";
+import AnnouncementCard from "./components/AnnouncementCard.jsx";
+import CampusUpdateCard from "./components/CampusUpdateCard.jsx";
+import QuickUpdateCard from "./components/QuickUpdateCard.jsx";
 
 // =================================================================
 //                    HOMEPAGE COMPONENT
@@ -26,6 +29,7 @@ const HomePage = () => {
   const [heroSliders, setHeroSliders] = useState([])
   const [pageContent, setPageContent] = useState(null);
   const [contentBlocks, setContentBlocks] = useState([]);
+    const [latestNewsSection, setLatestNewsSection] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // --- Fetch Data from API ---
@@ -48,7 +52,8 @@ const HomePage = () => {
               title: item.title,
               date: item.publishedDate || item.createdAt,
               isNew: new Date(item.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-              link: `/news/${item.id}`
+              link: `/news/${item.id}`,
+              pdfLink: item.pdfLink || ''
             }));
             console.log('Fetched News:', formattedNews);
           setNewsList(formattedNews);
@@ -59,7 +64,7 @@ const HomePage = () => {
         const eventsData = eventsRes;
         console.log('Events Raw Response:', eventsData);
         if (eventsData.success) {
-          const eventsArray = eventsData.data.data || eventsData.data || [];
+          const eventsArray = Array.isArray(eventsData.data) ? eventsData.data : [];
           console.log('Events Array:', eventsArray);
           const formattedEvents = eventsArray
             .filter(item => {
@@ -80,14 +85,16 @@ const HomePage = () => {
         const companiesRes = await API.get('/api/company-logos');
         const companiesData = companiesRes;
         if (companiesData.success) {
-          setCompanyList(companiesData.data.data.filter(item => item.isActive));
+          const companiesArray = Array.isArray(companiesData.data) ? companiesData.data : [];
+          setCompanyList(companiesArray.filter(item => item.isActive));
         }
 
         // Fetch Faculty
         const facultyRes = await API.get('/api/faculty');
         const facultyData = facultyRes;
         if (facultyData.success) {
-          const formattedFaculty = facultyData.data.data
+          const facultyArray = Array.isArray(facultyData.data) ? facultyData.data : [];
+          const formattedFaculty = facultyArray
             .filter(item => item.isActive)
             .slice(0, 8)
             .map(item => ({
@@ -105,7 +112,8 @@ const HomePage = () => {
         const nirfRes = await API.get('/api/nirf?year=2025');
         const nirfData = nirfRes;
         if (nirfData.success) {
-          setNIRF_Ranking(nirfData.data.data.filter(item => item.isPublished));
+          const nirfArray = Array.isArray(nirfData.data) ? nirfData.data : [];
+          setNIRF_Ranking(nirfArray.filter(item => item.isPublished));
         }
 
         // Fetch Hero Sliders
@@ -113,7 +121,7 @@ const HomePage = () => {
         const slidersData = slidersRes;
         console.log('Hero Sliders Raw Response:', slidersData);
         if (slidersData.success) {
-          const slidersArray = slidersData.data.data || slidersData.data || [];
+          const slidersArray = Array.isArray(slidersData.data) ? slidersData.data : [];
           console.log('Hero Sliders Array:', slidersArray);
           const formattedSliders = slidersArray
             .filter(item => item.isActive)
@@ -123,14 +131,17 @@ const HomePage = () => {
               return {
                 image: imageUrl || img1,
                 title: item.title,
-                link: item.buttonLink || '#'
+                subtitle: item.subtitle || '',
+                description: item.description || '',
+                link: item.buttonLink || '#',
+                buttonText: item.buttonText || 'Learn More'
               };
             });
           console.log('Formatted Hero Sliders:', formattedSliders);
           setHeroSliders(formattedSliders.length > 0 ? formattedSliders : [
-            { image: img1, title: "Default Slider 1", link: "#" },
-            { image: img2, title: "Default Slider 2", link: "#" },
-            { image: img3, title: "Default Slider 3", link: "#" }
+            { image: img1, title: "Default Slider 1", subtitle: "", description: "", link: "#", buttonText: "Learn More" },
+            { image: img2, title: "Default Slider 2", subtitle: "", description: "", link: "#", buttonText: "Learn More" },
+            { image: img3, title: "Default Slider 3", subtitle: "", description: "", link: "#", buttonText: "Learn More" }
           ]);
         }
 
@@ -148,13 +159,23 @@ const HomePage = () => {
         const blocksRes = await API.get('/api/content-blocks/page/homepage');
         console.log('Content Blocks Response:', blocksRes);
         if (blocksRes?.success && blocksRes?.data) {
-          const blocks = blocksRes.data.data || blocksRes.data || [];
+          const blocks = Array.isArray(blocksRes.data) ? blocksRes.data : [];
           console.log('Content Blocks Loaded:', blocks);
           console.log('Vision Block:', blocks.find(b => b.blockId === 'homepage-vision'));
           console.log('Mission Block:', blocks.find(b => b.blockId === 'homepage-mission'));
           setContentBlocks(blocks);
         }
 
+          // Fetch Latest News & Updates ContentSection
+          try {
+            const contentSectionRes = await API.get('/api/content-sections/latest-news-updates');
+            if (contentSectionRes?.success && contentSectionRes?.data) {
+              setLatestNewsSection(contentSectionRes.data);
+              console.log('Fetched Latest News Section:', contentSectionRes.data);
+            }
+          } catch (error) {
+            console.log('Latest News Section not found, using default news list');
+          }
 
       } catch (error) {
         // Fallback to default data if API fails
@@ -276,135 +297,28 @@ const HomePage = () => {
       <section className="mx-auto py-4 px-4 sm:px-6 md:px-8 max-w-screen-2xl">
         <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Latest News & Updates</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          
-          {/* News Box 1 - Left Accent Bar Design */}
-          <div className={`rounded-xl overflow-hidden shadow-2xl transform hover:scale-[1.02] transition-all duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-            <div className="p-5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: color1 }}>
-                  <span className="text-xl">📢</span>
-                </div>
-                <h4 className="font-bold text-lg" style={{ color: color1 }}>Announcements</h4>
-              </div>
-              <div className="space-y-3 h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                {newsList.slice(0, 5).map((n, i) => (
-                  <a 
-                    key={i} 
-                    href="/" 
-                    className={`block p-4 rounded-lg transition-all hover:shadow-lg relative border-l-4 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
-                    style={{ borderLeftColor: n.isNew ? '#fbbf24' : color1 }}
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h5 className={`text-sm font-semibold leading-tight flex-1 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{n.title}</h5>
-                      {n.isNew && (
-                        <span className="inline-block text-[9px] font-bold px-2 py-1 rounded-full" style={{ backgroundColor: '#fbbf24', color: '#1e3a5f' }}>
-                          NEW
-                        </span>
-                      )}
-                    </div>
-                    <div className={`text-xs flex items-center gap-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                      <span>📅</span>
-                      <span>{new Date(n.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
+          {(() => {
+            const subsections = latestNewsSection?.subsections?.sort((a, b) => a.order - b.order) || [
+              { id: 'announcement', title: 'Announcement', icon: '📢', order: 0 },
+              { id: 'campus-update', title: 'Campus Update', icon: '📰', order: 1 },
+              { id: 'quick-update', title: 'Quick Update', icon: '⚡', order: 2 }
+            ];
 
-          {/* News Box 2 - Glass Morphism Design */}
-          <div className={`rounded-xl p-5 shadow-2xl transform hover:scale-[1.02] transition-all duration-300 relative overflow-hidden ${darkMode ? 'bg-gray-800/90' : 'bg-white/90'}`} style={{ backdropFilter: 'blur(10px)', border: `1px solid ${color1}30` }}>
-            <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl opacity-30" style={{ backgroundColor: color1 }}></div>
-            <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full blur-3xl opacity-20" style={{ backgroundColor: color2 }}></div>
-            <div className="relative">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center border-2" style={{ borderColor: color1, backgroundColor: `${color1}20` }}>
-                  <span className="text-xl">📰</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <h4 className="font-bold text-lg" style={{ color: color1 }}>Campus Updates</h4>
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                </div>
-              </div>
-              <div className="space-y-3 h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                {newsList.slice(0, 5).map((n, i) => (
-                  <a 
-                    key={i} 
-                    href="/" 
-                    className={`block p-4 rounded-xl transition-all hover:shadow-xl group ${darkMode ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-white/50 hover:bg-white'}`}
-                    style={{ border: `1px solid ${darkMode ? '#374151' : '#E5E7EB'}` }}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 mt-1">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ background: `linear-gradient(135deg, ${color1}, ${color2})` }}>
-                          {new Date(n.date).getDate()}
-                        </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h5 className={`text-sm font-semibold leading-tight mb-2 group-hover:translate-x-1 transition-transform ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{n.title}</h5>
-                        <div className="flex items-center justify-between">
-                          <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            {new Date(n.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                          </p>
-                          {n.isNew && (
-                            <span className="text-[9px] font-bold px-2 py-1 rounded-full" style={{ backgroundColor: '#8b5cf6', color: '#fff' }}>
-                               LATEST
-                            </span>
-                            
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
+            return subsections.map((subsection, idx) => {
+              const items = (latestNewsSection?.subsections?.[idx]?.items && Array.isArray(latestNewsSection.subsections[idx].items))
+                ? latestNewsSection.subsections[idx].items.filter(item => !item.isHidden)
+                : newsList.map((n, i) => ({ id: n.id || i, title: n.title, date: n.date, pdfLink: n.pdfLink, isNew: n.isNew, description: n.description || '', link: n.link }));
 
-          {/* News Box 3 - Compact List with Numbered Cards */}
-          <div className={`rounded-xl p-5 shadow-2xl transform hover:scale-[1.02] transition-all duration-300 ${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'}`} style={{ border: `2px solid ${color1}20` }}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white" style={{ background: `linear-gradient(135deg, ${color1}, ${color2})` }}>
-                  <span className="text-xl">⚡</span>
-                </div>
-                <h4 className="font-bold text-lg" style={{ color: color1 }}>Quick Updates</h4>
-              </div>
-              <span className={`text-xs font-bold px-2 py-1 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} style={{ color: color1 }}>
-                {newsList.length} items
-              </span>
-            </div>
-            <div className="space-y-2 h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-              {newsList.slice(0, 5).map((n, i) => (
-                <a 
-                  key={i} 
-                  href="/" 
-                  className={`block rounded-lg transition-all hover:shadow-md ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-white'}`}
-                >
-                  <div className="flex gap-3 p-3">
-                    <div className="flex-shrink-0">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: color1 }}>
-                        {i + 1}
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h5 className={`text-sm font-semibold leading-tight mb-1.5 line-clamp-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{n.title}</h5>
-                      <div className="flex items-center gap-3">
-                        <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                          {new Date(n.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                        </p>
-                        {n.isNew && (
-                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: color1, color: '#fff' }}>
-                            NEW
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
+              // map by subsection id to dedicated component
+              if ((subsection.id || '').toLowerCase().includes('announcement') || idx === 0) {
+                return <AnnouncementCard key={subsection.id || idx} subsection={subsection} items={items} color1={color1} darkMode={darkMode} />;
+              }
+              if ((subsection.id || '').toLowerCase().includes('campus') || idx === 1) {
+                return <CampusUpdateCard key={subsection.id || idx} subsection={subsection} items={items} color1={color1} color2={color2} darkMode={darkMode} />;
+              }
+              return <QuickUpdateCard key={subsection.id || idx} subsection={subsection} items={items} color1={color1} darkMode={darkMode} />;
+            });
+          })()}
         </div>
       </section>
 
@@ -565,6 +479,17 @@ const HomePage = () => {
               </div>
             </div>
 
+              {/* Distinguished Faculty - FULL WIDTH */}
+            <section>
+              <div className="flex items-center justify-between mb-4 px-1">
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-bold" style={{ color: color1 }}>Distinguished Faculty</h3>
+                <a href="/people/faculty" style={{ color: color1 }} className="text-sm font-semibold hover:underline">View all faculty →</a>
+              </div>
+              <div className={`rounded-xl overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl border`} style={{ borderColor: color1 + '30' }}>
+                <FacultyCarousel faculty={facultyList} darkMode={darkMode} color1={color1} color2={color2} />
+              </div>
+            </section>
+
             {/* Recruitment Partners - FULL WIDTH */}
             <section>
               <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Recruitment Partners</h3>
@@ -596,16 +521,7 @@ const HomePage = () => {
               </div>
             </section>
 
-            {/* Distinguished Faculty - FULL WIDTH */}
-            <section>
-              <div className="flex items-center justify-between mb-4 px-1">
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-bold" style={{ color: color1 }}>Distinguished Faculty</h3>
-                <a href="/people/faculty" style={{ color: color1 }} className="text-sm font-semibold hover:underline">View all faculty →</a>
-              </div>
-              <div className={`rounded-xl overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl border`} style={{ borderColor: color1 + '30' }}>
-                <FacultyCarousel faculty={facultyList} darkMode={darkMode} color1={color1} color2={color2} />
-              </div>
-            </section>
+
       </main>
     </div>
   );
@@ -681,9 +597,25 @@ const HeroSlider = ({ events, color1 }) => {
             </h2>
 
             {/* Subtitle / Description */}
-            <p className="text-gray-300 text-lg md:text-xl max-w-2xl font-light">
-              Generating knowledge for the future through research and innovation.
-            </p>
+            {(events[currentIndex]?.subtitle || events[currentIndex]?.description) && (
+              <div className="space-y-2">
+                {events[currentIndex]?.subtitle && (
+                  <p className="text-gray-200 text-xl md:text-2xl max-w-2xl font-semibold">
+                    {events[currentIndex].subtitle}
+                  </p>
+                )}
+                {events[currentIndex]?.description && (
+                  <p className="text-gray-300 text-lg md:text-xl max-w-2xl font-light">
+                    {events[currentIndex].description}
+                  </p>
+                )}
+              </div>
+            )}
+            {!events[currentIndex]?.subtitle && !events[currentIndex]?.description && (
+              <p className="text-gray-300 text-lg md:text-xl max-w-2xl font-light">
+                Generating knowledge for the future through research and innovation.
+              </p>
+            )}
           </div>
         </div>
       </div>

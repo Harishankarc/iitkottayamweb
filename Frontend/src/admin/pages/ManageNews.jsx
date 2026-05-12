@@ -6,6 +6,7 @@ import ImageUploader from '../components/ImageUploader';
 export default function ManageNews() {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pdfUploading, setPdfUploading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [showModal, setShowModal] = useState(false);
@@ -16,6 +17,7 @@ export default function ManageNews() {
     excerpt: '',
     category: 'general',
     image: '',
+    pdfLink: '',
     author: '',
     isPublished: true
   });
@@ -85,6 +87,8 @@ export default function ManageNews() {
       content: '',
       excerpt: '',
       category: 'general',
+      image: '',
+      pdfLink: '',
       author: '',
       isPublished: true
     });
@@ -98,10 +102,46 @@ export default function ManageNews() {
       content: item.content,
       excerpt: item.excerpt || '',
       category: item.category,
+      image: item.image || '',
+      pdfLink: item.pdfLink || '',
       author: item.author || '',
       isPublished: item.isPublished
     });
     setShowModal(true);
+  };
+
+  const handlePdfUpload = async (file) => {
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      alert('Please select a PDF file.');
+      return;
+    }
+
+    try {
+      setPdfUploading(true);
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch(`${API.baseURL}/api/upload`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData
+      });
+
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to upload PDF');
+      }
+
+      setFormData((prev) => ({ ...prev, pdfLink: result.data?.url || '' }));
+    } catch (error) {
+      console.error('Error uploading PDF:', error);
+      alert(error.message || 'Failed to upload PDF');
+    } finally {
+      setPdfUploading(false);
+    }
   };
 
   const filteredNews = news.filter(item => {
@@ -263,6 +303,24 @@ export default function ManageNews() {
                 folder="news"
                 aspectRatio="16/9"
               />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">PDF Attachment</label>
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  onChange={(e) => handlePdfUpload(e.target.files?.[0])}
+                  className="w-full text-sm text-gray-700 file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-emerald-700 hover:file:bg-emerald-100"
+                />
+                <div className="mt-2 text-sm text-gray-600">
+                  {pdfUploading ? 'Uploading PDF...' : formData.pdfLink ? (
+                    <a href={formData.pdfLink} target="_blank" rel="noreferrer" className="text-emerald-700 underline break-all">
+                      View current PDF
+                    </a>
+                  ) : (
+                    'No PDF attached yet.'
+                  )}
+                </div>
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Content *</label>
                 <textarea

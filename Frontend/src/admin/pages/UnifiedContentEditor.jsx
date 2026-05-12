@@ -125,14 +125,32 @@ export default function UnifiedContentEditor() {
     }
   };
 
+  // Get default content structure based on block type
+  const getDefaultContent = (blockType) => {
+    const defaultStructures = {
+      hero: { title: '', subtitle: '', backgroundImage: '', cta: '', ctaLink: '' },
+      heading: { text: '', level: 'h2' },
+      paragraph: { text: '' },
+      image: { url: '', alt: '', caption: '' },
+      gallery: { images: [], title: '' },
+      list: { items: [], title: '' },
+      card: { title: '', description: '', image: '', link: '' },
+      table: { title: '', subtitle: '', headers: [], rows: [], notes: [] },
+      statistics: { items: [], title: '' },
+      button: { text: '', link: '', style: 'primary' }
+    };
+    return defaultStructures[blockType] || {};
+  };
+
   const createBlock = () => {
+    const defaultContent = getDefaultContent('paragraph');
     setEditingBlock({
       blockId: `block-${Date.now()}`,
       pageName: selectedPage.pageName,
       sectionName: '',
       blockType: 'paragraph',
       blockLabel: 'New Content Block',
-      content: {},
+      content: defaultContent,
       blockOrder: blocks.length,
       isVisible: true
     });
@@ -168,6 +186,20 @@ export default function UnifiedContentEditor() {
 
   const saveBlock = async () => {
     try {
+      if (editingBlock.blockType === 'table') {
+        const headers = editingBlock.content?.headers || [];
+        const rows = editingBlock.content?.rows || [];
+        
+        if (headers.length === 0) {
+          alert('Please add at least one table header!');
+          return;
+        }
+        if (rows.length === 0) {
+          alert('Please add at least one table row!');
+          return;
+        }
+      }
+      
       console.log('Saving block:', editingBlock);
       if (editingBlock.id) {
         const response = await API.put(`/api/content-blocks/${editingBlock.id}`, editingBlock);
@@ -250,6 +282,16 @@ export default function UnifiedContentEditor() {
   const removeArrayItem = (field, index) => {
     const arr = editingBlock.content[field] || [];
     updateContent(field, arr.filter((_, i) => i !== index));
+  };
+
+  const updateTableCell = (rowIndex, cellIndex, value) => {
+    const rows = (editingBlock.content.rows || []).map((row, idx) => {
+      if (idx === rowIndex) {
+        return row.map((cell, cidx) => cidx === cellIndex ? value : cell);
+      }
+      return row;
+    });
+    updateContent('rows', rows);
   };
 
   const renderContentEditor = () => {
@@ -681,147 +723,188 @@ export default function UnifiedContentEditor() {
 
       case 'table':
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Table Title */}
             <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Table Title</label>
+              <label className="block text-sm font-semibold mb-2 text-gray-700">1️⃣ Table Title</label>
               <input
                 type="text"
                 value={content.title || ''}
                 onChange={(e) => updateContent('title', e.target.value)}
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Fee Structure"
+                placeholder="e.g., Fee Structure, Faculty List"
               />
             </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Subtitle (Optional)</label>
-              <input
-                type="text"
-                value={content.subtitle || ''}
-                onChange={(e) => updateContent('subtitle', e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Admission 2025"
-              />
-            </div>
-            
-            {/* Table Headers */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-semibold text-gray-700">Table Headers</label>
-                <button
-                  type="button"
-                  onClick={() => addArrayItem('headers', '')}
-                  className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                >
-                  + Add Header
-                </button>
+
+            {/* Column Management */}
+            <div className="border-2 border-green-300 rounded-lg p-4 bg-green-50">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <label className="block text-sm font-semibold text-green-900">2️⃣ Column Headers</label>
+                  <p className="text-xs text-green-700 mt-1">Total Columns: <span className="font-bold">{(content.headers || []).length}</span></p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      addArrayItem('headers', '');
+                      console.log('➕ Column added');
+                    }}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold text-sm"
+                  >
+                    + Add Column
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if ((content.headers || []).length > 0) {
+                        removeArrayItem('headers', (content.headers || []).length - 1);
+                        console.log('➖ Last column removed');
+                      } else {
+                        alert('❌ No columns to remove');
+                      }
+                    }}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold text-sm"
+                  >
+                    - Remove Last
+                  </button>
+                </div>
               </div>
-              <div className="space-y-2">
-                {(content.headers || []).map((header, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={header}
-                      onChange={(e) => updateArrayContent('headers', index, e.target.value)}
-                      className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder={`Header ${index + 1}`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeArrayItem('headers', index)}
-                      className="px-3 py-2 text-red-600 hover:bg-red-50 rounded"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+
+              {(content.headers || []).length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-green-700 mb-3">👈 Click "+ Add Column" to start adding column headers</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {(content.headers || []).map((header, index) => (
+                    <div key={index} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-green-200">
+                      <span className="inline-block w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                        {index + 1}
+                      </span>
+                      <input
+                        type="text"
+                        value={header}
+                        onChange={(e) => updateArrayContent('headers', index, e.target.value)}
+                        className="flex-1 px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                        placeholder={`Column ${index + 1} name`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Table Rows */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-semibold text-gray-700">Table Rows</label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const headerCount = (content.headers || []).length;
-                    const newRow = Array(headerCount).fill('');
-                    addArrayItem('rows', newRow);
-                  }}
-                  className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                >
-                  + Add Row
-                </button>
-              </div>
-              <div className="space-y-3">
-                {(content.rows || []).map((row, rowIndex) => (
-                  <div key={rowIndex} className="border-2 border-gray-200 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-600">Row {rowIndex + 1}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeArrayItem('rows', rowIndex)}
-                        className="text-sm text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${(content.headers || []).length}, 1fr)` }}>
-                      {row.map((cell, cellIndex) => (
-                        <input
-                          key={cellIndex}
-                          type="text"
-                          value={cell}
-                          onChange={(e) => {
-                            const newRows = [...(content.rows || [])];
-                            newRows[rowIndex][cellIndex] = e.target.value;
-                            updateContent('rows', newRows);
-                          }}
-                          className="px-3 py-2 border rounded focus:ring-2 focus:ring-green-500 text-sm"
-                          placeholder={(content.headers || [])[cellIndex] || `Col ${cellIndex + 1}`}
-                        />
-                      ))}
-                    </div>
+            {/* Row Management */}
+            {(content.headers || []).length > 0 && (
+              <div className="border-2 border-blue-300 rounded-lg p-4 bg-blue-50">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-blue-900">3️⃣ Table Data (Rows)</label>
+                    <p className="text-xs text-blue-700 mt-1">Total Rows: <span className="font-bold">{(content.rows || []).length}</span> | Columns per row: <span className="font-bold">{(content.headers || []).length}</span></p>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Notes/Footer */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-semibold text-gray-700">Notes (Optional)</label>
-                <button
-                  type="button"
-                  onClick={() => addArrayItem('notes', '')}
-                  className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                >
-                  + Add Note
-                </button>
-              </div>
-              <div className="space-y-2">
-                {(content.notes || []).map((note, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={note}
-                      onChange={(e) => updateArrayContent('notes', index, e.target.value)}
-                      className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="Note text (use | for links, e.g., Link text|#url)"
-                    />
+                  <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => removeArrayItem('notes', index)}
-                      className="px-3 py-2 text-red-600 hover:bg-red-50 rounded"
+                      onClick={() => {
+                        const newRow = Array((content.headers || []).length).fill('');
+                        addArrayItem('rows', newRow);
+                        console.log('➕ Row added');
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-sm"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      + Add Row
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if ((content.rows || []).length > 0) {
+                          removeArrayItem('rows', (content.rows || []).length - 1);
+                          console.log('➖ Last row removed');
+                        } else {
+                          alert('❌ No rows to remove');
+                        }
+                      }}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold text-sm"
+                    >
+                      - Remove Last
                     </button>
                   </div>
-                ))}
+                </div>
+
+                {(content.rows || []).length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-blue-700">👈 Click "+ Add Row" to start adding data</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {(content.rows || []).map((row, rowIndex) => (
+                      <div key={rowIndex} className="bg-white p-4 rounded-lg border-2 border-blue-200">
+                        <div className="text-xs font-semibold text-blue-700 mb-3">Row {rowIndex + 1}:</div>
+                        <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${(content.headers || []).length}, 1fr)` }}>
+                          {row.map((cell, cellIndex) => (
+                            <div key={cellIndex} className="space-y-1">
+                              <label className="text-xs font-semibold text-gray-600 block">
+                                {(content.headers || [])[cellIndex] || `Col ${cellIndex + 1}`}
+                              </label>
+                              <input
+                                type="text"
+                                value={cell || ''}
+                                onChange={(e) => updateTableCell(rowIndex, cellIndex, e.target.value)}
+                                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder="Enter data"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
+            )}
+
+            {/* Table Preview */}
+            {(content.headers || []).length > 0 && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">📊 Preview</label>
+                <div className="border-2 border-gray-300 rounded-lg overflow-x-auto bg-gray-50 p-3">
+                  <table className="w-full border-collapse text-sm">
+                    <thead>
+                      <tr className="bg-green-600 text-white">
+                        {(content.headers || []).map((header, idx) => (
+                          <th key={idx} className="border border-gray-300 px-3 py-2 text-left font-semibold">
+                            {header || `Col ${idx + 1}`}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(content.rows || []).length === 0 ? (
+                        <tr>
+                          <td colSpan={(content.headers || []).length} className="border border-gray-300 px-3 py-2 text-center text-gray-400">
+                            No data rows yet
+                          </td>
+                        </tr>
+                      ) : (
+                        (content.rows || []).map((row, rowIdx) => (
+                          <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                            {row.map((cell, cellIdx) => (
+                              <td key={cellIdx} className="border border-gray-300 px-3 py-2">
+                                {cell || '—'}
+                              </td>
+                            ))}
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         );
+
 
       default:
         return (
@@ -1305,7 +1388,16 @@ export default function UnifiedContentEditor() {
                     <label className="block text-sm font-semibold mb-2 text-gray-700">Block Type</label>
                     <select
                       value={editingBlock.blockType}
-                      onChange={(e) => setEditingBlock({ ...editingBlock, blockType: e.target.value })}
+                      onChange={(e) => {
+                        const newBlockType = e.target.value;
+                        const newContent = getDefaultContent(newBlockType);
+                        setEditingBlock({
+                          ...editingBlock,
+                          blockType: newBlockType,
+                          content: newBlockType === editingBlock.blockType ? editingBlock.content : newContent
+                        });
+                        console.log('📦 Block type changed to', newBlockType, 'with content:', newContent);
+                      }}
                       className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     >
                       {BLOCK_TYPES.map(type => (
