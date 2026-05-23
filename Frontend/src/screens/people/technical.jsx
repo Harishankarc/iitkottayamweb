@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Mail, Phone, MapPin, Search, Wrench, Users, Code, Settings } from 'lucide-react';
+import RotatingDetails from '../../components/RotatingDetails.jsx';
 
 
 
@@ -73,74 +74,8 @@ const TechnicalCard = ({ staff, color1, darkMode }) => {
 
       {/* Content Section */}
       <div className="p-6 pt-4">
-        {/* Contact Information - Clean Layout */}
-        <div className="space-y-3">
-          {/* Email */}
-          {staff.email && (
-            <div className="flex items-center gap-3">
-              <div 
-                className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-300 hover:scale-110"
-                style={{ backgroundColor: `${color1}15` }}
-              >
-                <Mail className="w-4 h-4" style={{ color: color1 }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                  Email
-                </p>
-                <a 
-                  href={`mailto:${staff.email}`}
-                  className={`text-sm hover:underline truncate block ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}
-                >
-                  {staff.email}
-                </a>
-              </div>
-            </div>
-          )}
-
-          {/* Phone */}
-          {staff.phone && (
-            <div className="flex items-center gap-3">
-              <div 
-                className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-300 hover:scale-110"
-                style={{ backgroundColor: `${color1}15` }}
-              >
-                <Phone className="w-4 h-4" style={{ color: color1 }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                  Phone
-                </p>
-                <a 
-                  href={`tel:${staff.phone.replace(/[^0-9+]/g, '')}`}
-                  className={`text-sm hover:underline ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}
-                >
-                  {staff.phone}
-                </a>
-              </div>
-            </div>
-          )}
-
-          {/* Room */}
-          {staff.room && (
-            <div className="flex items-center gap-3">
-              <div 
-                className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-300 hover:scale-110"
-                style={{ backgroundColor: `${color1}15` }}
-              >
-                <MapPin className="w-4 h-4" style={{ color: color1 }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                  Room
-                </p>
-                <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                  {staff.room}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Rotating Details with Fade Effect */}
+        <RotatingDetails person={staff} color1={color1} darkMode={darkMode} />
       </div>
 
       {/* Bottom Accent Line */}
@@ -161,6 +96,11 @@ export default function Technical() {
   const [searchTerm, setSearchTerm] = useState('');
   const [technicalData, setTechnicalData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [headerSettings, setHeaderSettings] = useState({
+    badge: 'Technical Support Team',
+    title: 'Technical Staff',
+    description: 'Skilled professionals ensuring smooth technical operations and support.'
+  });
 
   useEffect(() => {
     const fetchTechnicalStaff = async () => {
@@ -179,6 +119,10 @@ export default function Technical() {
               email: person.email || '',
               phone: person.phone || '',
               room: person.room || person.qualification || '',
+              qualification: person.qualification || 'N/A',
+              department: person.department || 'N/A',
+              specialization: person.specialization || 'N/A',
+              experience: person.experience || 'N/A',
               image: API.getImageUrl(person.photo) || `https://placehold.co/100x100/22a05e/ffffff?text=${person.name?.charAt(0) || 'T'}`
             }));
           setTechnicalData(transformedData);
@@ -193,7 +137,50 @@ export default function Technical() {
         setLoading(false);
       }
     };
+
+    const fetchSettings = async () => {
+      try {
+        const responses = await Promise.all([
+          fetch(`${API.baseURL}/api/site-settings/technical_badge`),
+          fetch(`${API.baseURL}/api/site-settings/technical_title`),
+          fetch(`${API.baseURL}/api/site-settings/technical_description`)
+        ]);
+        
+        for (let i = 0; i < responses.length; i++) {
+          if (!responses[i].ok) {
+            console.warn(`Settings response ${i} not OK:`, responses[i].status);
+          }
+        }
+        
+        const [badgeRes, titleRes, descRes] = await Promise.all(
+          responses.map(r => r.json())
+        );
+        
+        setHeaderSettings({
+          badge: badgeRes.data?.settingValue || 'Technical Support Team',
+          title: titleRes.data?.settingValue || 'Technical Staff',
+          description: descRes.data?.settingValue || 'Skilled professionals ensuring smooth technical operations and support.'
+        });
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+    
     fetchTechnicalStaff();
+    fetchSettings();
+    
+    // Poll for settings updates every 5 seconds
+    const settingsInterval = setInterval(fetchSettings, 5000);
+    
+    // Refetch settings when window regains focus
+    const handleFocus = () => fetchSettings();
+    window.addEventListener('focus', handleFocus);
+    
+    // Cleanup
+    return () => {
+      clearInterval(settingsInterval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   // Filtered results based on search term
@@ -220,13 +207,13 @@ export default function Technical() {
           <div className="w-full mx-auto text-center px-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 backdrop-blur-md rounded-full text-xs font-bold mb-3 border hover:scale-105 transition-all duration-500 shadow-lg cursor-pointer" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
               <Wrench className="w-4 h-4" style={{ color: color1 }} />
-              Technical Support Team
+              {headerSettings.badge}
             </div>
             <h1 className={`text-2xl md:text-3xl font-extrabold mb-3 leading-tight tracking-tight ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-              Technical Staff
+              {headerSettings.title}
             </h1>
             <p className={`text-xs md:text-sm leading-relaxed font-light max-w-4xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              Skilled professionals ensuring smooth technical operations and support.
+              {headerSettings.description}
             </p>
           </div>
         </div>

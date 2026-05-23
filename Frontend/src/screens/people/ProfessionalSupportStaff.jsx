@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Mail, Phone, MapPin, Search, Heart, Stethoscope, UserCheck, Shield, Award } from 'lucide-react';
+import RotatingDetails from '../../components/RotatingDetails.jsx';
 
 
 
@@ -85,74 +86,8 @@ const StaffCard = ({ staff, color1, darkMode }) => {
         {/* Divider */}
         <div className={`h-px w-full mb-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} />
 
-        {/* Contact Information */}
-        <div className="space-y-3">
-          {/* Email */}
-          {staff.email && (
-            <div className={`flex items-start gap-3 p-3 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
-              <div 
-                className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: `${color1}20` }}
-              >
-                <Mail className="w-4 h-4" style={{ color: color1 }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Email
-                </p>
-                <a 
-                  href={`mailto:${staff.email}`}
-                  className={`text-sm hover:underline break-all ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}
-                >
-                  {staff.email}
-                </a>
-              </div>
-            </div>
-          )}
-
-          {/* Phone */}
-          {staff.phone && (
-            <div className={`flex items-start gap-3 p-3 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
-              <div 
-                className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: `${color1}20` }}
-              >
-                <Phone className="w-4 h-4" style={{ color: color1 }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Phone
-                </p>
-                <a 
-                  href={`tel:${staff.phone.replace(/[^0-9+]/g, '')}`}
-                  className={`text-sm hover:underline ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}
-                >
-                  {staff.phone}
-                </a>
-              </div>
-            </div>
-          )}
-
-          {/* Room */}
-          {staff.room && (
-            <div className={`flex items-start gap-3 p-3 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
-              <div 
-                className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: `${color1}20` }}
-              >
-                <MapPin className="w-4 h-4" style={{ color: color1 }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Room
-                </p>
-                <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                  {staff.room}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Rotating Details with Fade Effect */}
+        <RotatingDetails person={staff} color1={color1} darkMode={darkMode} />
       </div>
     </div>
   );
@@ -165,6 +100,11 @@ export default function ProfessionalSupportStaff() {
   const [searchTerm, setSearchTerm] = useState('');
   const [staffData, setStaffData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [headerSettings, setHeaderSettings] = useState({
+    badge: 'Student Welfare & Support',
+    title: 'Professional Support Staff',
+    description: 'Dedicated professionals ensuring student health, wellness, and overall well-being.'
+  });
 
   useEffect(() => {
     const fetchSupportStaff = async () => {
@@ -183,6 +123,10 @@ export default function ProfessionalSupportStaff() {
               email: person.email || '',
               phone: person.phone || '',
               room: person.room || person.qualification || '',
+              qualification: person.qualification || 'N/A',
+              department: person.department || 'N/A',
+              specialization: person.specialization || 'N/A',
+              experience: person.experience || 'N/A',
               image: API.getImageUrl(person.photo) || `https://placehold.co/110x110/22a05e/ffffff?text=${person.name?.charAt(0) || 'S'}`
             }));
           setStaffData(transformedData);
@@ -197,7 +141,50 @@ export default function ProfessionalSupportStaff() {
         setLoading(false);
       }
     };
+
+    const fetchSettings = async () => {
+      try {
+        const responses = await Promise.all([
+          fetch(`${API.baseURL}/api/site-settings/support_staff_badge`),
+          fetch(`${API.baseURL}/api/site-settings/support_staff_title`),
+          fetch(`${API.baseURL}/api/site-settings/support_staff_description`)
+        ]);
+        
+        for (let i = 0; i < responses.length; i++) {
+          if (!responses[i].ok) {
+            console.warn(`Settings response ${i} not OK:`, responses[i].status);
+          }
+        }
+        
+        const [badgeRes, titleRes, descRes] = await Promise.all(
+          responses.map(r => r.json())
+        );
+        
+        setHeaderSettings({
+          badge: badgeRes.data?.settingValue || 'Student Welfare & Support',
+          title: titleRes.data?.settingValue || 'Professional Support Staff',
+          description: descRes.data?.settingValue || 'Dedicated professionals ensuring student health, wellness, and overall well-being.'
+        });
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+    
     fetchSupportStaff();
+    fetchSettings();
+    
+    // Poll for settings updates every 5 seconds
+    const settingsInterval = setInterval(fetchSettings, 5000);
+    
+    // Refetch settings when window regains focus
+    const handleFocus = () => fetchSettings();
+    window.addEventListener('focus', handleFocus);
+    
+    // Cleanup
+    return () => {
+      clearInterval(settingsInterval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
   // Filtered results based on search term
   const filteredStaff = staffData.filter((staff) => {
@@ -224,13 +211,13 @@ export default function ProfessionalSupportStaff() {
         <div className="max-w-7xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
             <Heart className="w-4 h-4" style={{ color: color1 }} />
-            Student Welfare & Support
+            {headerSettings.badge}
           </div>
           <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-            Professional Support Staff
+            {headerSettings.title}
           </h1>
           <p className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            Dedicated professionals ensuring student health, wellness, and overall well-being.
+            {headerSettings.description}
           </p>
         </div>
       </div>

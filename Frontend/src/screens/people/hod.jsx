@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Mail, Phone, MapPin, Search, GraduationCap, Building2 } from 'lucide-react';
+import RotatingDetails from '../../components/RotatingDetails.jsx';
 
 // HOD Card Component - Vertical Layout Only
 const HODCard = ({ hod, color1, darkMode }) => {
@@ -93,87 +94,21 @@ const HODCard = ({ hod, color1, darkMode }) => {
         {/* Divider */}
         <div className={`h-px w-full mb-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} />
 
-        {/* Contact Information - Stacked */}
-        <div className="space-y-1">
-          {/* Phone Numbers */}
-          {hod.phones.map((phone, index) => (
-            <div 
-              key={index}
-              className={`flex items-center gap-1.5 p-1.5 rounded-lg ${
-                darkMode ? 'bg-gray-700/50' : 'bg-gray-50'
-              }`}
-            >
-              <div 
-                className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: `${color1}15` }}
-              >
-                <Phone className="w-2.5 h-2.5" style={{ color: color1 }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs font-semibold mb-0 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Phone {hod.phones.length > 1 ? index + 1 : ''}
-                </p>
-                <a 
-                  href={`tel:${phone.replace(/[^0-9+]/g, '')}`}
-                  className={`text-xs hover:underline ${
-                    darkMode ? 'text-gray-200' : 'text-gray-800'
-                  }`}
-                >
-                  {phone}
-                </a>
-              </div>
-            </div>
-          ))}
-
-          {/* Email */}
-          <div 
-            className={`flex items-center gap-1.5 p-1.5 rounded-lg ${
-              darkMode ? 'bg-gray-700/50' : 'bg-gray-50'
-            }`}
-          >
-            <div 
-              className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: `${color1}15` }}
-            >
-              <Mail className="w-2.5 h-2.5" style={{ color: color1 }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className={`text-xs font-semibold mb-0 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Email
-              </p>
-              <a 
-                href={`mailto:${hod.email}`}
-                className={`text-xs hover:underline break-all ${
-                  darkMode ? 'text-gray-200' : 'text-gray-800'
-                }`}
-              >
-                {hod.email}
-              </a>
-            </div>
-          </div>
-
-          {/* Room Location */}
-          <div 
-            className={`flex items-center gap-1.5 p-1.5 rounded-lg ${
-              darkMode ? 'bg-gray-700/50' : 'bg-gray-50'
-            }`}
-          >
-            <div 
-              className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: `${color1}15` }}
-            >
-              <MapPin className="w-2.5 h-2.5" style={{ color: color1 }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className={`text-xs font-semibold mb-0 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Office
-              </p>
-              <p className={`text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                {hod.room}
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* Contact Information - Rotating */}
+        <RotatingDetails 
+          person={{
+            email: hod.email,
+            phone: hod.phones?.[0] || 'N/A',
+            qualification: hod.qualification,
+            experience: hod.experience,
+            department: hod.department,
+            specialization: hod.specialization,
+            room: hod.room,
+            roles: hod.phones?.slice(1) || []
+          }}
+          color1={color1}
+          darkMode={darkMode}
+        />
       </div>
     </div>
   );
@@ -186,6 +121,11 @@ export default function HeadofDepartment() {
   const [searchTerm, setSearchTerm] = useState('');
   const [hodData, setHodData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [headerSettings, setHeaderSettings] = useState({
+    badge: 'Leadership & Faculty',
+    title: 'Head of Department',
+    description: 'Meet the leaders driving excellence in education and research.'
+  });
 
   useEffect(() => {
     const fetchHODs = async () => {
@@ -209,6 +149,9 @@ export default function HeadofDepartment() {
                 department: person.designation || person.department || 'Department',
                 phones: person.phone ? [person.phone] : [],
                 email: person.email || '',
+                qualification: person.qualification || person.room || 'N/A',
+                specialization: person.specialization || 'N/A',
+                experience: person.experience || 'N/A',
                 room: person.qualification || person.room || 'N/A',
                 image: imageUrl || `https://placehold.co/128x128/22a05e/ffffff?text=${person.name?.charAt(0) || 'H'}`
               };
@@ -225,7 +168,50 @@ export default function HeadofDepartment() {
         setLoading(false);
       }
     };
+
+    const fetchSettings = async () => {
+      try {
+        const responses = await Promise.all([
+          fetch(`${API.baseURL}/api/site-settings/hod_badge`),
+          fetch(`${API.baseURL}/api/site-settings/hod_title`),
+          fetch(`${API.baseURL}/api/site-settings/hod_description`)
+        ]);
+        
+        for (let i = 0; i < responses.length; i++) {
+          if (!responses[i].ok) {
+            console.warn(`Settings response ${i} not OK:`, responses[i].status);
+          }
+        }
+        
+        const [badgeRes, titleRes, descRes] = await Promise.all(
+          responses.map(r => r.json())
+        );
+        
+        setHeaderSettings({
+          badge: badgeRes.data?.settingValue || 'Leadership & Faculty',
+          title: titleRes.data?.settingValue || 'Head of Department',
+          description: descRes.data?.settingValue || 'Meet the leaders driving excellence in education and research.'
+        });
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+    
     fetchHODs();
+    fetchSettings();
+    
+    // Poll for settings updates every 5 seconds
+    const settingsInterval = setInterval(fetchSettings, 5000);
+    
+    // Refetch settings when window regains focus
+    const handleFocus = () => fetchSettings();
+    window.addEventListener('focus', handleFocus);
+    
+    // Cleanup
+    return () => {
+      clearInterval(settingsInterval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   // Filtered results based on search term
@@ -254,13 +240,13 @@ export default function HeadofDepartment() {
         <div className="max-w-7xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
             <GraduationCap className="w-4 h-4" style={{ color: color1 }} />
-            Leadership & Faculty
+            {headerSettings.badge}
           </div>
           <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-            Head of Department
+            {headerSettings.title}
           </h1>
           <p className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            Meet the leaders driving excellence in education and research.
+            {headerSettings.description}
           </p>
         </div>
       </div>

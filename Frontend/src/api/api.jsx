@@ -16,18 +16,37 @@ class API {
     }
     
     // Convert to string if needed
-    imagePath = String(imagePath);
+    imagePath = String(imagePath).trim();
     
-    // If it's already a full URL (http/https), return as is
+    // If empty after trim, return null
+    if (!imagePath) return null;
+    
+    // If it's already a full URL with proper protocol (http/https), validate and return
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
     }
     
+    // Reject invalid domains without protocol (like "youtube.com", "google.com", etc.)
+    if (!imagePath.includes('/uploads') && !imagePath.startsWith('/') && imagePath.includes('.')) {
+      // This looks like a domain without protocol - it's invalid
+      return null;
+    }
+    
+    // Support stored paths that already start with uploads/ but do not include a leading slash
+    if (imagePath.startsWith('uploads/')) {
+      return `${this.baseURL}/${imagePath}`;
+    }
+
     // If it starts with /, append to baseURL
     if (imagePath.startsWith('/')) {
       return `${this.baseURL}${imagePath}`;
     }
     
+    // Support bare folder/file paths by assuming they are under /uploads
+    if (imagePath.includes('/')) {
+      return `${this.baseURL}/uploads/${imagePath.replace(/^\/+/, '')}`;
+    }
+
     // Otherwise, assume it's a relative path from uploads/images
     return `${this.baseURL}/uploads/images/${imagePath}`;
   }

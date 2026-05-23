@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, Mail, Phone } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Mail, Phone, Settings } from 'lucide-react';
 import API from '../../api/api';
 import ImageUploader from '../components/ImageUploader';
 
@@ -10,6 +10,12 @@ export default function ManageSupportStaff() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [settingsData, setSettingsData] = useState({
+    badge: 'Student Welfare & Support',
+    title: 'Professional Support Staff',
+    description: 'Dedicated professionals ensuring student health, wellness, and overall well-being.'
+  });
   const [formData, setFormData] = useState({
     name: '',
     designation: '',
@@ -23,6 +29,82 @@ export default function ManageSupportStaff() {
     userType: 'support-staff',
     isActive: true
   });
+
+  useEffect(() => {
+    fetchPeople();
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const responses = await Promise.all([
+        fetch(`${API.baseURL}/api/site-settings/support_staff_badge`),
+        fetch(`${API.baseURL}/api/site-settings/support_staff_title`),
+        fetch(`${API.baseURL}/api/site-settings/support_staff_description`)
+      ]);
+      
+      const [badgeRes, titleRes, descRes] = await Promise.all(
+        responses.map(r => r.json())
+      );
+      
+      setSettingsData({
+        badge: badgeRes.data?.settingValue || 'Student Welfare & Support',
+        title: titleRes.data?.settingValue || 'Professional Support Staff',
+        description: descRes.data?.settingValue || 'Dedicated professionals ensuring student health, wellness, and overall well-being.'
+      });
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      const results = await Promise.all([
+        API.fetchWithRetry(`${API.baseURL}/api/site-settings`, {
+          method: 'POST',
+          headers: API.getAuthHeaders(),
+          body: JSON.stringify({
+            settingKey: 'support_staff_badge',
+            settingValue: settingsData.badge,
+            settingType: 'text',
+            category: 'support-staff'
+          })
+        }),
+        API.fetchWithRetry(`${API.baseURL}/api/site-settings`, {
+          method: 'POST',
+          headers: API.getAuthHeaders(),
+          body: JSON.stringify({
+            settingKey: 'support_staff_title',
+            settingValue: settingsData.title,
+            settingType: 'text',
+            category: 'support-staff'
+          })
+        }),
+        API.fetchWithRetry(`${API.baseURL}/api/site-settings`, {
+          method: 'POST',
+          headers: API.getAuthHeaders(),
+          body: JSON.stringify({
+            settingKey: 'support_staff_description',
+            settingValue: settingsData.description,
+            settingType: 'text',
+            category: 'support-staff'
+          })
+        })
+      ]);
+      
+      for (const result of results) {
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to save setting');
+        }
+      }
+      
+      setShowSettingsModal(false);
+      alert('Settings saved successfully!');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Failed to save settings: ' + error.message);
+    }
+  };
 
   useEffect(() => {
     fetchPeople();
@@ -150,14 +232,23 @@ export default function ManageSupportStaff() {
           <h1 className="text-2xl font-bold text-gray-900">Manage Support Staff</h1>
           <p className="text-gray-600 mt-1">Manage support staff members and profiles</p>
         </div>
-        <button
-          onClick={() => { resetForm(); setShowModal(true); }}
-          className="flex items-center px-4 py-2 text-white rounded-lg hover:opacity-90"
-          style={{ backgroundColor: API.color1 }}
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          Add Staff
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowSettingsModal(true)}
+            className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            <Settings className="h-5 w-5 mr-2" />
+            Settings
+          </button>
+          <button
+            onClick={() => { resetForm(); setShowModal(true); }}
+            className="flex items-center px-4 py-2 text-white rounded-lg hover:opacity-90"
+            style={{ backgroundColor: API.color1 }}
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Add Staff
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-4">
@@ -344,6 +435,62 @@ export default function ManageSupportStaff() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showSettingsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full">
+            <div className="p-6 border-b">
+              <h2 className="text-xl font-bold">Settings</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Badge</label>
+                <input
+                  type="text"
+                  value={settingsData.badge}
+                  onChange={(e) => setSettingsData({...settingsData, badge: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                <input
+                  type="text"
+                  value={settingsData.title}
+                  onChange={(e) => setSettingsData({...settingsData, title: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea
+                  value={settingsData.description}
+                  onChange={(e) => setSettingsData({...settingsData, description: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  rows="4"
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowSettingsModal(false)}
+                  className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveSettings}
+                  className="px-4 py-2 text-white rounded-lg hover:opacity-90"
+                  style={{ backgroundColor: API.color1 }}
+                >
+                  Save Settings
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

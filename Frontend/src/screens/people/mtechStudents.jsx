@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
-import { Search, GraduationCap, ChevronLeft, ChevronRight, Award } from 'lucide-react';
+import { Search, GraduationCap, Award } from 'lucide-react';
 
 
 
@@ -32,9 +32,14 @@ export default function MTechStudents() {
     const color1 = API.color1;
   const color2 = API.color2;
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedBatch, setSelectedBatch] = useState('2019');
+  const [selectedYear, setSelectedYear] = useState('2019');
   const [studentsData, setStudentsData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [headerSettings, setHeaderSettings] = useState({
+    badge: 'Postgraduate Studies',
+    title: 'M.Tech Students',
+    description: 'Advanced learners pursuing specialized knowledge in technology.'
+  });
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -49,8 +54,7 @@ export default function MTechStudents() {
             .map(student => ({
               id: student.id,
               name: student.name || 'Unknown',
-              batch: student.department || '2019',
-              branch: student.specialization || ''
+              year: student.department || '2019'
             }));
           setStudentsData(transformedData);
         } else {
@@ -64,33 +68,71 @@ export default function MTechStudents() {
         setLoading(false);
       }
     };
+    
+    const fetchSettings = async () => {
+      try {
+        const responses = await Promise.all([
+          fetch(`${API.baseURL}/api/site-settings/mtech_badge`),
+          fetch(`${API.baseURL}/api/site-settings/mtech_title`),
+          fetch(`${API.baseURL}/api/site-settings/mtech_description`)
+        ]);
+        
+        // Check if all responses are ok
+        for (let i = 0; i < responses.length; i++) {
+          if (!responses[i].ok) {
+            console.warn(`Settings response ${i} not OK:`, responses[i].status);
+          }
+        }
+        
+        const [badgeRes, titleRes, descRes] = await Promise.all(
+          responses.map(r => r.json())
+        );
+        
+        console.log('Badge Response:', badgeRes);
+        console.log('Title Response:', titleRes);
+        console.log('Desc Response:', descRes);
+        
+        setHeaderSettings({
+          badge: badgeRes.data?.settingValue || 'Postgraduate Studies',
+          title: titleRes.data?.settingValue || 'M.Tech Students',
+          description: descRes.data?.settingValue || 'Advanced learners pursuing specialized knowledge in technology.'
+        });
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+    
     fetchStudents();
+    fetchSettings();
+    
+    // Poll for settings updates every 5 seconds
+    const settingsInterval = setInterval(fetchSettings, 5000);
+    
+    // Refetch settings when window regains focus
+    const handleFocus = () => fetchSettings();
+    window.addEventListener('focus', handleFocus);
+    
+    // Cleanup
+    return () => {
+      clearInterval(settingsInterval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
-  // Available batches
-  const batches = ['2019', '2020', '2021', '2022', '2023', '2024'];
-  const currentBatchIndex = batches.indexOf(selectedBatch);
+  // Generate sorted years list (from data + predefined years)
+  const predefinedYears = ['2019', '2020', '2021', '2022', '2023', '2024'];
+  const yearsFromData = [...new Set(studentsData.map(s => s.year))];
+  const allYears = [...new Set([...predefinedYears, ...yearsFromData])];
+  const sortedYears = allYears.sort((a, b) => b - a);
 
-  // Filtered students based on search term and selected batch
+  // Filtered students based on search term and selected year
   const filteredStudents = studentsData.filter((student) => {
     const term = searchTerm.toLowerCase();
     const matchesSearch = student.name.toLowerCase().includes(term);
-    const matchesBatch = student.batch === selectedBatch;
+    const matchesYear = student.year === selectedYear;
     
-    return matchesSearch && matchesBatch;
+    return matchesSearch && matchesYear;
   });
-
-  const handlePreviousBatch = () => {
-    if (currentBatchIndex > 0) {
-      setSelectedBatch(batches[currentBatchIndex - 1]);
-    }
-  };
-
-  const handleNextBatch = () => {
-    if (currentBatchIndex < batches.length - 1) {
-      setSelectedBatch(batches[currentBatchIndex + 1]);
-    }
-  };
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
@@ -99,13 +141,13 @@ export default function MTechStudents() {
         <div className="max-w-7xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
             <GraduationCap className="w-4 h-4" style={{ color: color1 }} />
-            Postgraduate Studies
+            {headerSettings.badge}
           </div>
           <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-            M.Tech Students
+            {headerSettings.title}
           </h1>
           <p className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            Advanced learners pursuing specialized knowledge in technology.
+            {headerSettings.description}
           </p>
         </div>
       </div>
@@ -148,63 +190,23 @@ export default function MTechStudents() {
               </div>
             </div>
 
-            {/* Batch Filter - Horizontal Scroll */}
+            {/* Batch Filter - Year Dropdown */}
             <div className={`px-6 pb-6 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-              <div className="flex items-center gap-4 mt-4">
-                {/* Previous Button */}
-                <button
-                  onClick={handlePreviousBatch}
-                  disabled={currentBatchIndex <= 0}
-                  className={`p-2 rounded-lg transition-all duration-300 ${
-                    currentBatchIndex <= 0
-                      ? 'opacity-30 cursor-not-allowed'
-                      : 'hover:bg-gray-700 cursor-pointer'
-                  }`}
-                  style={{
-                    backgroundColor: darkMode ? '#374151' : '#F3F4F6'
-                  }}
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-
-                {/* Batch Buttons */}
-                <div className="flex-1 flex gap-3 overflow-x-auto scrollbar-hide">
-                  {batches.map((batch) => (
-                    <button
-                      key={batch}
-                      onClick={() => setSelectedBatch(batch)}
-                      className={`px-6 py-3 rounded-lg font-bold text-sm whitespace-nowrap transition-all duration-300 ${
-                        selectedBatch === batch
-                          ? 'text-white shadow-lg'
-                          : darkMode
-                            ? 'text-gray-400 hover:bg-gray-700'
-                            : 'text-gray-600 hover:bg-gray-100'
-                      }`}
-                      style={{
-                        backgroundColor: selectedBatch === batch ? color1 : 'transparent'
-                      }}
-                    >
-                      {batch} BATCH
-                    </button>
-                  ))}
-                </div>
-
-                {/* Next Button */}
-                <button
-                  onClick={handleNextBatch}
-                  disabled={currentBatchIndex >= batches.length - 1}
-                  className={`p-2 rounded-lg transition-all duration-300 ${
-                    currentBatchIndex >= batches.length - 1
-                      ? 'opacity-30 cursor-not-allowed'
-                      : 'hover:bg-gray-700 cursor-pointer'
-                  }`}
-                  style={{
-                    backgroundColor: darkMode ? '#374151' : '#F3F4F6'
-                  }}
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
+              <label className={`block text-sm font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Select Year</label>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:outline-none transition-all ${
+                  darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
+                }`}
+                style={{ borderColor: color1 }}
+              >
+                {sortedYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
@@ -222,14 +224,14 @@ export default function MTechStudents() {
             <h3 className="text-3xl font-bold mb-3">No Results Found</h3>
             <p className={`text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               {searchTerm 
-                ? `No M.Tech students match your search for "${searchTerm}" in ${selectedBatch} batch`
-                : `No M.Tech students found in ${selectedBatch} batch`
+                ? `No students match your search for "${searchTerm}" in ${selectedYear} year`
+                : `No students found in ${selectedYear} year`
               }
             </p>
             <button
               onClick={() => {
                 setSearchTerm('');
-                setSelectedBatch('2019');
+                setSelectedYear('2019');
               }}
               className="mt-6 px-6 py-3 rounded-lg text-white font-semibold hover:shadow-lg transition-all duration-300"
               style={{ backgroundColor: color1 }}

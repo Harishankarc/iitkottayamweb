@@ -18,16 +18,12 @@ const BLOCK_TYPE_ICONS = {
   button: Pointer
 };
 const FACULTY_DETAIL_BLOCK_TYPES = [
-  { value: 'hero', label: 'Hero Banner', icon: 'hero' },
   { value: 'heading', label: 'Heading', icon: 'heading' },
   { value: 'paragraph', label: 'Paragraph', icon: 'paragraph' },
   { value: 'image', label: 'Single Image', icon: 'image' },
   { value: 'gallery', label: 'Image Gallery', icon: 'gallery' },
-  { value: 'list', label: 'List', icon: 'list' },
-  { value: 'card', label: 'Card', icon: 'card' },
   { value: 'table', label: 'Table', icon: 'table' },
-  { value: 'statistics', label: 'Statistics', icon: 'statistics' },
-  { value: 'button', label: 'Button', icon: 'button' }
+  { value: 'statistics', label: 'Statistics', icon: 'statistics' }
 ];
 const MAIN_SECTION_MAX_LINES = 7;
 const MAIN_SECTION_MAX_LINE_LENGTH = 42;
@@ -50,16 +46,12 @@ const resolveMediaUrl = (value) => {
 
 const createDefaultDetailBuilderContent = (blockType) => {
   switch (blockType) {
-    case 'hero': return { title: '', subtitle: '', description: '', badge: '', buttonText: '', buttonLink: '', backgroundImage: '' };
-    case 'heading': return { icon: '📝', text: '', level: 2 };
-    case 'paragraph': return { icon: '', title: '', text: '', linkText: '', link: '' };
+    case 'heading': return { icon: '📝', text: '', level: 2, position: 'left' };
+    case 'paragraph': return { text: '' };
     case 'image': return { title: '', url: '', alt: '', caption: '' };
     case 'gallery': return { title: '', images: [''] };
-    case 'list': return { icon: '📋', title: '', items: [''] };
-    case 'card': return { icon: '🃏', title: '', description: '', link: '' };
     case 'table': return { title: '', subtitle: '', headers: [''], rows: [['']] };
     case 'statistics': return { title: '', stats: [{ value: '', label: '' }] };
-    case 'button': return { title: '', description: '', buttonText: '', link: '', variant: 'primary' };
     default: return {};
   }
 };
@@ -78,16 +70,38 @@ const parseDetailBlocksFromHtml = (htmlString) => {
         const level = Number(headingMatch[1] || 2);
         const headingText = headingMatch[3] || headingMatch[2] || '';
         const iconMatch = headingText.match(/^([^<]+?)\s+(<.*)$/s);
+        const positionMatch = content.match(/text-align:([^;]+)/i);
+        const position = positionMatch ? positionMatch[1].trim() : 'left';
         block = {
           blockType: 'heading',
           content: {
             icon: iconMatch ? iconMatch[1].trim() : '',
             text: iconMatch ? iconMatch[2] : headingText,
-            level
+            level,
+            position
           },
           rawHtml: match[0]
         };
       }
+    } else if (content.includes('<div') && content.includes('line-height:1.75')) {
+      // New simple paragraph format
+      const htmlMatch = content.match(/<div[^>]*>([\s\S]*)<\/div>/i);
+      block = {
+        blockType: 'paragraph',
+        content: {
+          text: htmlMatch ? htmlMatch[1].trim() : content.replace(/<[^>]+>/g, '').trim()
+        },
+        rawHtml: match[0]
+      };
+    } else if (content.includes('<p') && content.includes('line-height:1.75') && content.includes('color:#374151')) {
+      const htmlMatch = content.match(/<p[^>]*style="[^"]*line-height:1.75[^"]*color:#374151[^"]*"[^>]*>([\s\S]*?)<\/p>/i);
+      block = {
+        blockType: 'paragraph',
+        content: {
+          text: htmlMatch ? htmlMatch[1] : ''
+        },
+        rawHtml: match[0]
+      };
     } else if (content.includes('border:1px solid #e5e7eb') && content.includes('line-height:1.75') && content.includes('color:#374151')) {
       const titleMatch = content.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
       const iconMatch = content.match(/<div[^>]*style="[^"]*font-size:18px[^\"]*"[^>]*>([\s\S]*?)<\/div>/i);
@@ -104,15 +118,6 @@ const parseDetailBlocksFromHtml = (htmlString) => {
         },
         rawHtml: match[0]
       };
-    } else if (content.includes('<h2 ') && content.includes('font-size:32px')) {
-      const titleMatch = content.match(/<h2[^>]*>(.+?)<\/h2>/i);
-      const subMatch = content.match(/<h3[^>]*style="[^"]*font-size:20px[^"]*"[^>]*>(.+?)<\/h3>/i);
-      const btnMatch = content.match(/<a[^>]*href="([^"]*)"[^>]*>(.+?)<\/a>/i);
-      block = { blockType: 'hero', content: { title: titleMatch ? titleMatch[1] : '', subtitle: subMatch ? subMatch[1] : '', description: '', backgroundImage: '', buttonText: btnMatch ? btnMatch[2] : '', buttonLink: btnMatch ? btnMatch[1] : '', badge: '' }, rawHtml: match[0] };
-    } else if (content.includes('<h3 ') && content.includes('<ul')) {
-      const titleMatch = content.match(/<h3[^>]*>(.+?)<\/h3>/i);
-      const items = [...content.matchAll(/<li>(.+?)<\/li>/gi)].map(m => m[1]);
-      block = { blockType: 'list', content: { title: titleMatch ? titleMatch[1] : '', items: items.length > 0 ? items : [''], icon: '' }, rawHtml: match[0] };
     } else if (content.includes('<table')) {
       const titleMatch = content.match(/<h3[^>]*>(.+?)<\/h3>/i);
       const headers = [...content.matchAll(/<th[^>]*>(.+?)<\/th>/gi)].map(m => m[1]);
@@ -127,22 +132,11 @@ const parseDetailBlocksFromHtml = (htmlString) => {
       const titleMatch = content.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
       const images = [...content.matchAll(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/gi)].map((m) => m[1]);
       block = { blockType: 'gallery', content: { title: titleMatch ? titleMatch[1] : '', images: images.length > 0 ? images : [''] }, rawHtml: match[0] };
-    } else if (content.includes('display:flex;gap:14px;align-items:flex-start')) {
-      const iconMatch = content.match(/<div[^>]*style="font-size:28px;line-height:1;"[^>]*>([\s\S]*?)<\/div>/i);
-      const titleMatch = content.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
-      const descMatch = content.match(/<div[^>]*style="margin:0;color:#374151;line-height:1.7;"[^>]*>([\s\S]*?)<\/div>/i);
-      const linkMatch = content.match(/<a[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/i);
-      block = { blockType: 'card', content: { icon: iconMatch ? iconMatch[1].replace(/<[^>]+>/g, '').trim() : '', title: titleMatch ? titleMatch[1] : '', description: descMatch ? descMatch[1] : '', link: linkMatch ? linkMatch[1] : '' }, rawHtml: match[0] };
     } else if (content.includes('grid-template-columns:repeat(auto-fit,minmax(160px,1fr))') || content.includes('background:#f8fffb')) {
       const titleMatch = content.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
       const stats = [...content.matchAll(/<div style="font-size:24px;font-weight:800;color:#239244;">([\s\S]*?)<\/div>\s*<div style="font-size:13px;color:#6b7280;">([\s\S]*?)<\/div>/gi)]
         .map((m) => ({ value: m[1], label: m[2] }));
       block = { blockType: 'statistics', content: { title: titleMatch ? titleMatch[1] : '', stats: stats.length > 0 ? stats : [{ value: '', label: '' }] }, rawHtml: match[0] };
-    } else if (content.includes('display:flex;align-items:center;justify-content:space-between')) {
-      const btnMatch = content.match(/<a[^>]*href="([^"]*)"[^>]*>(.+?)<\/a>/i);
-      const titleMatch = content.match(/<h3[^>]*style="[^"]*font-size:20px[^"]*"[^>]*>(.+?)<\/h3>/i);
-      const descMatch = content.match(/<p[^>]*style="margin:0;color:#374151[^>]*>(.+?)<\/p>/i);
-      block = { blockType: 'button', content: { title: titleMatch ? titleMatch[1] : '', description: descMatch ? descMatch[1] : '', buttonText: btnMatch ? btnMatch[2] : 'Learn More', link: btnMatch ? btnMatch[1] : '', variant: content.includes('#6b7280') ? 'secondary' : 'primary' }, rawHtml: match[0] };
     }
     if (block) blocks.push({ ...block, hidden: false });
   }
@@ -154,6 +148,78 @@ const createBlockBuilderState = (blockType = 'heading') => ({
   content: createDefaultDetailBuilderContent(blockType)
 });
 
+const formatParagraphText = (text) => {
+  if (!text) return '';
+  
+  // If it's already HTML from RichEditor, just return it
+  if (text.includes('<') && text.includes('>')) {
+    return text;
+  }
+  
+  // Otherwise, process markdown syntax
+  let html = text;
+  
+  // Check if contains list items
+  const lines = html.split('\n');
+  const hasListItems = lines.some(line => line.trim().startsWith('- '));
+  
+  if (hasListItems) {
+    // Group lines into paragraphs and lists
+    let result = '';
+    let listItems = [];
+    
+    lines.forEach(line => {
+      if (line.trim().startsWith('- ')) {
+        listItems.push(line.replace(/^-\s*/, ''));
+      } else if (line.trim()) {
+        if (listItems.length > 0) {
+          // Apply formatting to list items first
+          const formattedItems = listItems.map(item => {
+            let formatted = item;
+            formatted = formatted.replace(/\*\*([^\*]+)\*\*/g, '<b>$1</b>');
+            formatted = formatted.replace(/\*([^\*]+)\*/g, '<i>$1</i>');
+            formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#239244;font-weight:700;text-decoration:none;">$1</a>');
+            return formatted;
+          });
+          result += `<ul style="margin:12px 0;padding-left:20px;"><li style="margin:6px 0;color:#374151;">${formattedItems.join('</li><li style="margin:6px 0;color:#374151;">')}</li></ul>`;
+          listItems = [];
+        }
+        // Apply formatting to paragraph
+        let formatted = line;
+        formatted = formatted.replace(/\*\*([^\*]+)\*\*/g, '<b>$1</b>');
+        formatted = formatted.replace(/\*([^\*]+)\*/g, '<i>$1</i>');
+        formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#239244;font-weight:700;text-decoration:none;">$1</a>');
+        result += `<p style="margin:8px 0;line-height:1.75;color:#374151;">${formatted}</p>`;
+      }
+    });
+    
+    if (listItems.length > 0) {
+      // Apply formatting to list items
+      const formattedItems = listItems.map(item => {
+        let formatted = item;
+        formatted = formatted.replace(/\*\*([^\*]+)\*\*/g, '<b>$1</b>');
+        formatted = formatted.replace(/\*([^\*]+)\*/g, '<i>$1</i>');
+        formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#239244;font-weight:700;text-decoration:none;">$1</a>');
+        return formatted;
+      });
+      result += `<ul style="margin:12px 0;padding-left:20px;"><li style="margin:6px 0;color:#374151;">${formattedItems.join('</li><li style="margin:6px 0;color:#374151;">')}</li></ul>`;
+    }
+    
+    html = result || html;
+  } else {
+    // No list items, just apply formatting
+    html = html.replace(/\*\*([^\*]+)\*\*/g, '<b>$1</b>'); // Bold
+    html = html.replace(/\*([^\*]+)\*/g, '<i>$1</i>'); // Italic
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#239244;font-weight:700;text-decoration:none;">$1</a>'); // Links
+    // Wrap in paragraph if not already wrapped
+    if (!html.startsWith('<')) {
+      html = `<p style="margin:0;line-height:1.75;color:#374151;">${html}</p>`;
+    }
+  }
+  
+  return html;
+};
+
 const buildDetailBlockHtml = (blockType, content) => {
   const heroBackgroundImage = resolveMediaUrl(content?.backgroundImage);
   const imageUrl = resolveMediaUrl(content?.url);
@@ -162,26 +228,17 @@ const buildDetailBlockHtml = (blockType, content) => {
   const richText = (value) => String(value || '').trim();
 
   switch (blockType) {
-    case 'hero':
-      return `<section style="padding:24px;border:1px solid #d1fae5;border-radius:18px;margin:18px 0;background:linear-gradient(135deg,#f0fdf4,#ecfeff);">${heroBackgroundImage ? `<div style="margin-bottom:16px;"><img src="${escapeHtml(heroBackgroundImage)}" alt="${escapeHtml(content.title || 'Hero image')}" style="width:100%;border-radius:14px;max-height:320px;object-fit:cover;" /></div>` : ''}${content.badge ? `<div style="display:inline-block;padding:6px 12px;border-radius:999px;background:#239244;color:#fff;font-size:12px;font-weight:700;margin-bottom:12px;">${escapeHtml(content.badge)}</div>` : ''}${content.title ? `<h2 style="margin:0 0 10px 0;font-size:32px;font-weight:800;color:#111827;">${richText(content.title)}</h2>` : ''}${content.subtitle ? `<h3 style="margin:0 0 10px 0;font-size:20px;font-weight:600;color:#166534;">${richText(content.subtitle)}</h3>` : ''}${content.description ? `<div style="margin:0;color:#374151;line-height:1.7;">${richText(content.description)}</div>` : ''}${content.buttonText ? `<div style="margin-top:16px;"><a href="${escapeHtml(content.buttonLink || '#')}" style="display:inline-block;padding:10px 16px;border-radius:10px;background:#239244;color:#fff;text-decoration:none;font-weight:700;">${richText(content.buttonText)}</a></div>` : ''}</section>`;
     case 'heading':
-      return `<section style="margin:18px 0;"><h${content.level || 2} style="margin:0;font-size:${content.level === 1 ? '32px' : content.level === 3 ? '24px' : '28px'};font-weight:800;color:#111827;">${content.icon ? `${escapeHtml(content.icon)} ` : ''}${richText(content.text)}</h${content.level || 2}></section>`;
+      return `<section style="margin:18px 0;"><h${content.level || 2} style="margin:0;font-size:${content.level === 1 ? '32px' : content.level === 3 ? '24px' : '28px'};font-weight:800;color:#111827;text-align:${content.position || 'left'};">${content.icon ? `${escapeHtml(content.icon)} ` : ''}${richText(content.text)}</h${content.level || 2}></section>`;
     case 'paragraph':
-      return `<section style="margin:18px 0;padding:18px 20px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;">${content.icon ? `<div style="margin-bottom:10px;font-size:18px;font-weight:700;color:#239244;">${escapeHtml(content.icon)} ${content.title ? richText(content.title) : ''}</div>` : (content.title ? `<h3 style="margin:0 0 10px 0;font-size:20px;font-weight:700;color:#239244;">${richText(content.title)}</h3>` : '')}${content.text ? `<div style="margin:0;line-height:1.75;color:#374151;">${richText(content.text)}</div>` : ''}${content.link ? `<div style="margin-top:12px;"><a href="${escapeHtml(content.link)}" style="color:#239244;font-weight:700;text-decoration:none;">${richText(content.linkText || 'Read more')}</a></div>` : ''}</section>`;
+      return `<section style="margin:18px 0;"><div style="line-height:1.75;">${formatParagraphText(content.text)}</div></section>`;
     case 'image':
       return `<section style="margin:18px 0;text-align:center;">${content.title ? `<h3 style="margin:0 0 10px 0;font-size:20px;font-weight:700;color:#111827;">${escapeHtml(content.title)}</h3>` : ''}${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(content.alt || content.title || 'Faculty image')}" style="max-width:100%;width:100%;max-height:500px;aspect-ratio:1/1;object-fit:cover;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.08);display:inline-block;" />` : ''}${content.caption ? `<p style="margin:10px 0 0;color:#6b7280;font-size:13px;">${escapeHtml(content.caption)}</p>` : ''}</section>`;
     case 'gallery':
       return `<section style="margin:18px 0;"><h3 style="margin:0 0 12px 0;font-size:20px;font-weight:700;color:#111827;">${richText(content.title || '')}</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">${(content.images || []).filter(Boolean).map((itemUrl) => `<img src="${escapeHtml(resolveMediaUrl(itemUrl))}" alt="Gallery image" style="width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;border-radius:12px;display:block;" />`).join('')}</div></section>`;
-    case 'list':
-      return `<section style="margin:18px 0;padding:18px 20px;border:1px solid #e5e7eb;border-radius:14px;background:#fff;"><h3 style="margin:0 0 12px 0;font-size:20px;font-weight:700;color:#111827;">${richText(content.title || '')}</h3><ul style="margin:0;padding-left:20px;color:#374151;line-height:1.8;">${(content.items || []).filter(Boolean).map((item) => `<li>${richText(item)}</li>`).join('')}</ul></section>`;
-    case 'card':
-      return `<section style="margin:18px 0;padding:18px;border:1px solid #e5e7eb;border-radius:16px;background:#fff;display:flex;gap:14px;align-items:flex-start;">${content.icon ? `<div style="font-size:28px;line-height:1;">${escapeHtml(content.icon)}</div>` : ''}<div>${content.title ? `<h3 style="margin:0 0 8px 0;font-size:20px;font-weight:700;color:#111827;">${richText(content.title)}</h3>` : ''}${content.description ? `<div style="margin:0;color:#374151;line-height:1.7;">${richText(content.description)}</div>` : ''}${content.link ? `<div style="margin-top:12px;"><a href="${escapeHtml(content.link)}" style="color:#239244;font-weight:700;text-decoration:none;">Learn more</a></div>` : ''}</div></section>`;
-    case 'table':
       return `<section style="margin:18px 0;overflow:auto;">${content.title ? `<h3 style="margin:0 0 8px 0;font-size:20px;font-weight:700;color:#111827;">${escapeHtml(content.title)}</h3>` : ''}${content.subtitle ? `<p style="margin:0 0 12px 0;color:#6b7280;">${escapeHtml(content.subtitle)}</p>` : ''}<table style="width:100%;border-collapse:collapse;border:1px solid #d1d5db;border-radius:12px;overflow:hidden;"><thead><tr>${(content.headers || []).filter(Boolean).map((header) => `<th style="background:#ecfdf5;border:1px solid #d1d5db;padding:10px 12px;text-align:left;color:#111827;">${escapeHtml(header)}</th>`).join('')}</tr></thead><tbody>${(content.rows || []).map((row) => `<tr>${(row || []).map((cell) => `<td style="border:1px solid #d1d5db;padding:10px 12px;color:#374151;">${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></section>`;
     case 'statistics':
       return `<section style="margin:18px 0;padding:18px;border:1px solid #d1fae5;border-radius:16px;background:#f8fffb;"><h3 style="margin:0 0 12px 0;font-size:20px;font-weight:700;color:#111827;">${richText(content.title || '')}</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">${(content.stats || []).filter(Boolean).map((stat) => `<div style="padding:14px;border-radius:12px;background:#fff;border:1px solid #d1d5db;"><div style="font-size:24px;font-weight:800;color:#239244;">${escapeHtml(stat.value)}</div><div style="font-size:13px;color:#6b7280;">${escapeHtml(stat.label)}</div></div>`).join('')}</div></section>`;
-    case 'button':
-      return `<section style="margin:18px 0;padding:18px;border:1px solid #e5e7eb;border-radius:16px;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:16px;"><div>${content.title ? `<h3 style="margin:0 0 8px 0;font-size:20px;font-weight:700;color:#111827;">${richText(content.title)}</h3>` : ''}${content.description ? `<div style="margin:0;color:#374151;line-height:1.7;">${richText(content.description)}</div>` : ''}</div><a href="${escapeHtml(buttonLink)}" style="display:inline-block;padding:10px 16px;border-radius:10px;background:${content.variant === 'secondary' ? '#6b7280' : '#239244'};color:#fff;text-decoration:none;font-weight:700;white-space:nowrap;">${richText(buttonLabel)}</a></section>`;
     default:
       return '';
   }
@@ -236,6 +293,7 @@ export default function ManageFaculty() {
   const [editingBlockIndex, setEditingBlockIndex] = useState(null);
   const [activeEditorStep, setActiveEditorStep] = useState(1);
   const [formData, setFormData] = useState({ name: '', designation: '', department: 'General', email: '', phone: '', photo: '', qualification: '', specialization: '', experience: '', researchInterests: '', publications: '', googleScholar: '', linkedIn: '', researchGate: '', mainSection: '', fullDetails: '', fullDetailsHtml: '', useHtmlEditor: false, isActive: true });
+  const paragraphEditorRef = React.useRef(null);
 
   const editorSteps = [
     { step: 1, label: 'Profile Details', description: 'Identity and image' },
@@ -327,7 +385,10 @@ export default function ManageFaculty() {
         name: (formData.name || (editingItem && editingItem.name)) || '',
         designation: (formData.designation || (editingItem && editingItem.designation)) || '',
         department: (formData.department?.trim() || (editingItem && editingItem.department) || 'General'),
-        email: normalizeEmail((formData.email || (editingItem && editingItem.email)) || ''),
+        email: (() => {
+          const normalizedEmail = normalizeEmail((formData.email || (editingItem && editingItem.email)) || '');
+          return normalizedEmail && normalizedEmail.trim() ? normalizedEmail : null;
+        })(),
         phone: (formData.phone?.trim() || (editingItem && editingItem.phone)) || '',
         photo: (formData.photo || (editingItem && editingItem.photo)) || '',
         mainSection: normalizeMainSection(formData.mainSection || (editingItem && editingItem.mainSection) || '').trim(),
@@ -525,130 +586,258 @@ export default function ManageFaculty() {
       );
     }
 
-    // Page 4 disabled for now.
-
+    // Page 3: Full Details (Simplified)
     return (
-      <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div>
-          <h3 className="text-lg font-bold text-slate-900">Full Details</h3>
-          <p className="text-sm text-slate-500">Switch modes below. Advanced mode gives you the same block options as content management.</p>
-        </div>
-        <label className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-full px-4 py-2 w-fit">
-          <input type="checkbox" checked={formData.useHtmlEditor} onChange={(e) => setFormData({ ...formData, useHtmlEditor: e.target.checked })} />
-          Use advanced editor
-        </label>
-
-        {formData.useHtmlEditor ? (
-          <div className="space-y-8 rounded-2xl border bg-slate-50 p-4 shadow-sm">
-            <div>
-              <label htmlFor="detail-block-type" className="block text-sm font-semibold text-gray-700 mb-3">Block Type</label>
-              <select id="detail-block-type" value={detailBuilder.blockType} onChange={(e) => updateDetailBuilderType(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-gray-300 bg-white text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
-                {FACULTY_DETAIL_BLOCK_TYPES.map((type) => (<option key={type.value} value={type.value}>{type.label}</option>))}
-              </select>
-              <p className="mt-2 text-xs text-gray-500">Open the dropdown and scroll to see all block types.</p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-6">
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <p className="text-sm font-semibold text-gray-700">Block content</p>
-                <p className="text-xs text-gray-500">{detailBuilder.blockType}</p>
-              </div>
-              {renderDetailBuilderFields()}
-              <button type="button" onClick={clearCurrentBlockContent} className="w-full px-4 py-2.5 bg-amber-100 text-amber-800 rounded-lg font-semibold hover:bg-amber-200 border border-amber-300 inline-flex items-center justify-center gap-2">
-                <Eraser className="h-4 w-4" />
-                Clear Current Block Fields
-              </button>
-              <button type="button" onClick={insertDetailBuilderBlock} className="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700">
-                {editingBlockIndex !== null ? 'Update Block' : 'Add Block'}
-              </button>
-              {editingBlockIndex !== null && (
-                <button type="button" onClick={() => { setEditingBlockIndex(null); setDetailBuilder(createBlockBuilderState('heading')); }} className="w-full px-4 py-3 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400">
-                  Cancel Edit
-                </button>
-              )}
-            </div>
-
-            <div className="space-y-3 rounded-2xl border bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <p className="text-sm font-semibold text-gray-700">Full details content</p>
-                <p className="text-xs text-gray-500">{detailBlocks.filter((block) => !block.hidden).length} visible / {detailBlocks.length} total</p>
-              </div>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {detailBlocks.length === 0 ? (
-                  <div className="rounded-lg border-2 border-dashed border-gray-300 p-6 text-center space-y-3">
-                    {formData.fullDetailsHtml ? (
-                      <>
-                        <p className="text-sm text-gray-600 font-semibold">Current content:</p>
-                        <div className="bg-gray-50 rounded p-3 max-h-48 overflow-y-auto text-left prose prose-sm" dangerouslySetInnerHTML={{ __html: formData.fullDetailsHtml }} />
-                        <p className="text-xs text-gray-500">This content is saved. To edit it, click "Clear and Add New Blocks" below.</p>
-                        <button type="button" onClick={() => { setFormData({ ...formData, fullDetailsHtml: '', useHtmlEditor: true }); setDetailBlocks([]); }} className="w-full px-3 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">Clear and Add New Blocks</button>
-                      </>
-                    ) : (
-                      <p className="text-sm text-gray-500">No blocks added yet. Create and add blocks from the section above.</p>
-                    )}
-                  </div>
-                ) : (
-                  detailBlocks.map((block, index) => {
-                    const IconComponent = BLOCK_TYPE_ICONS[block.blockType];
-                    const blockLabel = FACULTY_DETAIL_BLOCK_TYPES.find((t) => t.value === block.blockType)?.label || block.blockType;
-                    const isEditing = editingBlockIndex === index;
-                    const isHidden = block.hidden === true;
-                    return (
-                      <div key={index} className={`rounded-lg border p-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between ${isEditing ? 'bg-blue-50 border-blue-300' : isHidden ? 'bg-slate-100 border-slate-300 opacity-80' : 'bg-slate-50 border-gray-300'}`}>
-                        <div className="flex items-start gap-3 flex-1 min-w-0">
-                          <div className={`h-10 w-10 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0 ${isEditing ? 'bg-blue-500' : 'bg-gray-400'}`}>
-                            {index + 1}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              {IconComponent && <IconComponent className="h-4 w-4 text-gray-600 flex-shrink-0" />}
-                              <p className="text-sm font-semibold text-gray-900">{blockLabel}</p>
-                              {isEditing && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Editing</span>}
-                              {isHidden && <span className="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded">Hidden</span>}
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1">Block {index + 1}</p>
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2 flex-shrink-0 sm:justify-end">
-                          <button type="button" onClick={() => toggleBlockVisibility(index)} className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg border border-gray-200 bg-white" title={isHidden ? 'Show block' : 'Hide block'}>
-                            {isHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                            {isHidden ? 'Show' : 'Hide'}
-                          </button>
-                          <button type="button" onClick={() => editBlock(index)} className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 rounded-lg border border-blue-200 bg-white" title="Edit block">
-                            <Edit className="h-4 w-4" />
-                            Edit
-                          </button>
-                          <button type="button" onClick={() => deleteBlock(index)} className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 rounded-lg border border-red-200 bg-white" title="Delete block">
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
+      <div className="space-y-6">
+        <div className="max-w-3xl">
+          {/* Header */}
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">Full Details</h3>
+            <p className="text-sm text-slate-500 mt-1">Add a detailed profile description that will appear on the public faculty page</p>
           </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="mb-3 flex items-center justify-between gap-3 flex-wrap">
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900">Rich Text Editor</h4>
-                  <p className="text-xs text-slate-500">Use bold, italic, headings, and links here.</p>
-                </div>
+
+          {/* Toggle Advanced Mode */}
+          <div className="bg-slate-50 rounded-xl border border-slate-200 p-4">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={formData.useHtmlEditor} 
+                onChange={(e) => setFormData({ ...formData, useHtmlEditor: e.target.checked })}
+                className="h-5 w-5 rounded"
+              />
+              <span className="text-sm font-semibold text-slate-700">Use Advanced Block Editor</span>
+              <span className="text-xs text-slate-500 ml-auto">For complex layouts with multiple sections</span>
+            </label>
+          </div>
+        </div>
+
+        {/* Simple Rich Text Editor (Default) */}
+        {!formData.useHtmlEditor ? (
+          <div className="space-y-4">
+            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+              <div className="mb-4">
+                <label className="block text-sm font-bold text-slate-900 mb-2">Profile Description</label>
+                <p className="text-xs text-slate-500">Write about achievements, research, expertise, and other relevant information.</p>
               </div>
               <RichEditor
                 value={formData.fullDetailsHtml || ''}
                 onChange={(html) => setFormData({ ...formData, fullDetailsHtml: html })}
               />
+              <p className="text-xs text-slate-400 mt-3">
+                💡 Tip: Use bold, italics, headings, and links to structure your content
+              </p>
             </div>
-            <p className="text-xs text-slate-500">
-              This content will be saved as HTML and shown on the public faculty page.
-            </p>
+          </div>
+        ) : (
+          /* Advanced Block Editor - Two Column Layout FULL WIDTH */
+          <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 h-[calc(100vh-480px)] min-h-96">
+            {/* LEFT SIDEBAR: Block Type, Options & Block List */}
+            <div className="flex flex-col gap-4 min-h-0 overflow-y-auto">
+              {/* Block Type Selector */}
+              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                <label htmlFor="detail-block-type" className="block text-sm font-bold text-slate-900 mb-3">Block Type</label>
+                <select 
+                  id="detail-block-type" 
+                  value={detailBuilder.blockType} 
+                  onChange={(e) => updateDetailBuilderType(e.target.value)} 
+                  className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  {FACULTY_DETAIL_BLOCK_TYPES.map((type) => (
+                    <option key={type.value} value={type.value}>{type.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Heading Size Selector (Only for Heading block type) */}
+              {detailBuilder.blockType === 'heading' && (
+                <>
+                  <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                    <label htmlFor="heading-level" className="block text-sm font-bold text-slate-900 mb-3">Heading Size</label>
+                    <select 
+                      id="heading-level"
+                      value={detailBuilder.content.level || 2} 
+                      onChange={(e) => updateDetailBuilderContent('level', Number(e.target.value))} 
+                      className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option value={1}>H1 - Extra Large</option>
+                      <option value={2}>H2 - Large</option>
+                      <option value={3}>H3 - Medium</option>
+                      <option value={4}>H4 - Small</option>
+                    </select>
+                  </div>
+
+                  <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                    <label htmlFor="heading-position" className="block text-sm font-bold text-slate-900 mb-3">Position</label>
+                    <select 
+                      id="heading-position"
+                      value={detailBuilder.content.position || 'left'} 
+                      onChange={(e) => updateDetailBuilderContent('position', e.target.value)} 
+                      className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option value="left">Left</option>
+                      <option value="center">Center</option>
+                      <option value="right">Right</option>
+                    </select>
+                  </div>
+                </>
+              )}
+
+              {/* Paragraph Formatting Toolbar (Left column only) */}
+              {detailBuilder.blockType === 'paragraph' && (
+                <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                  <p className="text-xs font-bold text-slate-900 mb-3">Text Formatting</p>
+                  <div className="grid grid-cols-6 gap-2">
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => paragraphEditorRef.current?.exec('bold')}
+                      className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700 font-bold"
+                      title="Bold"
+                    >
+                      B
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => paragraphEditorRef.current?.exec('italic')}
+                      className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700 italic"
+                      title="Italic"
+                    >
+                      I
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => paragraphEditorRef.current?.exec('underline')}
+                      className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
+                      title="Underline"
+                    >
+                      U
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => paragraphEditorRef.current?.insertLink()}
+                      className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
+                      title="Link"
+                    >
+                      Link
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => paragraphEditorRef.current?.insertList(false)}
+                      className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
+                      title="Unordered List"
+                    >
+                      UL
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => paragraphEditorRef.current?.insertList(true)}
+                      className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
+                      title="Ordered List"
+                    >
+                      OL
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Added Blocks List */}
+              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                <h4 className="text-sm font-bold text-slate-900 mb-3">Blocks ({detailBlocks.length})</h4>
+                
+                {detailBlocks.length === 0 ? (
+                  <div className="text-center py-6 px-2">
+                    <p className="text-xs text-slate-500">No blocks yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {detailBlocks.map((block, index) => {
+                      const blockLabel = FACULTY_DETAIL_BLOCK_TYPES.find((t) => t.value === block.blockType)?.label || block.blockType;
+                      const isEditing = editingBlockIndex === index;
+                      const isHidden = block.hidden === true;
+                      return (
+                        <div 
+                          key={index} 
+                          className={`flex items-center gap-2 p-4 rounded-lg border cursor-pointer transition ${isEditing ? 'bg-blue-100 border-blue-300' : isHidden ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'}`}
+                          onClick={() => editBlock(index)}
+                        >
+                          <div className="flex-shrink-0 h-6 w-6 rounded bg-slate-300 flex items-center justify-center font-bold text-xs text-slate-700">
+                            {index + 1}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold text-slate-900 truncate">{blockLabel}</p>
+                          </div>
+                          <button 
+                            type="button" 
+                            onClick={(e) => { e.stopPropagation(); toggleBlockVisibility(index); }} 
+                            className="p-1 hover:bg-slate-200 rounded text-slate-600 flex-shrink-0"
+                            title={isHidden ? 'Show' : 'Hide'}
+                          >
+                            {isHidden ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                          </button>
+                          <button 
+                            type="button" 
+                            onClick={(e) => { e.stopPropagation(); deleteBlock(index); }} 
+                            className="p-1 hover:bg-red-100 rounded text-red-600 flex-shrink-0"
+                            title="Delete"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* RIGHT AREA: Input Area & Block-Specific Options */}
+            <div className="flex flex-col gap-4 min-h-0">
+              {/* Main Input/Editing Area */}
+              <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-6 flex-1 overflow-y-auto">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900 mb-2">Block Content</h4>
+                  <div className="text-xs text-slate-500 bg-slate-50 p-2 rounded mb-4">
+                    <strong>Current:</strong> {FACULTY_DETAIL_BLOCK_TYPES.find(t => t.value === detailBuilder.blockType)?.label}
+                  </div>
+                </div>
+                {renderDetailBuilderFields()}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button 
+                  type="button" 
+                  onClick={clearCurrentBlockContent} 
+                  className="flex-1 px-4 py-2.5 bg-amber-50 text-amber-700 rounded-lg font-semibold hover:bg-amber-100 border border-amber-200"
+                >
+                  Clear
+                </button>
+                <button 
+                  type="button" 
+                  onClick={insertDetailBuilderBlock} 
+                  className="flex-1 px-4 py-2.5 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700"
+                >
+                  {editingBlockIndex !== null ? 'Update' : 'Add Block'}
+                </button>
+                {editingBlockIndex !== null && (
+                  <button 
+                    type="button" 
+                    onClick={() => { setEditingBlockIndex(null); setDetailBuilder(createBlockBuilderState('heading')); }} 
+                    className="flex-1 px-4 py-2.5 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         )}
+
       </div>
     );
   };
@@ -675,61 +864,65 @@ export default function ManageFaculty() {
     );
 
     switch (detailBuilder.blockType) {
-      case 'hero':
-        return (
-          <div className="space-y-4">
-            {formatGuide}
-            <div>
-              {fieldLabel('Badge text')}
-              <input className="w-full px-3 py-2 border rounded-lg" placeholder="Badge text" value={content.badge || ''} onChange={(e) => updateDetailBuilderContent('badge', e.target.value)} />
-            </div>
-            {richField('Hero title', content.title, (html) => updateDetailBuilderContent('title', html))}
-            {richField('Subtitle', content.subtitle, (html) => updateDetailBuilderContent('subtitle', html))}
-            {richField('Description', content.description, (html) => updateDetailBuilderContent('description', html))}
-            <div className="grid grid-cols-2 gap-3">
-              {richField('Button text', content.buttonText, (html) => updateDetailBuilderContent('buttonText', html))}
-              <div>
-                {fieldLabel('Button link')}
-                <input className="w-full px-3 py-2 border rounded-lg" placeholder="Button link" value={content.buttonLink || ''} onChange={(e) => updateDetailBuilderContent('buttonLink', e.target.value)} />
-              </div>
-            </div>
-            <ImageUploader value={content.backgroundImage || ''} onChange={(url) => updateDetailBuilderContent('backgroundImage', url)} label="Background image" folder="faculty" />
-          </div>
-        );
       case 'heading':
         return (
           <div className="space-y-4">
-            {formatGuide}
             <div>
-              {fieldLabel('Icon (optional)')}
-              <input className="w-full px-3 py-2 border rounded-lg" placeholder="Icon (optional)" value={content.icon || ''} onChange={(e) => updateDetailBuilderContent('icon', e.target.value)} />
-            </div>
-            {richField('Heading text', content.text, (html) => updateDetailBuilderContent('text', html))}
-            <div>
-              {fieldLabel('Heading level')}
-              <select className="w-full px-3 py-2 border rounded-lg" value={content.level || 2} onChange={(e) => updateDetailBuilderContent('level', Number(e.target.value))}><option value={1}>H1</option><option value={2}>H2</option><option value={3}>H3</option><option value={4}>H4</option></select>
+              {fieldLabel('Heading Text')}
+              <input 
+                type="text" 
+                placeholder="Enter heading text..." 
+                value={content.text || ''} 
+                onChange={(e) => updateDetailBuilderContent('text', e.target.value)} 
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
             </div>
           </div>
         );
-      case 'paragraph':
+      case 'paragraph': {
         return (
           <div className="space-y-4">
-            {formatGuide}
             <div>
-              {fieldLabel('Icon (optional)')}
-              <input className="w-full px-3 py-2 border rounded-lg" placeholder="Icon (optional)" value={content.icon || ''} onChange={(e) => updateDetailBuilderContent('icon', e.target.value)} />
+              <label className="block text-sm font-bold text-slate-900 mb-3">Paragraph Text</label>
+              <p className="text-xs text-slate-500 mb-2">
+                <strong>Tip:</strong> Use the formatting buttons in the left sidebar or the editor toolbar. Text will display with actual formatting below.
+              </p>
+              <RichEditor 
+                ref={paragraphEditorRef}
+                value={content.text || ''} 
+                onChange={(html) => updateDetailBuilderContent('text', html)} 
+                showToolbar={false}
+              />
             </div>
-            {richField('Title', content.title, (html) => updateDetailBuilderContent('title', html))}
-            {richField('Paragraph text', content.text, (html) => updateDetailBuilderContent('text', html))}
-            <div className="grid grid-cols-2 gap-3">
-              {richField('Link text', content.linkText, (html) => updateDetailBuilderContent('linkText', html))}
-              <div>
-                {fieldLabel('Link URL')}
-                <input className="w-full px-3 py-2 border rounded-lg" placeholder="Link URL" value={content.link || ''} onChange={(e) => updateDetailBuilderContent('link', e.target.value)} />
+
+            {content.text && (
+              <div className="border-t pt-4">
+                <label className="block text-sm font-bold text-slate-900 mb-3">Preview</label>
+                <div 
+                  className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-slate-50"
+                  dangerouslySetInnerHTML={{ __html: formatParagraphText(content.text) }}
+                  style={{
+                    lineHeight: '1.75',
+                    color: '#374151',
+                    fontSize: '14px'
+                  }}
+                />
+                <style>{`
+                  div[dangerouslySetInnerHTML] b { font-weight: 700; }
+                  div[dangerouslySetInnerHTML] i { font-style: italic; }
+                  div[dangerouslySetInnerHTML] u,
+                  div[dangerouslySetInnerHTML] span[style*="text-decoration:underline"] { text-decoration: underline; }
+                  div[dangerouslySetInnerHTML] a { color: #239244; font-weight: 700; text-decoration: none; }
+                  div[dangerouslySetInnerHTML] a:hover { text-decoration: underline; }
+                  div[dangerouslySetInnerHTML] ul { margin: 12px 0; padding-left: 20px; }
+                  div[dangerouslySetInnerHTML] li { margin: 6px 0; color: #374151; }
+                  div[dangerouslySetInnerHTML] p { margin: 8px 0; }
+                `}</style>
               </div>
-            </div>
+            )}
           </div>
         );
+      }
       case 'image':
         return (
           <div className="space-y-4">
@@ -757,63 +950,10 @@ export default function ManageFaculty() {
             <button type="button" className="px-3 py-2 text-sm text-green-700 border border-green-600 rounded-lg hover:bg-green-50" onClick={() => addDetailBuilderArrayItem('images', '')}>+ Add Image</button>
           </div>
         );
-      case 'list':
-        return (
-          <div className="space-y-4">
-            {formatGuide}
-            {richField('List title', content.title, (html) => updateDetailBuilderContent('title', html))}
-            <div>
-              {fieldLabel('Icon (optional)')}
-              <input className="w-full px-3 py-2 border rounded-lg" placeholder="Icon (optional)" value={content.icon || ''} onChange={(e) => updateDetailBuilderContent('icon', e.target.value)} />
-            </div>
-            {(content.items || []).map((item, index) => (
-              <div key={index} className="space-y-2 rounded-lg border bg-white p-3">
-                {richField(`Item ${index + 1}`, item, (html) => updateDetailBuilderArray('items', index, html))}
-                <button type="button" className="px-3 py-2 text-red-600 text-sm" onClick={() => removeDetailBuilderArrayItem('items', index)}>Remove</button>
-              </div>
-            ))}
-            <button type="button" className="px-3 py-2 text-sm text-green-700 border border-green-600 rounded-lg hover:bg-green-50" onClick={() => addDetailBuilderArrayItem('items', '')}>+ Add Item</button>
-          </div>
-        );
-      case 'card':
-        return (
-          <div className="space-y-4">
-            {formatGuide}
-            {richField('Card title', content.title, (html) => updateDetailBuilderContent('title', html))}
-            {richField('Card description', content.description, (html) => updateDetailBuilderContent('description', html))}
-            <div>
-              {fieldLabel('Icon / emoji')}
-              <input className="w-full px-3 py-2 border rounded-lg" placeholder="Icon / emoji" value={content.icon || ''} onChange={(e) => updateDetailBuilderContent('icon', e.target.value)} />
-            </div>
-            <div>
-              {fieldLabel('Link URL')}
-              <input className="w-full px-3 py-2 border rounded-lg" placeholder="Link URL (optional)" value={content.link || ''} onChange={(e) => updateDetailBuilderContent('link', e.target.value)} />
-            </div>
-          </div>
-        );
       case 'table':
         return <div className="space-y-4"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Table title" value={content.title || ''} onChange={(e) => updateDetailBuilderContent('title', e.target.value)} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Subtitle (optional)" value={content.subtitle || ''} onChange={(e) => updateDetailBuilderContent('subtitle', e.target.value)} /><div><div className="flex items-center justify-between mb-2"><span className="text-sm font-semibold text-gray-700">Headers</span><button type="button" className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700" onClick={() => addDetailBuilderArrayItem('headers', '')}>+ Add Header</button></div>{(content.headers || []).map((header, index) => (<div key={index} className="flex gap-2 mb-2"><input className="flex-1 px-3 py-2 border rounded-lg" placeholder={`Header ${index + 1}`} value={header || ''} onChange={(e) => updateDetailBuilderArray('headers', index, e.target.value)} /><button type="button" className="px-3 py-2 text-red-600" onClick={() => removeDetailBuilderArrayItem('headers', index)}>×</button></div>))}</div><div><div className="flex items-center justify-between mb-2"><span className="text-sm font-semibold text-gray-700">Rows</span><button type="button" className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700" onClick={() => addDetailBuilderArrayItem('rows', [''])}>+ Add Row</button></div>{(content.rows || []).map((row, rowIndex) => (<div key={rowIndex} className="rounded-lg border bg-white p-3 mb-2"><div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.max((content.headers || []).length, 1)}, minmax(0, 1fr))` }}>{(row || []).map((cell, cellIndex) => (<input key={cellIndex} className="w-full px-3 py-2 border rounded-lg" placeholder={`R${rowIndex + 1}C${cellIndex + 1}`} value={cell || ''} onChange={(e) => { const nextRows = [...(content.rows || [])]; const nextRow = Array.isArray(nextRows[rowIndex]) ? [...nextRows[rowIndex]] : []; nextRow[cellIndex] = e.target.value; nextRows[rowIndex] = nextRow; updateDetailBuilderContent('rows', nextRows); }} />))}</div></div>))}</div></div>;
       case 'statistics':
         return <div className="space-y-4">{formatGuide}{richField('Statistics title', content.title, (html) => updateDetailBuilderContent('title', html))}{(content.stats || []).map((stat, index) => (<div key={index} className="rounded-lg border bg-white p-3"><div className="grid grid-cols-2 gap-2 mb-2"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Value" value={stat.value || ''} onChange={(e) => { const nextStats = [...(content.stats || [])]; nextStats[index] = { ...nextStats[index], value: e.target.value }; updateDetailBuilderContent('stats', nextStats); }} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Label" value={stat.label || ''} onChange={(e) => { const nextStats = [...(content.stats || [])]; nextStats[index] = { ...nextStats[index], label: e.target.value }; updateDetailBuilderContent('stats', nextStats); }} /></div><button type="button" className="text-xs text-red-600" onClick={() => removeDetailBuilderArrayItem('stats', index)}>Remove statistic</button></div>))}<button type="button" className="px-3 py-2 text-sm text-green-700 border border-green-600 rounded-lg hover:bg-green-50" onClick={() => addDetailBuilderArrayItem('stats', { value: '', label: '' })}>+ Add Statistic</button></div>;
-      case 'button':
-        return (
-          <div className="space-y-4">
-            {formatGuide}
-            {richField('Title', content.title, (html) => updateDetailBuilderContent('title', html))}
-            {richField('Description', content.description, (html) => updateDetailBuilderContent('description', html))}
-            <div className="grid grid-cols-2 gap-3">
-              {richField('Button text', content.buttonText, (html) => updateDetailBuilderContent('buttonText', html))}
-              <div>
-                {fieldLabel('Link URL')}
-                <input className="w-full px-3 py-2 border rounded-lg" placeholder="Link URL" value={content.link || ''} onChange={(e) => updateDetailBuilderContent('link', e.target.value)} />
-              </div>
-            </div>
-            <div>
-              {fieldLabel('Button style')}
-              <select className="w-full px-3 py-2 border rounded-lg" value={content.variant || 'primary'} onChange={(e) => updateDetailBuilderContent('variant', e.target.value)}><option value="primary">Primary</option><option value="secondary">Secondary</option></select>
-            </div>
-          </div>
-        );
       default:
         return <div className="rounded-xl border border-dashed p-4 text-sm text-gray-500">This block type does not have a custom editor yet.</div>;
     }
@@ -883,7 +1023,7 @@ export default function ManageFaculty() {
               <button type="button" onClick={() => { setShowModal(false); resetForm(); }} className="h-9 w-9 rounded-full border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-white transition" aria-label="Close faculty editor">×</button>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-0 max-h-[calc(94vh-58px)] h-[calc(94vh-58px)] min-h-0 overflow-hidden bg-slate-50">
+            <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-0 max-h-[calc(94vh-58px)] h-[calc(94vh-58px)] min-h-0 overflow-hidden bg-slate-50">
               <div className="border-b border-slate-200 bg-white px-4 sm:px-6 py-3">
                 <div className="flex flex-wrap items-center gap-2">
                   {editorSteps.map((step) => {
@@ -925,7 +1065,7 @@ export default function ManageFaculty() {
                       Next
                     </button>
                   ) : (
-                    <button type="submit" className="px-5 py-3 text-white rounded-xl font-semibold hover:opacity-90 shadow-sm" style={{ backgroundColor: API.color1 }}>{editingItem ? 'Update' : 'Create'}</button>
+                    <button type="button" onClick={handleSubmit} className="px-5 py-3 text-white rounded-xl font-semibold hover:opacity-90 shadow-sm" style={{ backgroundColor: API.color1 }}>{editingItem ? 'Update' : 'Create'}</button>
                   )}
                 </div>
               </div>

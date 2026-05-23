@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import API from '../../api/api';
 
-const RichEditor = forwardRef(function RichEditor({ value = '', onChange }, refProp) {
+const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showToolbar = true }, refProp) {
   const ref = useRef(null);
   const fileRef = useRef(null);
 
@@ -55,6 +55,44 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange }, refP
         }, 10);
       }
     },
+    exec(command, arg) {
+      document.execCommand(command, false, arg);
+      if (ref.current) onChange(ref.current.innerHTML);
+    },
+    insertLink(url) {
+      if (!ref.current) return;
+      const actualUrl = url || window.prompt('Enter link URL');
+      if (!actualUrl) return;
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) {
+        ref.current.insertAdjacentHTML('beforeend', `<a href="${actualUrl}" target="_blank" rel="noreferrer">Link text</a>`);
+        onChange(ref.current.innerHTML);
+        return;
+      }
+      const selectedText = sel.toString();
+      if (!selectedText) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        const anchor = document.createElement('a');
+        anchor.href = actualUrl;
+        anchor.target = '_blank';
+        anchor.rel = 'noreferrer';
+        anchor.textContent = 'Link text';
+        range.insertNode(anchor);
+        onChange(ref.current.innerHTML);
+        return;
+      }
+      document.execCommand('createLink', false, actualUrl);
+      if (ref.current) onChange(ref.current.innerHTML);
+    },
+    insertList(ordered = false) {
+      const tag = ordered ? 'ol' : 'ul';
+      const html = `<${tag}><li>List item</li><li>List item</li></${tag}>`;
+      if (ref.current) {
+        ref.current.insertAdjacentHTML('beforeend', html);
+        onChange(ref.current.innerHTML);
+      }
+    },
     focus() {
       ref.current && ref.current.focus();
     }
@@ -71,13 +109,21 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange }, refP
     if (ref.current) onChange(ref.current.innerHTML);
   };
 
-  const insertLink = () => {
-    const url = window.prompt('Enter link URL');
-    if (!url || !ref.current) return;
+  const normalizeUrl = (rawUrl) => {
+    if (!rawUrl) return '';
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return '';
+    const hasScheme = /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(trimmed);
+    return hasScheme ? trimmed : `https://${trimmed}`;
+  };
+
+  const insertLink = (url) => {
+    const actualUrl = normalizeUrl(url || window.prompt('Enter link URL'));
+    if (!actualUrl || !ref.current) return;
 
     const sel = window.getSelection();
     if (!sel || !sel.rangeCount) {
-      ref.current.insertAdjacentHTML('beforeend', `<a href="${url}" target="_blank" rel="noreferrer">Link text</a>`);
+      ref.current.insertAdjacentHTML('beforeend', `<a href="${actualUrl}" target="_blank" rel="noreferrer">Link text</a>`);
       onChange(ref.current.innerHTML);
       return;
     }
@@ -87,7 +133,7 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange }, refP
     if (!selectedText) {
       range.deleteContents();
       const anchor = document.createElement('a');
-      anchor.href = url;
+      anchor.href = actualUrl;
       anchor.target = '_blank';
       anchor.rel = 'noreferrer';
       anchor.textContent = 'Link text';
@@ -96,7 +142,7 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange }, refP
       return;
     }
 
-    document.execCommand('createLink', false, url);
+    document.execCommand('createLink', false, actualUrl);
     if (ref.current) onChange(ref.current.innerHTML);
   };
 
@@ -193,20 +239,22 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange }, refP
 
   return (
     <div>
-      <div className="mb-2 flex gap-2">
-        <button type="button" onClick={() => exec('bold')} className="px-2 py-1 border rounded" data-testid="re-bold">B</button>
-        <button type="button" onClick={() => exec('italic')} className="px-2 py-1 border rounded" data-testid="re-italic">I</button>
-        <button type="button" onClick={insertLink} className="px-2 py-1 border rounded" data-testid="re-link">Link</button>
-        <button type="button" onClick={() => exec('formatBlock', '<H2>')} className="px-2 py-1 border rounded" data-testid="re-h2">H2</button>
-        <button type="button" onClick={() => exec('formatBlock', '<H3>')} className="px-2 py-1 border rounded" data-testid="re-h3">H3</button>
-        <button type="button" onClick={() => exec('insertParagraph')} className="px-2 py-1 border rounded" data-testid="re-p">P</button>
-        <button type="button" onClick={() => insertList(false)} className="px-2 py-1 border rounded" data-testid="re-ul">UL</button>
-        <button type="button" onClick={() => insertList(true)} className="px-2 py-1 border rounded" data-testid="re-ol">OL</button>
-        <button type="button" onClick={insertTable} className="px-2 py-1 border rounded" data-testid="re-table">Table</button>
-        <button type="button" onClick={triggerImageUpload} className="px-2 py-1 border rounded" data-testid="re-image">Image</button>
-        <button type="button" onClick={insertButton} className="px-2 py-1 border rounded" data-testid="re-button">Button</button>
-        <button type="button" onClick={insertCard} className="px-2 py-1 border rounded" data-testid="re-card">Card</button>
-      </div>
+      {showToolbar && (
+        <div className="mb-2 flex flex-wrap gap-2">
+          <button type="button" onClick={() => exec('bold')} className="px-2 py-1 border rounded" data-testid="re-bold">B</button>
+          <button type="button" onClick={() => exec('italic')} className="px-2 py-1 border rounded" data-testid="re-italic">I</button>
+          <button type="button" onClick={insertLink} className="px-2 py-1 border rounded" data-testid="re-link">Link</button>
+          <button type="button" onClick={() => exec('formatBlock', '<H2>')} className="px-2 py-1 border rounded" data-testid="re-h2">H2</button>
+          <button type="button" onClick={() => exec('formatBlock', '<H3>')} className="px-2 py-1 border rounded" data-testid="re-h3">H3</button>
+          <button type="button" onClick={() => exec('insertParagraph')} className="px-2 py-1 border rounded" data-testid="re-p">P</button>
+          <button type="button" onClick={() => insertList(false)} className="px-2 py-1 border rounded" data-testid="re-ul">UL</button>
+          <button type="button" onClick={() => insertList(true)} className="px-2 py-1 border rounded" data-testid="re-ol">OL</button>
+          <button type="button" onClick={insertTable} className="px-2 py-1 border rounded" data-testid="re-table">Table</button>
+          <button type="button" onClick={triggerImageUpload} className="px-2 py-1 border rounded" data-testid="re-image">Image</button>
+          <button type="button" onClick={insertButton} className="px-2 py-1 border rounded" data-testid="re-button">Button</button>
+          <button type="button" onClick={insertCard} className="px-2 py-1 border rounded" data-testid="re-card">Card</button>
+        </div>
+      )}
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} data-testid="re-file-input" />
       <div
         ref={ref}

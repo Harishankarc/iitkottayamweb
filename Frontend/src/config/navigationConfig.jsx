@@ -52,6 +52,8 @@ export const navigationConfig = [
     submenu: [
       { id: 'administration', label: 'Administration', link: '/people/administration' },
       { id: 'hod', label: 'Head of Department', link: '/people/hod' },
+      {id: 'dean', label: 'Deans', link: '/people/deans' },
+      {id:'associate-dean', label: 'Associate Deans', link: '/people/associate-deans' },
       { id: 'faculty', label: 'Faculty', link: '/people/faculty' },
       { id: 'technical', label: 'Technical', link: '/people/technical' },
       { id: 'support-staff', label: 'Professional Support Staff', link: '/people/support-staff' },

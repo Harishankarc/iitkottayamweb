@@ -305,8 +305,8 @@ const HomePage = () => {
             ];
 
             return subsections.map((subsection, idx) => {
-              const items = (latestNewsSection?.subsections?.[idx]?.items && Array.isArray(latestNewsSection.subsections[idx].items))
-                ? latestNewsSection.subsections[idx].items.filter(item => !item.isHidden)
+              const items = (latestNewsSection?.subsections?.[idx]?.content && Array.isArray(latestNewsSection.subsections[idx].content))
+                ? latestNewsSection.subsections[idx].content.filter(item => !item.isHidden)
                 : newsList.map((n, i) => ({ id: n.id || i, title: n.title, date: n.date, pdfLink: n.pdfLink, isNew: n.isNew, description: n.description || '', link: n.link }));
 
               // map by subsection id to dedicated component

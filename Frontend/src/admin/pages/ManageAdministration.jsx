@@ -1,27 +1,113 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, Mail, Phone } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Mail, Phone, Settings } from 'lucide-react';
 import API from '../../api/api';
 import ImageUploader from '../components/ImageUploader';
+import RotatingDetails from '../../components/RotatingDetails';
 
 export default function ManageAdministration() {
   const [people, setPeople] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [settingsData, setSettingsData] = useState({
+    badge: 'Administration Team',
+    title: 'Administration',
+    description: 'Our dedicated administrative team ensures smooth operations and institutional excellence.'
+  });
   const [formData, setFormData] = useState({
     name: '',
     designation: '',
     department: '',
     email: '',
     phone: '',
+    phone2: '',
     photo: '',
     qualification: '',
     specialization: '',
+    category: '',
     experience: '',
     userType: 'administration',
     isActive: true
   });
+
+  useEffect(() => {
+    fetchPeople();
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const responses = await Promise.all([
+        fetch(`${API.baseURL}/api/site-settings/admin_badge`),
+        fetch(`${API.baseURL}/api/site-settings/admin_title`),
+        fetch(`${API.baseURL}/api/site-settings/admin_description`)
+      ]);
+      
+      const [badgeRes, titleRes, descRes] = await Promise.all(
+        responses.map(r => r.json())
+      );
+      
+      setSettingsData({
+        badge: badgeRes.data?.settingValue || 'Administration Team',
+        title: titleRes.data?.settingValue || 'Administration',
+        description: descRes.data?.settingValue || 'Our dedicated administrative team ensures smooth operations and institutional excellence.'
+      });
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      const results = await Promise.all([
+        API.fetchWithRetry(`${API.baseURL}/api/site-settings`, {
+          method: 'POST',
+          headers: API.getAuthHeaders(),
+          body: JSON.stringify({
+            settingKey: 'admin_badge',
+            settingValue: settingsData.badge,
+            settingType: 'text',
+            category: 'administration'
+          })
+        }),
+        API.fetchWithRetry(`${API.baseURL}/api/site-settings`, {
+          method: 'POST',
+          headers: API.getAuthHeaders(),
+          body: JSON.stringify({
+            settingKey: 'admin_title',
+            settingValue: settingsData.title,
+            settingType: 'text',
+            category: 'administration'
+          })
+        }),
+        API.fetchWithRetry(`${API.baseURL}/api/site-settings`, {
+          method: 'POST',
+          headers: API.getAuthHeaders(),
+          body: JSON.stringify({
+            settingKey: 'admin_description',
+            settingValue: settingsData.description,
+            settingType: 'text',
+            category: 'administration'
+          })
+        })
+      ]);
+      
+      for (const result of results) {
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to save setting');
+        }
+      }
+      
+      setShowSettingsModal(false);
+      alert('Settings saved successfully!');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Failed to save settings: ' + error.message);
+    }
+  };
 
   useEffect(() => {
     fetchPeople();
@@ -50,10 +136,18 @@ export default function ManageAdministration() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Prepare data to send - only send fields that exist in database
+      const submitData = {
+        ...formData,
+        specialization: formData.category || formData.specialization
+      };
+      // Remove category field as it's not in the database
+      delete submitData.category;
+      
       if (editingItem) {
-        await API.put(`/api/people/${editingItem.id}`, formData);
+        await API.put(`/api/people/${editingItem.id}`, submitData);
       } else {
-        await API.post('/api/people', formData);
+        await API.post('/api/people', submitData);
       }
       fetchPeople();
       setShowModal(false);
@@ -81,9 +175,11 @@ export default function ManageAdministration() {
       department: '',
       email: '',
       phone: '',
+      phone2: '',
       photo: '',
       qualification: '',
       specialization: '',
+      category: '',
       experience: '',
       userType: 'administration',
       isActive: true
@@ -91,17 +187,38 @@ export default function ManageAdministration() {
     setEditingItem(null);
   };
 
+  // Helper function to get category
+  const getCategory = (person) => {
+    const spec = person.specialization ? String(person.specialization).trim() : '';
+    if (spec === 'fac-in-charge' || spec === 'FAC-IN-CHARGE') {
+      return 'fac-in-charge';
+    } else if (spec === 'support' || spec === 'Support' || spec === 'SUPPORT') {
+      return 'support';
+    }
+    return 'general';
+  };
+
   const openEditModal = (item) => {
     setEditingItem(item);
+    // Determine category from specialization if it matches known values
+    let category = '';
+    if (item.specialization === 'fac-in-charge' || item.specialization === 'FAC-IN-CHARGE') {
+      category = 'fac-in-charge';
+    } else if (item.specialization === 'support' || item.specialization === 'Support' || item.specialization === 'SUPPORT') {
+      category = 'support';
+    }
+    
     setFormData({
       name: item.name,
       designation: item.designation,
       department: item.department || '',
       email: item.email || '',
       phone: item.phone || '',
+      phone2: item.phone2 || '',
       photo: item.photo || '',
       qualification: item.qualification || '',
       specialization: item.specialization || '',
+      category: category,
       experience: item.experience || '',
       userType: 'administration',
       isActive: item.isActive
@@ -109,10 +226,14 @@ export default function ManageAdministration() {
     setShowModal(true);
   };
 
-  const filteredPeople = people.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.designation && item.designation.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredPeople = people.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.designation && item.designation.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesCategory = selectedCategory === 'all' || getCategory(item) === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
 
   if (loading) {
     return (
@@ -129,27 +250,63 @@ export default function ManageAdministration() {
           <h1 className="text-2xl font-bold text-gray-900">Manage Administration</h1>
           <p className="text-gray-600 mt-1">Manage administration members and profiles</p>
         </div>
-        <button
-          onClick={() => { resetForm(); setShowModal(true); }}
-          className="flex items-center px-4 py-2 text-white rounded-lg hover:opacity-90"
-          style={{ backgroundColor: API.color1 }}
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          Add Member
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowSettingsModal(true)}
+            className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            <Settings className="h-5 w-5 mr-2" />
+            Settings
+          </button>
+          <button
+            onClick={() => { resetForm(); setShowModal(true); }}
+            className="flex items-center px-4 py-2 text-white rounded-lg hover:opacity-90"
+            style={{ backgroundColor: API.color1 }}
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Add Member
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search administration..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border rounded-lg"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Category Filter Dropdown */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Category</label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:outline-none transition-all"
+              style={{ focusRingColor: API.color1 }}
+            >
+              <option value="all">All Categories</option>
+              <option value="general">General Administration</option>
+              <option value="fac-in-charge">FAC-IN-CHARGE</option>
+              <option value="support">Support</option>
+            </select>
+          </div>
+
+          {/* Search Input */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search administration..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:outline-none"
+              />
+            </div>
+          </div>
         </div>
+      </div>
+
+      {/* Results count */}
+      <div className="text-sm text-gray-600">
+        Showing <span className="font-semibold">{filteredPeople.length}</span> of <span className="font-semibold">{people.length}</span> members
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -190,25 +347,9 @@ export default function ManageAdministration() {
               {member.department && (
                 <p className="text-sm font-medium" style={{ color: API.color1 }}>{member.department}</p>
               )}
-              <div className="mt-4 space-y-2">
-                {member.email && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Mail className="h-4 w-4 mr-2" />
-                    {member.email}
-                  </div>
-                )}
-                {member.phone && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Phone className="h-4 w-4 mr-2" />
-                    {member.phone}
-                  </div>
-                )}
+              <div className="mt-4">
+                <RotatingDetails person={member} color1={API.color1} darkMode={false} />
               </div>
-              {member.qualification && (
-                <div className="mt-4">
-                  <span className="text-xs text-gray-500">{member.qualification}</span>
-                </div>
-              )}
             </div>
           </div>
         ))}
@@ -263,11 +404,22 @@ export default function ManageAdministration() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone 1</label>
                   <input
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone 2</label>
+                  <input
+                    type="tel"
+                    value={formData.phone2}
+                    onChange={(e) => setFormData({...formData, phone2: e.target.value})}
                     className="w-full px-3 py-2 border rounded-lg"
                   />
                 </div>
@@ -290,7 +442,7 @@ export default function ManageAdministration() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Experience (years)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Room No:</label>
                   <input
                     type="text"
                     value={formData.experience}
@@ -306,7 +458,20 @@ export default function ManageAdministration() {
                   value={formData.specialization}
                   onChange={(e) => setFormData({...formData, specialization: e.target.value})}
                   className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="e.g., Finance, HR, IT Infrastructure"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({...formData, category: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:outline-none"
+                >
+                  <option value="">General Administration</option>
+                  <option value="fac-in-charge">FAC-IN-CHARGE</option>
+                  <option value="support">Support</option>
+                </select>
               </div>
               <div className="flex items-center">
                 <input
@@ -338,6 +503,62 @@ export default function ManageAdministration() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showSettingsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full">
+            <div className="p-6 border-b">
+              <h2 className="text-xl font-bold">Settings</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Badge</label>
+                <input
+                  type="text"
+                  value={settingsData.badge}
+                  onChange={(e) => setSettingsData({...settingsData, badge: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                <input
+                  type="text"
+                  value={settingsData.title}
+                  onChange={(e) => setSettingsData({...settingsData, title: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <textarea
+                  value={settingsData.description}
+                  onChange={(e) => setSettingsData({...settingsData, description: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  rows="4"
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowSettingsModal(false)}
+                  className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveSettings}
+                  className="px-4 py-2 text-white rounded-lg hover:opacity-90"
+                  style={{ backgroundColor: API.color1 }}
+                >
+                  Save Settings
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

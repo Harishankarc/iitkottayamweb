@@ -79,6 +79,8 @@ import NavbarManager from './admin/pages/NavbarManager';
 import FooterLinksManager from './admin/pages/FooterLinksManager';
 import HostelManagement from './screens/admin/HostelManagement';
 import ManageAdministration from './admin/pages/ManageAdministration';
+import ManageDeans from './admin/pages/ManageDeans';
+import ManageAssociateDean from './admin/pages/ManageAssociateDean';
 import ManageHOD from './admin/pages/ManageHOD';
 import ManageTechnicalStaff from './admin/pages/ManageTechnicalStaff';
 import ManageSupportStaff from './admin/pages/ManageSupportStaff';
@@ -102,6 +104,8 @@ import Contact from './screens/footer/contact';
 import RTI from './screens/footer/rti';
 import ICC from './screens/footer/icc';
 import AntiRagging from './screens/footer/antiRagging';
+import AssociateDeans from './screens/people/associatedean';
+import Deans from './screens/people/dean';
 
 
 function App() {
@@ -136,6 +140,8 @@ function App() {
             <Route path="content" element={<UnifiedContentManager />} />
             <Route path="hostel" element={<HostelManagement />} />
             <Route path="administration" element={<ManageAdministration />} />
+            <Route path="deans" element={<ManageDeans />} />
+            <Route path="associate-deans" element={<ManageAssociateDean />} />
             <Route path="hod" element={<ManageHOD />} />
             <Route path="technical-staff" element={<ManageTechnicalStaff />} />
             <Route path="support-staff" element={<ManageSupportStaff />} />
@@ -185,6 +191,8 @@ function App() {
                 <Route path="/people/administration" element={<Administration />} />
                 <Route path="/people/hod" element={<HeadofDepartment />} />
                 <Route path="/people/faculty" element={<Faculty />} />
+                <Route path="/people/deans" element={<Deans />} />
+                <Route path="/people/associate-deans" element={<AssociateDeans />} />
                 <Route path="/people/faculty/:slug" element={<FacultyDetails />} />
                 <Route path="/people/technical" element={<Technical />} />
                 <Route path="/people/support-staff" element={<ProfessionalSupportStaff />} />

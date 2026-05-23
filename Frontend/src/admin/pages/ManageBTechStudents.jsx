@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, Mail, Phone } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Settings } from 'lucide-react';
 import API from '../../api/api';
-import ImageUploader from '../components/ImageUploader';
 
 export default function ManageBTechStudents() {
   const [people, setPeople] = useState([]);
@@ -9,23 +8,46 @@ export default function ManageBTechStudents() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [createCustomYear, setCreateCustomYear] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [settingsData, setSettingsData] = useState({
+    badge: 'Undergraduate Students',
+    title: 'Students',
+    description: 'Talented students pursuing excellence in technology and innovation.'
+  });
   const [formData, setFormData] = useState({
     name: '',
-    designation: '',
     department: '',
-    email: '',
-    phone: '',
-    photo: '',
-    qualification: '',
-    specialization: '',
-    experience: '',
     userType: 'btech-students',
     isActive: true
   });
 
   useEffect(() => {
     fetchPeople();
+    fetchSettings();
   }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const responses = await Promise.all([
+        fetch(`${API.baseURL}/api/site-settings/btech_badge`),
+        fetch(`${API.baseURL}/api/site-settings/btech_title`),
+        fetch(`${API.baseURL}/api/site-settings/btech_description`)
+      ]);
+      
+      const [badgeRes, titleRes, descRes] = await Promise.all(
+        responses.map(r => r.json())
+      );
+      
+      setSettingsData({
+        badge: badgeRes.data?.settingValue || 'Undergraduate Students',
+        title: titleRes.data?.settingValue || 'Students',
+        description: descRes.data?.settingValue || 'Talented students pursuing excellence in technology and innovation.'
+      });
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+  };
 
   const fetchPeople = async () => {
     try {
@@ -49,10 +71,14 @@ export default function ManageBTechStudents() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const submitData = {
+        ...formData,
+        designation: 'B.Tech Student'
+      };
       if (editingItem) {
-        await API.put(`/api/people/${editingItem.id}`, formData);
+        await API.put(`/api/people/${editingItem.id}`, submitData);
       } else {
-        await API.post('/api/people', formData);
+        await API.post('/api/people', submitData);
       }
       fetchPeople();
       setShowModal(false);
@@ -73,39 +99,61 @@ export default function ManageBTechStudents() {
     }
   };
 
+  const handleSaveSettings = async () => {
+    try {
+      const settingsToSave = [
+        { key: 'btech_badge', value: settingsData.badge },
+        { key: 'btech_title', value: settingsData.title },
+        { key: 'btech_description', value: settingsData.description }
+      ];
+
+      for (const setting of settingsToSave) {
+        const result = await API.fetchWithRetry(`${API.baseURL}/api/site-settings`, {
+          method: 'POST',
+          headers: API.getAuthHeaders(),
+          body: JSON.stringify({
+            settingKey: setting.key,
+            settingValue: setting.value,
+            settingType: 'text',
+            category: 'btech-students'
+          })
+        });
+        
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to save setting');
+        }
+      }
+
+      setShowSettingsModal(false);
+      alert('Settings saved successfully!');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Failed to save settings: ' + error.message);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
-      designation: '',
       department: '',
-      email: '',
-      phone: '',
-      photo: '',
-      qualification: '',
-      specialization: '',
-      experience: '',
       userType: 'btech-students',
       isActive: true
     });
     setEditingItem(null);
+    setCreateCustomYear(false);
   };
 
   const openEditModal = (item) => {
     setEditingItem(item);
+    const predefinedYears = Array.from({ length: 8 }, (_, i) => String(2015 + i));
+    const isCustomYear = item.department && !predefinedYears.includes(String(item.department));
     setFormData({
       name: item.name,
-      designation: item.designation || '',
       department: item.department || '',
-      specialization: item.specialization || '',
-      email: item.email || '',
-      phone: item.phone || '',
-      photo: item.photo || '',
-      qualification: item.qualification || '',
-      specialization: item.specialization || '',
-      experience: item.experience || '',
       userType: 'btech-students',
       isActive: item.isActive
     });
+    setCreateCustomYear(isCustomYear);
     setShowModal(true);
   };
 
@@ -129,14 +177,23 @@ export default function ManageBTechStudents() {
           <h1 className="text-2xl font-bold text-gray-900">Manage B.Tech Students</h1>
           <p className="text-gray-600 mt-1">Manage B.Tech students and profiles</p>
         </div>
-        <button
-          onClick={() => { resetForm(); setShowModal(true); }}
-          className="flex items-center px-4 py-2 text-white rounded-lg hover:opacity-90"
-          style={{ backgroundColor: API.color1 }}
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          Add Student
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowSettingsModal(true)}
+            className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            <Settings className="h-5 w-5 mr-2" />
+            Settings
+          </button>
+          <button
+            onClick={() => { resetForm(); setShowModal(true); }}
+            className="flex items-center px-4 py-2 text-white rounded-lg hover:opacity-90"
+            style={{ backgroundColor: API.color1 }}
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Add Student
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-4">
@@ -172,25 +229,8 @@ export default function ManageBTechStudents() {
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-1">{member.name}</h3>
               {member.department && (
-                <p className="text-sm font-semibold" style={{ color: API.color1 }}>Batch: {member.department}</p>
+                <p className="text-sm font-semibold" style={{ color: API.color1 }}>Year: {member.department}</p>
               )}
-              {member.specialization && (
-                <p className="text-sm text-gray-600 mb-2">Branch: {member.specialization}</p>
-              )}
-              <div className="mt-4 space-y-2">
-                {member.email && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Mail className="h-4 w-4 mr-2" />
-                    {member.email}
-                  </div>
-                )}
-                {member.phone && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Phone className="h-4 w-4 mr-2" />
-                    {member.phone}
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         ))}
@@ -203,91 +243,77 @@ export default function ManageBTechStudents() {
               <h2 className="text-xl font-bold">{editingItem ? 'Edit B.Tech Student' : 'Add B.Tech Student'}</h2>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Year *</label>
+                
+                {/* Toggle between dropdown and custom year */}
+                <div className="flex gap-4 mb-3">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={!createCustomYear}
+                      onChange={() => {
+                        setCreateCustomYear(false);
+                        setFormData({...formData, department: ''});
+                      }}
+                      className="h-4 w-4"
+                      style={{ accentColor: API.color1 }}
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Select from list</span>
+                  </label>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={createCustomYear}
+                      onChange={() => setCreateCustomYear(true)}
+                      className="h-4 w-4"
+                      style={{ accentColor: API.color1 }}
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Create new year</span>
+                  </label>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Batch Year *</label>
+
+                {/* Dropdown or Custom Input */}
+                {!createCustomYear ? (
                   <select
                     required
                     value={formData.department}
                     onChange={(e) => setFormData({...formData, department: e.target.value})}
                     className="w-full px-3 py-2 border rounded-lg"
                   >
-                    <option value="">Select Batch</option>
-                    <option value="2015">2015</option>
-                    <option value="2016">2016</option>
-                    <option value="2017">2017</option>
-                    <option value="2018">2018</option>
-                    <option value="2019">2019</option>
-                    <option value="2020">2020</option>
-                    <option value="2021">2021</option>
-                    <option value="2022">2022</option>
-                    <option value="2023">2023</option>
-                    <option value="2024">2024</option>
-                    <option value="2025">2025</option>
+                    <option value="">Select Year</option>
+                    {Array.from({ length: 8 }, (_, i) => String(2015 + i)).map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
                   </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-                <select
-                  value={formData.specialization}
-                  onChange={(e) => setFormData({...formData, specialization: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg"
-                >
-                  <option value="">Select Branch (Optional)</option>
-                  <option value="CSE">Computer Science & Engineering</option>
-                  <option value="ECE">Electronics & Communication Engineering</option>
-                  <option value="Cybersecurity">Cybersecurity</option>
-                  <option value="AI & DS">AI & Data Science</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                ) : (
                   <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    type="number"
+                    required
+                    placeholder="Enter year (e.g., 2024)"
+                    value={formData.department}
+                    onChange={(e) => setFormData({...formData, department: e.target.value})}
                     className="w-full px-3 py-2 border rounded-lg"
+                    min="1900"
+                    max="2100"
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                </div>
+                )}
               </div>
-              <ImageUploader
-                value={formData.photo || ''}
-                onChange={(url) => setFormData({...formData, photo: url})}
-                label="Photo"
-                folder="people"
-                aspectRatio="1/1"
-              />
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Roll Number</label>
-                <input
-                  type="text"
-                  value={formData.qualification}
-                  onChange={(e) => setFormData({...formData, qualification: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg"
-                />
-              </div>
-              <div className="flex items-center">
+
+              <div className="flex items-center mt-6">
                 <input
                   type="checkbox"
                   id="isActive"
@@ -300,6 +326,7 @@ export default function ManageBTechStudents() {
                   Active
                 </label>
               </div>
+
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   type="button"
@@ -317,6 +344,69 @@ export default function ManageBTechStudents() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showSettingsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b">
+              <h2 className="text-xl font-bold">B.Tech Page Settings</h2>
+              <p className="text-gray-600 text-sm mt-1">Edit the header text displayed on the B.Tech Students page</p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Badge Text</label>
+                <input
+                  type="text"
+                  value={settingsData.badge}
+                  onChange={(e) => setSettingsData({...settingsData, badge: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="e.g. Undergraduate Students"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Page Title</label>
+                <input
+                  type="text"
+                  value={settingsData.title}
+                  onChange={(e) => setSettingsData({...settingsData, title: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="e.g. Students"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Page Description</label>
+                <textarea
+                  value={settingsData.description}
+                  onChange={(e) => setSettingsData({...settingsData, description: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="e.g. Talented students pursuing excellence in technology and innovation."
+                  rows="4"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowSettingsModal(false)}
+                  className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveSettings}
+                  className="px-4 py-2 text-white rounded-lg hover:opacity-90"
+                  style={{ backgroundColor: API.color1 }}
+                >
+                  Save Settings
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

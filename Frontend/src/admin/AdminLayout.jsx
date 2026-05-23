@@ -151,6 +151,8 @@ export default function AdminLayout() {
       hasDropdown: true,
       submenu: [
         { icon: UserCog, label: 'Administration', path: '/admin/administration' },
+        { icon: UserCog, label: 'Deans', path: '/admin/deans' },
+        { icon: UserCog, label: 'Associate Deans', path: '/admin/associate-deans' },
         { icon: UserCog, label: 'Head of Department', path: '/admin/hod' },
         { icon: UserCog, label: 'Faculty', path: '/admin/faculty' },
         { icon: UserCog, label: 'Technical Staff', path: '/admin/technical-staff' },

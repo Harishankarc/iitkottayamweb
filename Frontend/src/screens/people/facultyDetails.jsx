@@ -28,6 +28,14 @@ const parseDetailEntries = (items) => {
 			if (boldMatch) {
 				return { type: 'bold', text: boldMatch[1].trim() };
 			}
+			const underlineMatch = item.match(/^__\s*(.+?)\s*__$/);
+			if (underlineMatch) {
+				return { type: 'underline', text: underlineMatch[1].trim() };
+			}
+			const htmlUnderlineMatch = item.match(/^<u>\s*([\s\S]+?)\s*<\/u>$/i);
+			if (htmlUnderlineMatch) {
+				return { type: 'underline', text: htmlUnderlineMatch[1].trim() };
+			}
 			return { type: 'item', text: item };
 		});
 };
@@ -52,6 +60,10 @@ const DetailSection = ({ title, icon: Icon, items, darkMode, color1 }) => {
 				{items.map((item, index) => (
 					item.type === 'bold' ? (
 						<p key={`${title}-bold-${index}`} className="text-sm font-bold text-black">
+							{item.text}
+						</p>
+					) : item.type === 'underline' ? (
+						<p key={`${title}-underline-${index}`} className={`text-sm underline underline-offset-2 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
 							{item.text}
 						</p>
 					) : (

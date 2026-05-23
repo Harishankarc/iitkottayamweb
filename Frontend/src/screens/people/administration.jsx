@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
-import { Users, Mail, Phone, MapPin, Search, BookOpenText, UserCog, Headphones } from 'lucide-react';
+import { Users, Mail, Phone, MapPin, Search, BookOpenText } from 'lucide-react';
+import RotatingDetails from '../../components/RotatingDetails.jsx';
 
 
 
@@ -81,164 +82,8 @@ const ProfileCard = ({ person, color1, darkMode }) => {
         {/* Divider */}
         <div className={`h-px w-full mb-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} />
         
-        {/* Contact Information - Stacked */}
-        <div className="space-y-1.5">
-          <div className={`flex items-start gap-2 p-1.5 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
-            <div 
-              className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center"
-              style={{ backgroundColor: `${color1}20` }}
-            >
-              <Mail className="w-3 h-3" style={{ color: color1 }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Email
-              </p>
-              <a 
-                href={`mailto:${person.email}`}
-                className={`text-xs break-all hover:underline ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}
-                onClick={(e) => e.stopPropagation()}
-              >
-                {person.email}
-              </a>
-            </div>
-          </div>
-          
-          <div className={`flex items-start gap-2 p-1.5 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
-            <div 
-              className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center"
-              style={{ backgroundColor: `${color1}20` }}
-            >
-              <Phone className="w-3 h-3" style={{ color: color1 }} />
-            </div>
-            <div className="flex-1">
-              <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Phone
-              </p>
-              <p className={`text-xs ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                {person.phone}
-              </p>
-            </div>
-          </div>
-          
-          <div className={`flex items-start gap-2 p-1.5 rounded-lg ${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
-            <div 
-              className="flex-shrink-0 w-7 h-7 rounded flex items-center justify-center"
-              style={{ backgroundColor: `${color1}20` }}
-            >
-              <BookOpenText className="w-3 h-3" style={{ color: color1 }} />
-            </div>
-            <div className="flex-1">
-              <p className={`text-xs font-semibold mb-0.5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                Qualification
-              </p>
-              <p className={`text-xs ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                {person.room}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Compact List Card Component for FAC-IN-CHARGE and Support
-const CompactListCard = ({ person, color1, darkMode, icon: Icon }) => {
-  const [isHovered, setIsHovered] = React.useState(false);
-  
-  return (
-    <div
-      className={`relative rounded-lg overflow-hidden transition-all duration-300 ${
-        isHovered ? 'shadow-xl' : 'shadow-sm'
-      } ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      style={{
-        border: isHovered 
-          ? `2px solid ${color1}` 
-          : `2px solid ${darkMode ? '#374151' : '#E5E7EB'}`,
-        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)'
-      }}
-    >
-      <div className="p-4 flex items-center gap-4">
-        {/* Profile Image */}
-        <div className="flex-shrink-0">
-          <div className="relative">
-            <div 
-              className={`absolute inset-0 rounded-full pointer-events-none transition-all duration-300 ${
-                isHovered ? 'scale-110 opacity-100' : 'scale-100 opacity-0'
-              }`}
-              style={{
-                border: `2px solid ${color1}`,
-              }}
-            />
-            <img
-              src={person.image}
-              alt={person.name}
-              className={`w-16 h-16 rounded-full object-cover shadow-md border-2 transition-transform duration-300 ${
-                isHovered ? 'scale-105' : 'scale-100'
-              } ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}
-              onError={(e) => e.currentTarget.src = `https://placehold.co/64x64/e8f5f0/239244?text=${person.name.charAt(0)}`}
-            />
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <h4 
-            className={`text-base font-bold mb-1 transition-colors duration-300 ${
-              darkMode ? 'text-gray-100' : 'text-gray-900'
-            }`}
-            style={{ color: isHovered ? color1 : undefined }}
-          >
-            {person.name}
-          </h4>
-          <p className={`text-sm mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            {person.title}
-          </p>
-          {person.roles.length > 0 && (
-            <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'} line-clamp-2`}>
-              {person.roles.join(' | ')}
-            </p>
-          )}
-        </div>
-
-        {/* Icon */}
-        <div 
-          className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-transform duration-300"
-          style={{ 
-            backgroundColor: `${color1}15`,
-            transform: isHovered ? 'rotate(10deg) scale(1.1)' : 'rotate(0) scale(1)'
-          }}
-        >
-          <Icon className="w-6 h-6" style={{ color: color1 }} />
-        </div>
-      </div>
-
-      {/* Quick Contact Info */}
-      <div 
-        className={`px-4 pb-4 pt-2 border-t transition-all duration-300 ${
-          darkMode ? 'border-gray-700' : 'border-gray-200'
-        }`}
-      >
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="flex items-center gap-1.5">
-            <Mail className="w-3 h-3" style={{ color: color1 }} />
-            <a 
-              href={`mailto:${person.email}`}
-              className={`hover:underline truncate ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-            >
-              {person.email.split('@')[0]}
-            </a>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Phone className="w-3 h-3" style={{ color: color1 }} />
-            <span className={`truncate ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {person.phone.split('|')[0].trim()}
-            </span>
-          </div>
-        </div>
+        {/* Contact Information - Rotating */}
+        <RotatingDetails person={person} color1={color1} darkMode={darkMode} />
       </div>
     </div>
   );
@@ -252,6 +97,11 @@ export default function Administration() {
   const [searchTerm, setSearchTerm] = useState('');
   const [administrationData, setAdministrationData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [headerSettings, setHeaderSettings] = useState({
+    badge: 'Administration Team',
+    title: 'Administration',
+    description: 'Meet our dedicated administrative team ensuring excellence in institutional management and student services.'
+  });
 
   // Fetch administration data from API
   useEffect(() => {
@@ -269,20 +119,49 @@ export default function Administration() {
         
         if (data.success && data.data && Array.isArray(data.data)) {
           console.log(`✅ Loaded ${data.data.length} administration records`);
+          // Log first record to see what fields are available
+          if (data.data.length > 0) {
+            console.log('First record fields:', Object.keys(data.data[0]));
+            console.log('First record phone2:', data.data[0].phone2);
+          }
           // Transform API data to match component structure
           const transformedData = data.data
             .filter(person => person.isActive !== false)
-            .map(person => ({
-              name: person.name || 'Unknown',
-              title: person.designation || 'Administrator',
-              roles: person.department ? [person.department] : [],
-              email: person.email || 'N/A',
-              phone: person.phone || 'N/A',
-              room: person.qualification || 'N/A',
-              image: API.getImageUrl(person.photo) || `https://placehold.co/128x128/22a05e/ffffff?text=${person.name?.charAt(0) || 'A'}`,
-              category: person.specialization || 'general' // Use specialization field as category
-            }));
+            .map(person => {
+              // Normalize specialization field
+              const spec = person.specialization ? String(person.specialization).trim() : '';
+              
+              // Only recognize specific category values
+              let category = 'general';
+              if (spec === 'fac-in-charge' || spec === 'FAC-IN-CHARGE') {
+                category = 'fac-in-charge';
+              } else if (spec === 'support' || spec === 'Support' || spec === 'SUPPORT') {
+                category = 'support';
+              }
+              
+              console.log(`👤 ${person.name}: specialization="${spec}" → category="${category}"`);
+              
+              return {
+                name: person.name || 'Unknown',
+                title: person.designation || 'Administrator',
+                roles: person.department ? [person.department] : [],
+                email: person.email || 'N/A',
+                phone: person.phone || 'N/A',
+                phone2: person.phone2 || '',
+                qualification: person.qualification || 'N/A',
+                department: person.department || 'N/A',
+                specialization: person.specialization || 'N/A',
+                experience: person.experience || 'N/A',
+                room: person.qualification || 'N/A',
+                image: API.getImageUrl(person.photo) || `https://placehold.co/128x128/22a05e/ffffff?text=${person.name?.charAt(0) || 'A'}`,
+                category: category
+              };
+            });
+          console.log('✅ Transformed data sample:', transformedData[0]);
           console.log('✅ Transformed data:', transformedData.length, 'records');
+          console.log('General:', transformedData.filter(p => p.category === 'general').length);
+          console.log('FAC-IN-CHARGE:', transformedData.filter(p => p.category === 'fac-in-charge').length);
+          console.log('Support:', transformedData.filter(p => p.category === 'support').length);
           setAdministrationData(transformedData);
         } else {
           console.error('❌ Invalid response format:', data);
@@ -298,7 +177,49 @@ export default function Administration() {
       }
     };
 
+    const fetchSettings = async () => {
+      try {
+        const responses = await Promise.all([
+          fetch(`${API.baseURL}/api/site-settings/admin_badge`),
+          fetch(`${API.baseURL}/api/site-settings/admin_title`),
+          fetch(`${API.baseURL}/api/site-settings/admin_description`)
+        ]);
+        
+        for (let i = 0; i < responses.length; i++) {
+          if (!responses[i].ok) {
+            console.warn(`Settings response ${i} not OK:`, responses[i].status);
+          }
+        }
+        
+        const [badgeRes, titleRes, descRes] = await Promise.all(
+          responses.map(r => r.json())
+        );
+        
+        setHeaderSettings({
+          badge: badgeRes.data?.settingValue || 'Administration Team',
+          title: titleRes.data?.settingValue || 'Administration',
+          description: descRes.data?.settingValue || 'Meet our dedicated administrative team ensuring excellence in institutional management and student services.'
+        });
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+
     fetchAdministration();
+    fetchSettings();
+    
+    // Poll for settings updates every 5 seconds
+    const settingsInterval = setInterval(fetchSettings, 5000);
+    
+    // Refetch settings when window regains focus
+    const handleFocus = () => fetchSettings();
+    window.addEventListener('focus', handleFocus);
+    
+    // Cleanup
+    return () => {
+      clearInterval(settingsInterval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   // Filtered results based on search term
@@ -330,13 +251,13 @@ export default function Administration() {
         <div className="max-w-7xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
             <Users className="w-4 h-4" style={{ color: color1 }} />
-            Administration Team
+            {headerSettings.badge}
           </div>
           <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-            Administration
+            {headerSettings.title}
           </h1>
           <p className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            Meet our dedicated administrative team ensuring excellence in institutional management and student services.
+            {headerSettings.description}
           </p>
         </div>
       </div>
@@ -442,33 +363,14 @@ export default function Administration() {
 
           {activeTab === 'FacInCharge' && (
             <div className="space-y-6">
-              {/* Header Section */}
-              <div className={`p-8 rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-gray-50'} border-l-4`} style={{ borderColor: color1 }}>
-                <div className="flex items-center gap-3 mb-3">
-                  <UserCog className="w-8 h-8" style={{ color: color1 }} />
-                  <h2 className="text-3xl font-bold" style={{ color: color1 }}>Faculty In-Charge</h2>
-                </div>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Faculty members responsible for various institutional activities and programs
-                </p>
-              </div>
-
-              {/* Compact List Layout */}
-              <div className="grid gap-4">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {facInChargeData.map((person, index) => (
-                  <CompactListCard 
-                    key={index} 
-                    person={person} 
-                    color1={color1} 
-                    darkMode={darkMode}
-                    icon={UserCog}
-                  />
+                  <ProfileCard key={index} person={person} color1={color1} darkMode={darkMode} />
                 ))}
               </div>
 
               {facInChargeData.length === 0 && (
                 <div className={`text-center p-12 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
-                  <UserCog className="w-16 h-16 mx-auto mb-4 opacity-50" style={{ color: color1 }} />
                   <h3 className="text-2xl font-semibold">No Faculty In-Charge Listed</h3>
                   <p className={`mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     Information will be updated soon.
@@ -480,33 +382,14 @@ export default function Administration() {
 
           {activeTab === 'Support' && (
             <div className="space-y-6">
-              {/* Header Section */}
-              <div className={`p-8 rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-gray-50'} border-l-4`} style={{ borderColor: color1 }}>
-                <div className="flex items-center gap-3 mb-3">
-                  <Headphones className="w-8 h-8" style={{ color: color1 }} />
-                  <h2 className="text-3xl font-bold" style={{ color: color1 }}>Support Services</h2>
-                </div>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Technical and administrative support staff for student and faculty assistance
-                </p>
-              </div>
-
-              {/* Compact List Layout */}
-              <div className="grid gap-4">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {supportData.map((person, index) => (
-                  <CompactListCard 
-                    key={index} 
-                    person={person} 
-                    color1={color1} 
-                    darkMode={darkMode}
-                    icon={Headphones}
-                  />
+                  <ProfileCard key={index} person={person} color1={color1} darkMode={darkMode} />
                 ))}
               </div>
 
               {supportData.length === 0 && (
                 <div className={`text-center p-12 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
-                  <Headphones className="w-16 h-16 mx-auto mb-4 opacity-50" style={{ color: color1 }} />
                   <h3 className="text-2xl font-semibold">No Support Services Listed</h3>
                   <p className={`mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     Information will be updated soon.
