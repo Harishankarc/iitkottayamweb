@@ -4,6 +4,38 @@ import API from '../../api/api';
 const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showToolbar = true }, refProp) {
   const ref = useRef(null);
   const fileRef = useRef(null);
+  const savedSelection = useRef(null);
+
+  const restoreSelection = () => {
+    const sel = window.getSelection();
+    if (!sel) return;
+    // If the browser already has an active range (user selection still present), keep it.
+    if (sel.rangeCount && sel.rangeCount > 0) return;
+    if (!savedSelection.current) return;
+    try {
+      sel.removeAllRanges();
+      sel.addRange(savedSelection.current);
+    } catch (e) {
+      // ignore invalid ranges
+    }
+  };
+
+  const saveSelection = () => {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    try {
+      const r = sel.getRangeAt(0).cloneRange();
+      // lightweight debug info to help trace reversed-typing issues
+      try {
+        const cs = ref.current && window.getComputedStyle(ref.current);
+        // eslint-disable-next-line no-console
+        console.debug('RichEditor.saveSelection', { startContainer: r.startContainer.nodeName, startOffset: r.startOffset, endContainer: r.endContainer.nodeName, endOffset: r.endOffset, direction: cs && cs.direction, unicodeBidi: cs && cs.unicodeBidi, transform: cs && cs.transform });
+      } catch (e) {}
+      savedSelection.current = r;
+    } catch (e) {
+      // ignore
+    }
+  };
 
   useImperativeHandle(refProp, () => ({
     insertHtml(html) {
@@ -56,8 +88,21 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
       }
     },
     exec(command, arg) {
-      document.execCommand(command, false, arg);
-      if (ref.current) onChange(ref.current.innerHTML);
+      if (ref.current) {
+        // ensure editor retains focus but don't force a focus call that may alter selection
+        try { ref.current.focus && ref.current.focus(); } catch (e) {}
+        // If there's already a browser selection use it, otherwise restore a previously saved selection
+        const sel = window.getSelection();
+        if (!sel || !sel.rangeCount) restoreSelection();
+        // debug around execCommand
+        try {
+          const cs = ref.current && window.getComputedStyle(ref.current);
+          // eslint-disable-next-line no-console
+          console.debug('RichEditor.exec (imperative)', { command, arg, direction: cs && cs.direction, unicodeBidi: cs && cs.unicodeBidi });
+        } catch (e) {}
+        document.execCommand(command, false, arg);
+        onChange && onChange(ref.current.innerHTML);
+      }
     },
     insertLink(url) {
       if (!ref.current) return;
@@ -86,12 +131,13 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
       if (ref.current) onChange(ref.current.innerHTML);
     },
     insertList(ordered = false) {
-      const tag = ordered ? 'ol' : 'ul';
-      const html = `<${tag}><li>List item</li><li>List item</li></${tag}>`;
-      if (ref.current) {
-        ref.current.insertAdjacentHTML('beforeend', html);
-        onChange(ref.current.innerHTML);
-      }
+      if (!ref.current) return;
+      try { ref.current.focus && ref.current.focus(); } catch (e) {}
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) restoreSelection();
+      const command = ordered ? 'insertOrderedList' : 'insertUnorderedList';
+      document.execCommand(command, false);
+      onChange && onChange(ref.current.innerHTML);
     },
     focus() {
       ref.current && ref.current.focus();
@@ -105,8 +151,16 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
   }, [value]);
 
   const exec = (command, arg) => {
-    document.execCommand(command, false, arg);
-    if (ref.current) onChange(ref.current.innerHTML);
+    if (ref.current) {
+      ref.current.focus();
+      try {
+        const cs = ref.current && window.getComputedStyle(ref.current);
+        // eslint-disable-next-line no-console
+        console.debug('RichEditor.exec', { command, arg, direction: cs && cs.direction, unicodeBidi: cs && cs.unicodeBidi });
+      } catch (e) {}
+      document.execCommand(command, false, arg);
+      onChange && onChange(ref.current.innerHTML);
+    }
   };
 
   const normalizeUrl = (rawUrl) => {
@@ -247,8 +301,8 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
           <button type="button" onClick={() => exec('formatBlock', '<H2>')} className="px-2 py-1 border rounded" data-testid="re-h2">H2</button>
           <button type="button" onClick={() => exec('formatBlock', '<H3>')} className="px-2 py-1 border rounded" data-testid="re-h3">H3</button>
           <button type="button" onClick={() => exec('insertParagraph')} className="px-2 py-1 border rounded" data-testid="re-p">P</button>
-          <button type="button" onClick={() => insertList(false)} className="px-2 py-1 border rounded" data-testid="re-ul">UL</button>
-          <button type="button" onClick={() => insertList(true)} className="px-2 py-1 border rounded" data-testid="re-ol">OL</button>
+          <button type="button" onClick={() => exec('insertUnorderedList')} className="px-2 py-1 border rounded" data-testid="re-ul">UL</button>
+          <button type="button" onClick={() => exec('insertOrderedList')} className="px-2 py-1 border rounded" data-testid="re-ol">OL</button>
           <button type="button" onClick={insertTable} className="px-2 py-1 border rounded" data-testid="re-table">Table</button>
           <button type="button" onClick={triggerImageUpload} className="px-2 py-1 border rounded" data-testid="re-image">Image</button>
           <button type="button" onClick={insertButton} className="px-2 py-1 border rounded" data-testid="re-button">Button</button>
@@ -261,8 +315,11 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
         contentEditable
         suppressContentEditableWarning
         onInput={(e) => onChange(e.currentTarget.innerHTML)}
+        onMouseUp={saveSelection}
+        onKeyUp={saveSelection}
+        onFocus={saveSelection}
         className="min-h-[120px] border rounded p-2 bg-white text-sm"
-        style={{ whiteSpace: 'pre-wrap' }}
+        style={{ whiteSpace: 'pre-wrap', direction: 'ltr', unicodeBidi: 'isolate' }}
         data-testid="re-editor"
       />
     </div>

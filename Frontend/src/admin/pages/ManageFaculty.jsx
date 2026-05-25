@@ -51,7 +51,7 @@ const createDefaultDetailBuilderContent = (blockType) => {
     case 'image': return { title: '', url: '', alt: '', caption: '' };
     case 'gallery': return { title: '', images: [''] };
     case 'table': return { title: '', subtitle: '', headers: [''], rows: [['']] };
-    case 'statistics': return { title: '', stats: [{ value: '', label: '' }] };
+    case 'statistics': return { title: 'Statistics', stats: [{ value: '', label: '' }] };
     default: return {};
   }
 };
@@ -64,7 +64,16 @@ const parseDetailBlocksFromHtml = (htmlString) => {
   while ((match = sectionRegex.exec(htmlString)) !== null) {
     const content = match[1];
     let block = null;
-    if (content.includes('<h1 ') || content.includes('<h2 ') || content.includes('<h3 ') || content.includes('<h4 ') || content.includes('<h5 ') || content.includes('<h6 ')) {
+    // Detect image tags inside this section (if any)
+    const imgTags = (content.match(/<img[\s\S]*?>/gi) || []);
+    // Treat as heading only when there are heading tags and the section does not look like
+    // an image/gallery block. Exclude gallery-like sections (grid-template, multiple images)
+    // or single-image sections that already use max-width styling (handled elsewhere).
+    if ((content.includes('<h1 ') || content.includes('<h2 ') || content.includes('<h3 ') || content.includes('<h4 ') || content.includes('<h5 ') || content.includes('<h6 ')) &&
+      !(content.includes('<img') && content.includes('max-width:100%')) &&
+      !content.includes('<table') &&
+      !content.includes('grid-template-columns') &&
+      imgTags.length <= 1) {
       const headingMatch = content.match(/<h([1-6])[^>]*style="[^"]*font-size:([^";]+)[^"]*"[^>]*>([\s\S]*?)<\/h\1>/i) || content.match(/<h([1-6])[^>]*>([\s\S]*?)<\/h\1>/i);
       if (headingMatch) {
         const level = Number(headingMatch[1] || 2);
@@ -119,22 +128,24 @@ const parseDetailBlocksFromHtml = (htmlString) => {
         rawHtml: match[0]
       };
     } else if (content.includes('<table')) {
-      const titleMatch = content.match(/<h3[^>]*>(.+?)<\/h3>/i);
-      const headers = [...content.matchAll(/<th[^>]*>(.+?)<\/th>/gi)].map(m => m[1]);
-      const rows = [...content.matchAll(/<tr>(.+?)<\/tr>/gi)].map(rowMatch => [...rowMatch[1].matchAll(/<td[^>]*>(.+?)<\/td>/gi)].map(m => m[1]));
-      block = { blockType: 'table', content: { title: titleMatch ? titleMatch[1] : '', subtitle: '', headers: headers.length > 0 ? headers : [''], rows: rows.length > 0 ? rows : [['']] }, rawHtml: match[0] };
+      const titleMatch = content.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
+      const headers = [...content.matchAll(/<th[^>]*>([\s\S]*?)<\/th>/gi)].map(m => String(m[1] || '').replace(/<[^>]+>/g, '').trim()).filter(Boolean);
+      const rows = [...content.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)]
+        .map(rowMatch => [...rowMatch[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map(m => String(m[1] || '').replace(/<[^>]+>/g, '').trim()))
+        .filter((row) => row.length > 0);
+      block = { blockType: 'table', content: { title: titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '').trim() : '', subtitle: '', headers: headers.length > 0 ? headers : [''], rows: rows.length > 0 ? rows : [['']] }, rawHtml: match[0] };
     } else if (content.includes('<img') && content.includes('max-width:100%')) {
       const titleMatch = content.match(/<h3[^>]*>(.+?)<\/h3>/i);
       const imgMatch = content.match(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/i);
       const captionMatch = content.match(/<p[^>]*color:#6b7280[^>]*>(.+?)<\/p>/i);
       block = { blockType: 'image', content: { title: titleMatch ? titleMatch[1] : '', url: imgMatch ? imgMatch[1] : '', alt: imgMatch ? imgMatch[2] : '', caption: captionMatch ? captionMatch[1] : '' }, rawHtml: match[0] };
-    } else if (content.includes('grid-template-columns:repeat(auto-fit,minmax(160px,1fr))')) {
+    } else if (content.includes('grid-template-columns:repeat(auto-fit,minmax(160px,1fr))') && content.includes('<img')) {
       const titleMatch = content.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
       const images = [...content.matchAll(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/gi)].map((m) => m[1]);
       block = { blockType: 'gallery', content: { title: titleMatch ? titleMatch[1] : '', images: images.length > 0 ? images : [''] }, rawHtml: match[0] };
     } else if (content.includes('grid-template-columns:repeat(auto-fit,minmax(160px,1fr))') || content.includes('background:#f8fffb')) {
       const titleMatch = content.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
-      const stats = [...content.matchAll(/<div style="font-size:24px;font-weight:800;color:#239244;">([\s\S]*?)<\/div>\s*<div style="font-size:13px;color:#6b7280;">([\s\S]*?)<\/div>/gi)]
+      const stats = [...content.matchAll(/<div style="font-size:24px;font-weight:800;color:#239244;">([\s\S]*?)<\/div>[\s\S]*?<div style="font-size:13px;color:#6b7280;">([\s\S]*?)<\/div>/gi)]
         .map((m) => ({ value: m[1], label: m[2] }));
       block = { blockType: 'statistics', content: { title: titleMatch ? titleMatch[1] : '', stats: stats.length > 0 ? stats : [{ value: '', label: '' }] }, rawHtml: match[0] };
     }
@@ -148,16 +159,59 @@ const createBlockBuilderState = (blockType = 'heading') => ({
   content: createDefaultDetailBuilderContent(blockType)
 });
 
+const sanitizeParagraphHtml = (html) => {
+  if (!html) return '';
+  
+  // Remove empty tags
+  let cleaned = html.replace(/<(\w+)>[<\s]*<\/\1>/g, '');
+  
+  // Fix unclosed tags by removing orphaned closing tags
+  cleaned = cleaned.replace(/<\/b>(?![\s\S]*<b>)/g, '');
+  cleaned = cleaned.replace(/<\/i>(?![\s\S]*<i>)/g, '');
+  cleaned = cleaned.replace(/<\/u>(?![\s\S]*<u>)/g, '');
+  
+  // Normalize links without protocol
+  cleaned = cleaned.replace(/href="([^"]*)"/g, (match, url) => {
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl) return match;
+    if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://') || trimmedUrl.startsWith('mailto:')) {
+      return match;
+    }
+    return `href="https://${trimmedUrl}"`;
+  });
+  
+  // Ensure common inline tags are balanced (close any unclosed tags)
+  try {
+    const inlineTags = ['b', 'i', 'u', 'strong', 'em', 'a', 'span'];
+    inlineTags.forEach((tag) => {
+      const openRegex = new RegExp(`<${tag}(\\s|>)`, 'gi');
+      const closeRegex = new RegExp(`</${tag}>`, 'gi');
+      const opens = (cleaned.match(openRegex) || []).length;
+      const closes = (cleaned.match(closeRegex) || []).length;
+      for (let k = 0; k < Math.max(0, opens - closes); k++) {
+        cleaned += `</${tag}>`;
+      }
+    });
+  } catch (e) {
+    // ignore balancing errors
+  }
+
+  return cleaned.trim();
+};
+
 const formatParagraphText = (text) => {
   if (!text) return '';
   
-  // If it's already HTML from RichEditor, just return it
-  if (text.includes('<') && text.includes('>')) {
-    return text;
+  // Sanitize first
+  const sanitized = sanitizeParagraphHtml(text);
+  
+  // If it's already HTML from RichEditor, just return it (it's clean native HTML)
+  if (sanitized.includes('<') && sanitized.includes('>')) {
+    return sanitized;
   }
   
   // Otherwise, process markdown syntax
-  let html = text;
+  let html = sanitized;
   
   // Check if contains list items
   const lines = html.split('\n');
@@ -236,9 +290,17 @@ const buildDetailBlockHtml = (blockType, content) => {
       return `<section style="margin:18px 0;text-align:center;">${content.title ? `<h3 style="margin:0 0 10px 0;font-size:20px;font-weight:700;color:#111827;">${escapeHtml(content.title)}</h3>` : ''}${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(content.alt || content.title || 'Faculty image')}" style="max-width:100%;width:100%;max-height:500px;aspect-ratio:1/1;object-fit:cover;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.08);display:inline-block;" />` : ''}${content.caption ? `<p style="margin:10px 0 0;color:#6b7280;font-size:13px;">${escapeHtml(content.caption)}</p>` : ''}</section>`;
     case 'gallery':
       return `<section style="margin:18px 0;"><h3 style="margin:0 0 12px 0;font-size:20px;font-weight:700;color:#111827;">${richText(content.title || '')}</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">${(content.images || []).filter(Boolean).map((itemUrl) => `<img src="${escapeHtml(resolveMediaUrl(itemUrl))}" alt="Gallery image" style="width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;border-radius:12px;display:block;" />`).join('')}</div></section>`;
-      return `<section style="margin:18px 0;overflow:auto;">${content.title ? `<h3 style="margin:0 0 8px 0;font-size:20px;font-weight:700;color:#111827;">${escapeHtml(content.title)}</h3>` : ''}${content.subtitle ? `<p style="margin:0 0 12px 0;color:#6b7280;">${escapeHtml(content.subtitle)}</p>` : ''}<table style="width:100%;border-collapse:collapse;border:1px solid #d1d5db;border-radius:12px;overflow:hidden;"><thead><tr>${(content.headers || []).filter(Boolean).map((header) => `<th style="background:#ecfdf5;border:1px solid #d1d5db;padding:10px 12px;text-align:left;color:#111827;">${escapeHtml(header)}</th>`).join('')}</tr></thead><tbody>${(content.rows || []).map((row) => `<tr>${(row || []).map((cell) => `<td style="border:1px solid #d1d5db;padding:10px 12px;color:#374151;">${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></section>`;
-    case 'statistics':
-      return `<section style="margin:18px 0;padding:18px;border:1px solid #d1fae5;border-radius:16px;background:#f8fffb;"><h3 style="margin:0 0 12px 0;font-size:20px;font-weight:700;color:#111827;">${richText(content.title || '')}</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">${(content.stats || []).filter(Boolean).map((stat) => `<div style="padding:14px;border-radius:12px;background:#fff;border:1px solid #d1d5db;"><div style="font-size:24px;font-weight:800;color:#239244;">${escapeHtml(stat.value)}</div><div style="font-size:13px;color:#6b7280;">${escapeHtml(stat.label)}</div></div>`).join('')}</div></section>`;
+    case 'table':
+      return `<section style="margin:18px 0;overflow:auto;">${content.title ? `<h3 style="margin:0 0 8px 0;font-size:20px;font-weight:700;color:#111827;">${escapeHtml(content.title)}</h3>` : ''}${content.subtitle ? `<p style="margin:0 0 12px 0;color:#6b7280;">${escapeHtml(content.subtitle)}</p>` : ''}<table style="width:100%;border-collapse:collapse;border:1px solid #d1d5db;border-radius:12px;overflow:hidden;"><thead><tr>${(content.headers || []).map((header) => `<th style="background:#ecfdf5;border:1px solid #d1d5db;padding:10px 12px;text-align:left;color:#111827;">${escapeHtml(header)}</th>`).join('')}</tr></thead><tbody>${(content.rows || []).map((row) => `<tr>${Array.from({ length: Math.max((content.headers || []).length, 1) }, (_, cellIndex) => `<td style="border:1px solid #d1d5db;padding:10px 12px;color:#374151;">${escapeHtml((row || [])[cellIndex] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table></section>`;
+    case 'statistics': {
+      const statValues = (content.stats || []).map((stat) => {
+        const number = Number(String(stat.value || '').replace(/,/g, '').match(/-?\d+(?:\.\d+)?/)?.[0] || '0');
+        return Number.isFinite(number) ? number : 0;
+      });
+      const maxStatValue = Math.max(...statValues, 1);
+      const sectionTitle = richText(content.title?.trim() ? content.title : 'Statistics');
+      return `<section style="margin:18px 0;padding:18px;border:1px solid #d1fae5;border-radius:16px;background:#f8fffb;"><h3 style="margin:0 0 12px 0;font-size:20px;font-weight:700;color:#111827;">${sectionTitle}</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;">${(content.stats || []).filter(Boolean).map((stat, index) => { const value = statValues[index] || 0; const width = Math.min(100, Math.max(10, Math.round((value / maxStatValue) * 100))); return `<div style="padding:18px;border-radius:16px;background:#fff;border:1px solid #d1d5db;display:flex;flex-direction:column;gap:12px;"><div style="font-size:24px;font-weight:800;color:#239244;">${escapeHtml(stat.value)}</div><div style="width:100%;height:10px;border-radius:999px;background:#e5f7ef;overflow:hidden;"><div style="width:${width}%;height:100%;border-radius:999px;background:#239244;"></div></div><div style="font-size:13px;color:#6b7280;">${escapeHtml(stat.label)}</div></div>`; }).join('')}</div></section>`;
+    }
     default:
       return '';
   }
@@ -293,6 +355,8 @@ export default function ManageFaculty() {
   const [editingBlockIndex, setEditingBlockIndex] = useState(null);
   const [activeEditorStep, setActiveEditorStep] = useState(1);
   const [formData, setFormData] = useState({ name: '', designation: '', department: 'General', email: '', phone: '', photo: '', qualification: '', specialization: '', experience: '', researchInterests: '', publications: '', googleScholar: '', linkedIn: '', researchGate: '', mainSection: '', fullDetails: '', fullDetailsHtml: '', useHtmlEditor: false, isActive: true });
+  const [pendingListType, setPendingListType] = useState(null);
+  const [pendingListItemCount, setPendingListItemCount] = useState(0);
   const paragraphEditorRef = React.useRef(null);
 
   const editorSteps = [
@@ -335,7 +399,44 @@ export default function ManageFaculty() {
     setDetailBlocks([]);
     setEditingBlockIndex(null);
     setEditingItem(null);
+    setPendingListType(null);
+    setPendingListItemCount(0);
     setActiveEditorStep(1);
+  };
+
+  const appendPendingListItem = () => {
+    if (!pendingListType) return;
+    const existingHtml = detailBuilder.content?.text || '';
+    const nextItemNumber = pendingListItemCount + 1;
+    const itemLabel = `List item ${nextItemNumber}`;
+    const tag = pendingListType;
+    const listRegex = new RegExp(`(<${tag}[^>]*>)([\s\S]*?)(</${tag}>)`, 'gi');
+    let updatedHtml = '';
+    let lastIndex = -1;
+    let lastMatch = null;
+    let match;
+    while ((match = listRegex.exec(existingHtml)) !== null) {
+      lastIndex = match.index;
+      lastMatch = match;
+    }
+
+    if (lastMatch) {
+      const [fullMatch, openTag, body, closeTag] = lastMatch;
+      // Ensure the list element has explicit inline styles so markers are not removed by global CSS
+      const styleAttr = `style=\"margin:12px 0;padding-left:28px;list-style-position:outside;${tag === 'ol' ? 'list-style-type:none;' : 'list-style-type:disc;' }\"`;
+      const hasStyle = /style=/.test(openTag);
+      const finalOpenTag = hasStyle ? openTag : openTag.replace(new RegExp(`^<${tag}`), `<${tag} ${styleAttr}`);
+      const liContent = tag === 'ol' ? `${nextItemNumber}.&nbsp;` : '&nbsp;';
+      const replacement = `${finalOpenTag}${body}<li>${liContent}</li>${closeTag}`;
+      updatedHtml = `${existingHtml.slice(0, lastIndex)}${replacement}${existingHtml.slice(lastIndex + fullMatch.length)}`;
+    } else {
+      const styleAttr = `style=\"margin:12px 0;padding-left:28px;list-style-position:outside;${tag === 'ol' ? 'list-style-type:none;' : 'list-style-type:disc;' }\"`;
+      const liContent = tag === 'ol' ? `${nextItemNumber}.&nbsp;` : '&nbsp;';
+      updatedHtml = `${existingHtml}${existingHtml ? '' : ''}<${tag} ${styleAttr}><li>${liContent}</li></${tag}>`;
+    }
+
+    updateDetailBuilderContent('text', sanitizeParagraphHtml(updatedHtml));
+    setPendingListItemCount(nextItemNumber);
   };
 
   const openEditModal = (item) => {
@@ -690,7 +791,7 @@ export default function ManageFaculty() {
                     <button
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => paragraphEditorRef.current?.exec('bold')}
+                      onClick={() => { setPendingListType(null); paragraphEditorRef.current?.exec('bold'); }}
                       className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700 font-bold"
                       title="Bold"
                     >
@@ -699,7 +800,7 @@ export default function ManageFaculty() {
                     <button
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => paragraphEditorRef.current?.exec('italic')}
+                      onClick={() => { setPendingListType(null); paragraphEditorRef.current?.exec('italic'); }}
                       className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700 italic"
                       title="Italic"
                     >
@@ -708,7 +809,7 @@ export default function ManageFaculty() {
                     <button
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => paragraphEditorRef.current?.exec('underline')}
+                      onClick={() => { setPendingListType(null); paragraphEditorRef.current?.exec('underline'); }}
                       className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
                       title="Underline"
                     >
@@ -717,7 +818,7 @@ export default function ManageFaculty() {
                     <button
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => paragraphEditorRef.current?.insertLink()}
+                      onClick={() => { setPendingListType(null); paragraphEditorRef.current?.insertLink(); }}
                       className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
                       title="Link"
                     >
@@ -726,7 +827,7 @@ export default function ManageFaculty() {
                     <button
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => paragraphEditorRef.current?.insertList(false)}
+                      onClick={() => { setPendingListType('ul'); setPendingListItemCount(0); }}
                       className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
                       title="Unordered List"
                     >
@@ -735,7 +836,7 @@ export default function ManageFaculty() {
                     <button
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => paragraphEditorRef.current?.insertList(true)}
+                      onClick={() => { setPendingListType('ol'); setPendingListItemCount(0); }}
                       className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
                       title="Ordered List"
                     >
@@ -887,10 +988,33 @@ export default function ManageFaculty() {
               <p className="text-xs text-slate-500 mb-2">
                 <strong>Tip:</strong> Use the formatting buttons in the left sidebar or the editor toolbar. Text will display with actual formatting below.
               </p>
+              {pendingListType && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      appendPendingListItem();
+                    }}
+                    className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+                  >
+                    Add list item
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPendingListType(null);
+                      setPendingListItemCount(0);
+                    }}
+                    className="px-3 py-2 bg-slate-200 text-slate-900 rounded-lg hover:bg-slate-300"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
               <RichEditor 
                 ref={paragraphEditorRef}
                 value={content.text || ''} 
-                onChange={(html) => updateDetailBuilderContent('text', html)} 
+                onChange={(html) => updateDetailBuilderContent('text', sanitizeParagraphHtml(html))} 
                 showToolbar={false}
               />
             </div>
@@ -914,7 +1038,8 @@ export default function ManageFaculty() {
                   div[dangerouslySetInnerHTML] span[style*="text-decoration:underline"] { text-decoration: underline; }
                   div[dangerouslySetInnerHTML] a { color: #239244; font-weight: 700; text-decoration: none; }
                   div[dangerouslySetInnerHTML] a:hover { text-decoration: underline; }
-                  div[dangerouslySetInnerHTML] ul { margin: 12px 0; padding-left: 20px; }
+                  div[dangerouslySetInnerHTML] ul { margin: 12px 0; padding-left: 20px; list-style-type: disc; list-style-position: outside; }
+                  div[dangerouslySetInnerHTML] ol { margin: 12px 0; padding-left: 20px; list-style-type: decimal; list-style-position: outside; }
                   div[dangerouslySetInnerHTML] li { margin: 6px 0; color: #374151; }
                   div[dangerouslySetInnerHTML] p { margin: 8px 0; }
                 `}</style>
@@ -926,21 +1051,50 @@ export default function ManageFaculty() {
       case 'image':
         return (
           <div className="space-y-4">
-            {formatGuide}
-            {richField('Image title', content.title, (html) => updateDetailBuilderContent('title', html))}
-            <ImageUploader value={content.url || ''} onChange={(url) => updateDetailBuilderContent('url', url)} label="Upload image" folder="faculty" />
+            <div>
+              {fieldLabel('Image title')}
+              <input
+                type="text"
+                placeholder="Enter image title"
+                value={content.title || ''}
+                onChange={(e) => updateDetailBuilderContent('title', e.target.value)}
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+            <div>
+              {fieldLabel('Image')}
+              <ImageUploader value={content.url || ''} onChange={(url) => updateDetailBuilderContent('url', url)} label="Upload image" folder="faculty" />
+              <p className="text-xs text-slate-500 mt-2">Image size format: width x height (example: 800 x 600). You can also write: Size = width length height.</p>
+            </div>
             <div>
               {fieldLabel('Alt text')}
               <input className="w-full px-3 py-2 border rounded-lg" placeholder="Alt text" value={content.alt || ''} onChange={(e) => updateDetailBuilderContent('alt', e.target.value)} />
             </div>
-            {richField('Caption', content.caption, (html) => updateDetailBuilderContent('caption', html))}
+            <div>
+              {fieldLabel('Caption')}
+              <input
+                type="text"
+                placeholder="Enter caption (plain text only)"
+                value={content.caption || ''}
+                onChange={(e) => updateDetailBuilderContent('caption', e.target.value)}
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
           </div>
         );
       case 'gallery':
         return (
           <div className="space-y-4">
-            {formatGuide}
-            {richField('Gallery title', content.title, (html) => updateDetailBuilderContent('title', html))}
+            <div>
+              {fieldLabel('Gallery title')}
+              <input
+                type="text"
+                placeholder="Enter gallery title"
+                value={content.title || ''}
+                onChange={(e) => updateDetailBuilderContent('title', e.target.value)}
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
             {(content.images || []).map((image, index) => (
               <div key={index} className="space-y-2 rounded-lg border bg-white p-3">
                 <div className="flex items-center justify-between"><span className="text-xs font-semibold text-gray-600">Image {index + 1}</span><button type="button" className="text-xs text-red-600" onClick={() => removeDetailBuilderArrayItem('images', index)}>Remove</button></div>
@@ -951,9 +1105,28 @@ export default function ManageFaculty() {
           </div>
         );
       case 'table':
-        return <div className="space-y-4"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Table title" value={content.title || ''} onChange={(e) => updateDetailBuilderContent('title', e.target.value)} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Subtitle (optional)" value={content.subtitle || ''} onChange={(e) => updateDetailBuilderContent('subtitle', e.target.value)} /><div><div className="flex items-center justify-between mb-2"><span className="text-sm font-semibold text-gray-700">Headers</span><button type="button" className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700" onClick={() => addDetailBuilderArrayItem('headers', '')}>+ Add Header</button></div>{(content.headers || []).map((header, index) => (<div key={index} className="flex gap-2 mb-2"><input className="flex-1 px-3 py-2 border rounded-lg" placeholder={`Header ${index + 1}`} value={header || ''} onChange={(e) => updateDetailBuilderArray('headers', index, e.target.value)} /><button type="button" className="px-3 py-2 text-red-600" onClick={() => removeDetailBuilderArrayItem('headers', index)}>×</button></div>))}</div><div><div className="flex items-center justify-between mb-2"><span className="text-sm font-semibold text-gray-700">Rows</span><button type="button" className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700" onClick={() => addDetailBuilderArrayItem('rows', [''])}>+ Add Row</button></div>{(content.rows || []).map((row, rowIndex) => (<div key={rowIndex} className="rounded-lg border bg-white p-3 mb-2"><div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.max((content.headers || []).length, 1)}, minmax(0, 1fr))` }}>{(row || []).map((cell, cellIndex) => (<input key={cellIndex} className="w-full px-3 py-2 border rounded-lg" placeholder={`R${rowIndex + 1}C${cellIndex + 1}`} value={cell || ''} onChange={(e) => { const nextRows = [...(content.rows || [])]; const nextRow = Array.isArray(nextRows[rowIndex]) ? [...nextRows[rowIndex]] : []; nextRow[cellIndex] = e.target.value; nextRows[rowIndex] = nextRow; updateDetailBuilderContent('rows', nextRows); }} />))}</div></div>))}</div></div>;
+        return <div className="space-y-4"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Table title" value={content.title || ''} onChange={(e) => updateDetailBuilderContent('title', e.target.value)} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Subtitle (optional)" value={content.subtitle || ''} onChange={(e) => updateDetailBuilderContent('subtitle', e.target.value)} /><div><div className="flex items-center justify-between mb-2"><span className="text-sm font-semibold text-gray-700">Headers</span><button type="button" className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700" onClick={() => addDetailBuilderArrayItem('headers', '')}>+ Add Header</button></div>{(content.headers || []).map((header, index) => (<div key={index} className="flex gap-2 mb-2"><input className="flex-1 px-3 py-2 border rounded-lg" placeholder={`Header ${index + 1}`} value={header || ''} onChange={(e) => updateDetailBuilderArray('headers', index, e.target.value)} /><button type="button" className="px-3 py-2 text-red-600" onClick={() => removeDetailBuilderArrayItem('headers', index)}>×</button></div>))}</div><div><div className="flex items-center justify-between mb-2"><span className="text-sm font-semibold text-gray-700">Rows</span><button type="button" className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700" onClick={() => addDetailBuilderArrayItem('rows', Array(Math.max((content.headers || []).length, 1)).fill(''))}>+ Add Row</button></div>{(content.rows || []).map((row, rowIndex) => (<div key={rowIndex} className="rounded-lg border bg-white p-3 mb-2"><div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.max((content.headers || []).length, 1)}, minmax(0, 1fr))` }}>{Array(Math.max((content.headers || []).length, 1)).fill(null).map((_, cellIndex) => (<input key={cellIndex} className="w-full px-3 py-2 border rounded-lg" placeholder={`R${rowIndex + 1}C${cellIndex + 1}`} value={(row && row[cellIndex]) || ''} onChange={(e) => { const nextRows = [...(content.rows || [])]; const nextRow = Array.isArray(nextRows[rowIndex]) ? [...nextRows[rowIndex]] : []; nextRow[cellIndex] = e.target.value; nextRows[rowIndex] = nextRow; updateDetailBuilderContent('rows', nextRows); }} />))}</div></div>))}</div></div>;
       case 'statistics':
-        return <div className="space-y-4">{formatGuide}{richField('Statistics title', content.title, (html) => updateDetailBuilderContent('title', html))}{(content.stats || []).map((stat, index) => (<div key={index} className="rounded-lg border bg-white p-3"><div className="grid grid-cols-2 gap-2 mb-2"><input className="w-full px-3 py-2 border rounded-lg" placeholder="Value" value={stat.value || ''} onChange={(e) => { const nextStats = [...(content.stats || [])]; nextStats[index] = { ...nextStats[index], value: e.target.value }; updateDetailBuilderContent('stats', nextStats); }} /><input className="w-full px-3 py-2 border rounded-lg" placeholder="Label" value={stat.label || ''} onChange={(e) => { const nextStats = [...(content.stats || [])]; nextStats[index] = { ...nextStats[index], label: e.target.value }; updateDetailBuilderContent('stats', nextStats); }} /></div><button type="button" className="text-xs text-red-600" onClick={() => removeDetailBuilderArrayItem('stats', index)}>Remove statistic</button></div>))}<button type="button" className="px-3 py-2 text-sm text-green-700 border border-green-600 rounded-lg hover:bg-green-50" onClick={() => addDetailBuilderArrayItem('stats', { value: '', label: '' })}>+ Add Statistic</button></div>;
+        return (
+          <div className="space-y-4">
+            {formatGuide}
+            {richField('Section Title', content.title, (html) => updateDetailBuilderContent('title', html))}
+            {(content.stats || []).map((stat, index) => (
+              <div key={index} className="rounded-lg border bg-white p-3">
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <input className="w-full px-3 py-2 border rounded-lg" placeholder="Value" value={stat.value || ''} onChange={(e) => { const nextStats = [...(content.stats || [])]; nextStats[index] = { ...nextStats[index], value: e.target.value }; updateDetailBuilderContent('stats', nextStats); }} />
+                  <input className="w-full px-3 py-2 border rounded-lg" placeholder="Label" value={stat.label || ''} onChange={(e) => { const nextStats = [...(content.stats || [])]; nextStats[index] = { ...nextStats[index], label: e.target.value }; updateDetailBuilderContent('stats', nextStats); }} />
+                </div>
+                <button type="button" className="text-xs text-red-600" onClick={() => removeDetailBuilderArrayItem('stats', index)}>Remove statistic</button>
+              </div>
+            ))}
+            <button type="button" className="px-3 py-2 text-sm text-green-700 border border-green-600 rounded-lg hover:bg-green-50" onClick={() => addDetailBuilderArrayItem('stats', { value: '', label: '' })}>+ Add Statistic</button>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="text-sm font-semibold text-slate-900 mb-3">Preview</div>
+              <div dangerouslySetInnerHTML={{ __html: buildDetailBlockHtml('statistics', content) }} />
+            </div>
+          </div>
+        );
       default:
         return <div className="rounded-xl border border-dashed p-4 text-sm text-gray-500">This block type does not have a custom editor yet.</div>;
     }

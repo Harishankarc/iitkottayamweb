@@ -121,7 +121,20 @@ export default function FacultyDetails() {
 	}, [slug]);
 
 	const fullDetailEntries = parseDetailEntries((faculty?.fullDetails && faculty.fullDetails.length > 0) ? faculty.fullDetails : (faculty?.rightSideDetails || []));
-	const fullDetailsHtml = faculty?.fullDetailsHtml || '';
+	const normalizeHtmlImageSrc = (html) => {
+		if (!html || typeof html !== 'string') return '';
+		return html.replace(/<img\s+([^>]*?)src=\"([^\"]+)\"([^>]*?)>/gi, (m, pre, src, post) => {
+			const trimmed = String(src || '').trim();
+			if (!trimmed) return m;
+			if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
+				return `<img ${pre}src=\"${trimmed}\"${post}>`;
+			}
+			const resolved = API.getImageUrl(trimmed) || trimmed;
+			return `<img ${pre}src=\"${resolved}\"${post}>`;
+		});
+	};
+
+	const fullDetailsHtml = normalizeHtmlImageSrc(faculty?.fullDetailsHtml || '');
 	const mainSection = (faculty?.mainSection || '').trim();
 	const researchInterests = parseDetailList(faculty?.researchInterests);
 	const publications = parseDetailList(faculty?.publications);
