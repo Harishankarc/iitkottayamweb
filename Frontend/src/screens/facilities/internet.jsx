@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Wifi, Server, CheckCircle } from 'lucide-react';
+import { cleanHtmlFormatting } from '../../utils/sanitizeHtml.js';
 
 
 
@@ -143,7 +144,8 @@ export default function Internet() {
             )}
             <div 
               className={`text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-              dangerouslySetInnerHTML={{ __html: block.content.text?.replace(/\n/g, '<br/>') }}
+              dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.text?.replace(/\n/g, '<br/>') || '') }}
+              style={{ wordBreak: 'break-word' }}
             />
           </div>
         ))}

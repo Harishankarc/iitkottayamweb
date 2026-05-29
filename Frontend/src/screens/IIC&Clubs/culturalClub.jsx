@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Palette, Users, Music, Star, Calendar, Award, Mail, Camera, ExternalLink } from 'lucide-react';
+import cleanHtmlFormatting from '../../utils/cleanHtmlFormatting';
 
 
 
@@ -240,7 +241,7 @@ export default function ClubCarnival() {
             </h2>
             <div 
               className={`text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-              dangerouslySetInnerHTML={{ __html: block.content.text }}
+              dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.text || '') }}
             />
           </div>
         ))}

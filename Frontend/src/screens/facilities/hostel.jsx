@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
+import cleanHtmlFormatting from '../../utils/cleanHtmlFormatting';
 import { Home, Mail, Phone, MapPin, Users, Shield, Wifi, Utensils, Bed, FileText, CheckCircle } from 'lucide-react';
 
 
@@ -165,7 +166,6 @@ export default function Hostel() {
     const color1 = API.color1;
   const color2 = API.color2;
   const [contentBlocks, setContentBlocks] = useState([]);
-  const [hostelData, setHostelData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -173,34 +173,13 @@ export default function Hostel() {
     const fetchHostelData = async () => {
       try {
         setError(null);
-        // Fetch both content blocks and facility data
-        const [blocksResponse, facilityResponse] = await Promise.all([
-          API.get('/api/content-blocks/page/hostel'),
-          API.get('/api/facilities/slug/hostel')
-        ]);
-        
-        const blocks = blocksResponse.data.data || blocksResponse.data || [];
+        const response = await API.get('/api/content-blocks/page/hostel');
+        const blocks = response.data.data || response.data || [];
         setContentBlocks(blocks.filter(block => block.isVisible));
-        
-        // Parse facility data
-        const facilityData = facilityResponse.data.data || facilityResponse.data;
-        
-        // Parse JSON fields if they are strings
-        if (facilityData) {
-          if (typeof facilityData.wardens === 'string') {
-            facilityData.wardens = JSON.parse(facilityData.wardens);
-          }
-          if (typeof facilityData.halls === 'string') {
-            facilityData.halls = JSON.parse(facilityData.halls);
-          }
-        }
-        
-        setHostelData(facilityData);
       } catch (error) {
         console.error('Error fetching hostel data:', error);
         setError('Failed to load hostel information. Please try again later.');
         setContentBlocks([]);
-        setHostelData(null);
       } finally {
         setLoading(false);
       }
@@ -211,34 +190,15 @@ export default function Hostel() {
   const handleRetry = () => {
     setLoading(true);
     setError(null);
-    Promise.all([
-      API.get('/api/content-blocks/page/hostel'),
-      API.get('/api/facilities/slug/hostel')
-    ])
-      .then(([blocksResponse, facilityResponse]) => {
-        const blocks = blocksResponse.data.data || blocksResponse.data || [];
+    API.get('/api/content-blocks/page/hostel')
+      .then((response) => {
+        const blocks = response.data.data || response.data || [];
         setContentBlocks(blocks.filter(block => block.isVisible));
-        
-        // Parse facility data
-        const facilityData = facilityResponse.data.data || facilityResponse.data;
-        
-        // Parse JSON fields if they are strings
-        if (facilityData) {
-          if (typeof facilityData.wardens === 'string') {
-            facilityData.wardens = JSON.parse(facilityData.wardens);
-          }
-          if (typeof facilityData.halls === 'string') {
-            facilityData.halls = JSON.parse(facilityData.halls);
-          }
-        }
-        
-        setHostelData(facilityData);
       })
       .catch((error) => {
         console.error('Error fetching hostel data:', error);
         setError('Failed to load hostel information. Please try again later.');
         setContentBlocks([]);
-        setHostelData(null);
       })
       .finally(() => setLoading(false));
   };
@@ -308,9 +268,9 @@ export default function Hostel() {
             <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
               About Our Hostels
             </h2>
-            <p className={`text-lg leading-relaxed mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {paragraphBlocks.find(block => block.blockId === 'about-hostel').content.text}
-            </p>
+            <div className={`text-lg leading-relaxed mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+              dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(paragraphBlocks.find(block => block.blockId === 'about-hostel').content.text) }}
+            />
 
             {/* Facilities List */}
             {listBlocks.find(block => block.blockId === 'hostel-facilities') && (
@@ -342,9 +302,7 @@ export default function Hostel() {
                 Boys Hostel
               </h2>
             </div>
-            <div className={`text-base leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {paragraphBlocks.find(block => block.blockId === 'boys-hostel-info').content.text}
-            </div>
+            <div className={`text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(paragraphBlocks.find(block => block.blockId === 'boys-hostel-info').content.text) }} />
           </div>
         )}
 
@@ -357,9 +315,7 @@ export default function Hostel() {
                 Girls Hostel
               </h2>
             </div>
-            <div className={`text-base leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {paragraphBlocks.find(block => block.blockId === 'girls-hostel-info').content.text}
-            </div>
+            <div className={`text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(paragraphBlocks.find(block => block.blockId === 'girls-hostel-info').content.text) }} />
           </div>
         )}
 
@@ -372,9 +328,7 @@ export default function Hostel() {
                 Hostel Rules & Guidelines
               </h2>
             </div>
-            <div className={`text-base leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {paragraphBlocks.find(block => block.blockId === 'hostel-rules').content.text}
-            </div>
+            <div className={`text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(paragraphBlocks.find(block => block.blockId === 'hostel-rules').content.text) }} />
           </div>
         )}
 
@@ -394,9 +348,7 @@ export default function Hostel() {
                   {block.content.title}
                 </h2>
               )}
-              <div className={`text-base leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                {block.content.text}
-              </div>
+              <div className={`text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.text) }} />
             </div>
           ))}
 
@@ -431,145 +383,6 @@ export default function Hostel() {
           </div>
         )}
 
-        {/* Services Available */}
-        {hostelData?.customFields?.services && hostelData.customFields.services.length > 0 && (
-          <div className={`mb-12 p-8 rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl`}>
-            <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
-              Services Available
-            </h2>
-            <ul className="space-y-2">
-              {hostelData.customFields.services.map((service, index) => (
-                <li key={index} className={`text-base ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  {service}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Hostel Administration - Dynamic from facilities API */}
-        {hostelData?.wardens && hostelData.wardens.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
-              Hostel Administration
-            </h2>
-            <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-6">
-              {hostelData.wardens.map((warden, index) => (
-                <WardenCard key={index} warden={warden} color1={color1} darkMode={darkMode} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Halls of Residence - Girls - Table Format */}
-        {hostelData?.halls && hostelData.halls.filter(h => h.gender === 'Girls').length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
-              Halls of Residence (Girls) - {hostelData.halls.find(h => h.hostelName)?.hostelName || 'Anamudi Hostel, Chittar Hostel, Manimala Hostel Block A'}
-            </h2>
-            
-            {/* Hostel Images if available */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-              {[1, 2, 3, 4, 5].map((num) => (
-                <div key={num} className="rounded-lg overflow-hidden shadow-md">
-                  <img
-                    src={`https://placehold.co/300x200/${color1.replace('#', '')}/ffffff?text=Hostel+${num}`}
-                    alt={`Girls Hostel ${num}`}
-                    className="w-full h-32 object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* Wardens Table */}
-            <div className="overflow-x-auto">
-              <table className={`w-full ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg rounded-lg overflow-hidden`}>
-                <thead style={{ backgroundColor: color1 }}>
-                  <tr>
-                    <th className="px-4 py-3 text-left text-white font-semibold">#</th>
-                    <th className="px-4 py-3 text-left text-white font-semibold">Name & Photo</th>
-                    <th className="px-4 py-3 text-left text-white font-semibold">Role</th>
-                    <th className="px-4 py-3 text-left text-white font-semibold">Contact</th>
-                    <th className="px-4 py-3 text-left text-white font-semibold">Email</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {hostelData.halls.filter(h => h.gender === 'Girls').map((hall, index) => (
-                    <tr key={index} className={`border-b ${darkMode ? 'border-gray-700 hover:bg-gray-750' : 'border-gray-200 hover:bg-gray-50'}`}>
-                      <td className={`px-4 py-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{index + 1}</td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={hall.image || `https://placehold.co/100x100/${color1.replace('#', '')}/ffffff?text=${hall.name.charAt(0)}`}
-                            alt={hall.name}
-                            className="w-16 h-16 rounded-lg object-cover"
-                          />
-                          <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{hall.name}</span>
-                        </div>
-                      </td>
-                      <td className={`px-4 py-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{hall.wardenType}</td>
-                      <td className={`px-4 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{hall.contact}</td>
-                      <td className={`px-4 py-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{hall.email}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Hostel Care Taker Info */}
-            {hostelData?.customFields?.hostelCareTaker && (
-              <div className={`mt-4 p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                <p className={`text-sm font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Hostel Care Taker: {hostelData.customFields.hostelCareTaker}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Halls of Residence - Boys */}
-        {hostelData?.halls && hostelData.halls.filter(h => h.gender === 'Boys').length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
-              Halls of Residence (Boys)
-            </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {hostelData.halls.filter(h => h.gender === 'Boys').map((hall, index) => (
-                <HallCard key={index} hall={hall} color1={color1} darkMode={darkMode} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Mess Committee */}
-        {hostelData?.customFields?.messCommittee && hostelData.customFields.messCommittee.length > 0 && (
-          <div className={`mb-12 p-8 rounded-2xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl`}>
-            <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
-              Mess Committee
-            </h2>
-            <div className="space-y-4">
-              {hostelData.customFields.messCommittee.map((member, index) => (
-                <div key={index} className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                  <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {member.name}
-                  </h3>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {member.role}
-                  </p>
-                  <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Email: {member.email}
-                  </p>
-                  <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Phone: {member.phone}
-                  </p>
-                </div>
-              ))}
-              <p className={`text-sm italic ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                (Kindly contact/write to the FIC/Associate FICs for all mess-related inquiries/grievances)
-              </p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Dumbbell, Activity, Heart, Users, Clock, Trophy, Camera } from 'lucide-react';
+import cleanHtmlFormatting from '../../utils/cleanHtmlFormatting';
 
 
 
@@ -19,32 +20,58 @@ export default function Gym() {
         const data = await response.json();
         
         if (data.success && data.data) {
-          const blocks = data.data;
+          const rawBlocks = Array.isArray(data.data) ? data.data : (data.data.data || data.data || []);
+          const blocks = Array.isArray(rawBlocks) ? rawBlocks : [];
+          const visibleBlocks = blocks.filter(block => block.isVisible !== false);
           
-          // Parse content blocks
-          const heroBlock = blocks.find(b => b.blockType === 'hero');
-          const paragraphBlocks = blocks.filter(b => b.blockType === 'paragraph');
-          const listBlock = blocks.find(b => b.blockType === 'list');
-          const imageBlocks = blocks.filter(b => b.blockType === 'image');
-          
-          // Parse JSON content
           const parseContent = (block) => {
             if (!block) return null;
-            return typeof block.content === 'string' ? JSON.parse(block.content) : block.content;
+            if (typeof block.content === 'string') {
+              try {
+                return JSON.parse(block.content);
+              } catch (error) {
+                console.warn('Failed to parse gym block content:', block.blockId, error);
+                return block.content;
+              }
+            }
+            return block.content;
           };
+
+          const heroBlock = visibleBlocks.find(b => b.blockType === 'hero');
+          const paragraphBlocks = visibleBlocks.filter(b => b.blockType === 'paragraph');
+          const listBlocks = visibleBlocks.filter(b => b.blockType === 'list');
+          const imageBlocks = visibleBlocks.filter(b => b.blockType === 'image');
           
+          const findSection = (section, fallbackIds = [], expectedTypes = []) => {
+            // Prefer explicit sectionName or known fallback blockIds
+            let block = visibleBlocks.find(b => b.sectionName === section || fallbackIds.includes(b.blockId));
+            if (block) return block;
+
+            // Fallback: find first block with an expected blockType (e.g., paragraph, list, image)
+            if (expectedTypes && expectedTypes.length > 0) {
+              block = visibleBlocks.find(b => expectedTypes.includes(b.blockType));
+              if (block) return block;
+            }
+
+            // Final fallback: return the first visible block
+            return visibleBlocks[0] || null;
+          };
+
           setContent({
             hero: parseContent(heroBlock),
-            about: parseContent(paragraphBlocks.find(b => b.blockId === 'about-gym')),
-            equipment: parseContent(listBlock),
-            guidance: parseContent(paragraphBlocks.find(b => b.blockId === 'professional-guidance')),
+            about: parseContent(findSection('about', ['gym-about-desc'], ['paragraph'])),
+            equipment: parseContent(findSection('equipment', ['gym-equipment-list'], ['list'])),
+            features: parseContent(findSection('features', ['gym-features', 'gym-features-list'], ['list', 'paragraph'])),
+            guidance: parseContent(findSection('professional-guidance')), 
             images: imageBlocks.map(b => parseContent(b)).filter(c => c)
           });
+        } else {
+          setError('Content not available');
         }
-        setLoading(false);
       } catch (err) {
         console.error('Error fetching gym content:', err);
         setError('Failed to load content');
+      } finally {
         setLoading(false);
       }
     };
@@ -86,9 +113,7 @@ export default function Gym() {
               <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
                 {content.hero.title}
               </h1>
-              <p className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                {content.hero.description}
-              </p>
+              <div className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(content.hero.description || '') }} />
             </>
           )}
         </div>
@@ -105,9 +130,7 @@ export default function Gym() {
             <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
               {content.about.title}
             </h2>
-            <p className={`text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {content.about.text}
-            </p>
+            <div className={`text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(content.about.text || '') }} />
           </div>
         )}
 
@@ -146,6 +169,30 @@ export default function Gym() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* Features List */}
+        {content.features && content.features.items && (
+          <div className="mb-12">
+            <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
+              {content.features.title || 'Key Features'}
+            </h2>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {content.features.items.map((feature, index) => (
+                <div
+                  key={index}
+                  className={`p-6 rounded-2xl transition-all duration-300 hover:shadow-xl ${
+                    darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'
+                  }`}
+                  style={{ border: `1px solid ${color1}15` }}
+                >
+                  <p className={`text-lg font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {feature}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         )}

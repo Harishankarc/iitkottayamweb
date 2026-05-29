@@ -104,7 +104,8 @@ export default function MedicalCentre() {
             )}
             <div 
               className={`text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-              dangerouslySetInnerHTML={{ __html: block.content.text }}
+              dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.text) }}
+              style={{ wordBreak: 'break-word' }}
             />
           </div>
         ))}

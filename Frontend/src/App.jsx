@@ -7,6 +7,7 @@ import React, { useState, useEffect } from "react";
 import Nirf from './screens/nirf/nirf';
 import NavBar from './components/navbar';
 import AppFooter from './components/footer';
+import { stripBackgroundColors } from './utils/pasteHandler';
 import Admission from './screens/institute/admission';
 import Governance from './screens/institute/governance';
 import Academics from './screens/institute/academics';
@@ -109,6 +110,46 @@ import Deans from './screens/people/dean';
 
 
 function App() {
+  useEffect(() => {
+    // Global paste handler to strip background colors from textareas only
+    // Note: contentEditable elements (like RichEditor) handle paste through their own event handlers
+    const handleGlobalPaste = (e) => {
+      // Only process paste events on textareas (not contentEditable, which have their own handlers)
+      if (e.target.tagName === 'TEXTAREA' && e.target.contentEditable !== 'true') {
+        e.preventDefault();
+        try {
+          const html = e.clipboardData?.getData('text/html');
+          const plainText = e.clipboardData?.getData('text/plain');
+          
+          const textToPaste = html || plainText;
+          if (!textToPaste) return;
+          
+          // Strip background colors from HTML and remove tags for plain text insertion
+          const cleanedText = stripBackgroundColors(textToPaste);
+          const plainTextOnly = plainText || cleanedText.replace(/<[^>]*>/g, '');
+          
+          // For textarea, insert as plain text only
+          const start = e.target.selectionStart;
+          const end = e.target.selectionEnd;
+          const before = e.target.value.substring(0, start);
+          const after = e.target.value.substring(end);
+          e.target.value = before + plainTextOnly + after;
+          e.target.selectionStart = e.target.selectionEnd = start + plainTextOnly.length;
+          // Trigger change event
+          e.target.dispatchEvent(new Event('input', { bubbles: true }));
+          e.target.dispatchEvent(new Event('change', { bubbles: true }));
+        } catch (err) {
+          console.error('Global paste handler error:', err);
+        }
+      }
+    };
+    
+    document.addEventListener('paste', handleGlobalPaste, true);
+    return () => {
+      document.removeEventListener('paste', handleGlobalPaste, true);
+    };
+  }, []);
+
   return (
     <ThemeProvider>
       <BrowserRouter>

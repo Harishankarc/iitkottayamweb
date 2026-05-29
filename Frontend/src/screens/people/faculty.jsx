@@ -11,9 +11,24 @@ const parseDetailList = (value) => {
       const parsed = JSON.parse(value);
       if (Array.isArray(parsed)) return parsed;
     } catch {
-      // Fallback to comma-separated parsing when non-JSON strings are received.
+      // Fallback to comma/newline-separated parsing when non-JSON strings are received.
     }
-    return value.split(',').map(item => item.trim()).filter(Boolean);
+    const normalized = value.replace(/\r\n/g, '\n');
+    return normalized.split(/[\n,]+/).map(item => item.trim()).filter(Boolean);
+  }
+  return [];
+};
+
+const parseMainSectionPages = (value) => {
+  if (Array.isArray(value)) return value.map((item) => String(item || ''));
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed.map((item) => String(item || ''));
+    } catch {
+      // Use the raw string as a single page when not JSON.
+    }
+    return [value];
   }
   return [];
 };
@@ -94,14 +109,41 @@ const slugifyFacultyName = (name, designation = '') => {
 
 // Faculty Card Component - Expanded horizontal layout with full details
 const FacultyCard = ({ faculty, color1, darkMode }) => {
-  const mainSectionText = (faculty.mainSection || '').trim();
+  const [currentPageIndex, setCurrentPageIndex] = React.useState(0);
+  const [fadeOut, setFadeOut] = React.useState(false);
+
+  const mainSectionRaw = Array.isArray(faculty.mainSection) ? faculty.mainSection.join('\n') : (faculty.mainSection || '');
+  const mainSectionText = String(mainSectionRaw).trim();
   const mainSectionPreview = normalizeMainSection(mainSectionText);
+
+  const mainSectionPages = Array.isArray(faculty.mainSection)
+    ? faculty.mainSection.map((p) => String(p || ''))
+    : (faculty.mainSection ? [String(faculty.mainSection)] : []);
+  const pagesCount = mainSectionPages.length;
+
+  // Rotation effect - same pattern as RotatingDetails
+  useEffect(() => {
+    if (pagesCount <= 1) return;
+
+    const fadeOutTimer = setTimeout(() => setFadeOut(true), 6500);
+    const nextPageTimer = setTimeout(() => {
+      setCurrentPageIndex((prev) => (prev + 1) % pagesCount);
+      setFadeOut(false);
+    }, 7000);
+
+    return () => {
+      clearTimeout(fadeOutTimer);
+      clearTimeout(nextPageTimer);
+    };
+  }, [currentPageIndex, pagesCount]);
+
+  const currentMainSection = mainSectionPages[currentPageIndex] || '';
 
   return (
     <div
       className={`overflow-hidden rounded-xl ${
         darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-      } border flex flex-col sm:flex-row h-[322px]`}
+      } border flex flex-col sm:flex-row min-h-[360px]`}
     >
       {/* Left: Image Section with details below */}
       <div className="w-full sm:w-48 flex-shrink-0 flex flex-col bg-gradient-to-br from-gray-100 to-gray-200 h-full">
@@ -147,19 +189,32 @@ const FacultyCard = ({ faculty, color1, darkMode }) => {
         </div>
 
         <div className="border-t flex-1 overflow-hidden pt-2" style={{ borderColor: `${color1}20` }}>
-          <div className="space-y-1.5">
-            {faculty.mainSection ? (
-              parseMainSection(mainSectionPreview).map((item, idx) => (
-                item.type === 'bold' ? (
-                  <p key={`bold-${idx}`} className="text-xs font-bold text-black">
-                    {item.text}
-                  </p>
-                ) : (
-                  <p key={`item-${idx}`} className={`text-xs leading-snug ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    {item.text}
-                  </p>
-                )
-              ))
+          <div className={`space-y-1.5 transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
+            {currentMainSection ? (
+              currentMainSection.includes('<') && currentMainSection.includes('>') ? (
+                // Render as HTML if it contains HTML tags
+                <div 
+                  className={`text-xs leading-snug ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                  dangerouslySetInnerHTML={{ __html: currentMainSection }}
+                  style={{ 
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word'
+                  }}
+                />
+              ) : (
+                // Render as plain text with line breaks
+                parseMainSection(currentMainSection).map((item, idx) => (
+                  item.type === 'bold' ? (
+                    <p key={`bold-${idx}`} className="text-xs font-bold text-black">
+                      {item.text}
+                    </p>
+                  ) : (
+                    <p key={`item-${idx}`} className={`text-xs leading-snug ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {item.text}
+                    </p>
+                  )
+                ))
+              )
             ) : (
               <p className={`text-sm leading-snug ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Details will be updated soon.
@@ -178,6 +233,19 @@ const FacultyCard = ({ faculty, color1, darkMode }) => {
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
+        {pagesCount > 1 && (
+          <div className="mt-2 flex items-center justify-center">
+            <div className="flex items-center gap-2">
+              {Array.from({ length: pagesCount }).map((_, i) => (
+                <span
+                  key={`dot-${faculty.id}-${i}`}
+                  className={`inline-block w-2.5 h-2.5 rounded-full transition-all ${i === currentPageIndex ? '' : 'bg-gray-300'}`}
+                  style={{ backgroundColor: i === currentPageIndex ? color1 : undefined, opacity: i === currentPageIndex ? 1 : 0.6 }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -196,7 +264,7 @@ export default function Faculty() {
   useEffect(() => {
     const fetchFaculty = async () => {
       try {
-        const response = await fetch(`${API.baseURL}/api/faculty`);
+        const response = await fetch(`${API.baseURL}/api/faculty?t=${Date.now()}`);
         const data = await response.json();
         
         if (data.success) {
@@ -211,7 +279,7 @@ export default function Faculty() {
               department: item.department || '',
               email: item.email || '',
               phone: item.phone || '',
-              mainSection: item.mainSection || '',
+              mainSection: parseMainSectionPages(item.mainSection || ''),
               fullDetails: parseDetailList(item.fullDetails),
               bottomImageDetails: parseDetailList(item.bottomImageDetails),
               rightSideDetails: parseDetailList(item.rightSideDetails),
@@ -246,7 +314,8 @@ export default function Faculty() {
   const filteredFaculty = facultyData.filter((faculty) => {
     const term = searchTerm.toLowerCase();
     const fullDetailsText = (faculty.fullDetails || []).join(' ').toLowerCase();
-    const mainSectionText = (faculty.mainSection || '').toLowerCase();
+    const mainSectionRaw = Array.isArray(faculty.mainSection) ? faculty.mainSection.join(' ') : (faculty.mainSection || '');
+    const mainSectionText = String(mainSectionRaw).toLowerCase();
     const matchesSearch = 
       faculty.name.toLowerCase().includes(term) ||
       faculty.designation.toLowerCase().includes(term) ||
@@ -276,25 +345,28 @@ export default function Faculty() {
           <div className="p-4 sm:p-5 md:p-6 lg:p-8">
             {/* Filter Buttons */}
             <div className="flex flex-wrap gap-2 sm:gap-3 justify-center mb-4 sm:mb-5 md:mb-6">
-              {roles.map((role) => (
-                <button
-                  key={role}
-                  onClick={() => setFilterRole(role)}
-                  className={`px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm md:text-base font-semibold transition-all duration-300 ${
-                    filterRole === role 
-                      ? 'shadow-md' 
-                      : darkMode 
-                        ? 'text-gray-400 hover:bg-gray-700' 
-                        : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                  style={{
-                    backgroundColor: filterRole === role ? color1 : 'transparent',
-                    color: filterRole === role ? '#ffffff' : undefined
-                  }}
-                >
-                  {role}
-                </button>
-              ))}
+              {roles.map((role) => {
+                const isHighlightedRole = ['All', 'Professor', 'Associate Professor', 'Assistant Professor'].includes(role);
+                return (
+                  <button
+                    key={role}
+                    onClick={() => setFilterRole(role)}
+                    className={`px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm md:text-base font-semibold transition-all duration-300 ${
+                      filterRole === role 
+                        ? 'shadow-md' 
+                        : darkMode 
+                          ? 'text-gray-400 hover:bg-gray-700' 
+                          : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                    style={{
+                      backgroundColor: filterRole === role ? color1 : isHighlightedRole ? `${color1}1A` : 'transparent',
+                      color: filterRole === role ? '#ffffff' : isHighlightedRole ? color1 : undefined
+                    }}
+                  >
+                    {role}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Search Bar */}

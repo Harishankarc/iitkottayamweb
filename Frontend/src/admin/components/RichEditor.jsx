@@ -3,7 +3,6 @@ import API from '../../api/api';
 
 const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showToolbar = true }, refProp) {
   const ref = useRef(null);
-  const fileRef = useRef(null);
   const savedSelection = useRef(null);
 
   const restoreSelection = () => {
@@ -38,6 +37,9 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
   };
 
   useImperativeHandle(refProp, () => ({
+    applyInlineFormat(tagName) {
+      applyInlineFormat(tagName);
+    },
     insertHtml(html) {
       if (!ref.current) return;
       try {
@@ -89,6 +91,11 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
     },
     exec(command, arg) {
       if (ref.current) {
+        if (command === 'bold' || command === 'italic' || command === 'underline') {
+          applyInlineFormat(command === 'bold' ? 'strong' : command === 'italic' ? 'em' : 'u');
+          return;
+        }
+
         // ensure editor retains focus but don't force a focus call that may alter selection
         try { ref.current.focus && ref.current.focus(); } catch (e) {}
         // If there's already a browser selection use it, otherwise restore a previously saved selection
@@ -106,38 +113,12 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
     },
     insertLink(url) {
       if (!ref.current) return;
-      const actualUrl = url || window.prompt('Enter link URL');
+      const actualUrl = normalizeUrl(url || window.prompt('Enter link URL'));
       if (!actualUrl) return;
-      const sel = window.getSelection();
-      if (!sel || !sel.rangeCount) {
-        ref.current.insertAdjacentHTML('beforeend', `<a href="${actualUrl}" target="_blank" rel="noreferrer">Link text</a>`);
-        onChange(ref.current.innerHTML);
-        return;
-      }
-      const selectedText = sel.toString();
-      if (!selectedText) {
-        const range = sel.getRangeAt(0);
-        range.deleteContents();
-        const anchor = document.createElement('a');
-        anchor.href = actualUrl;
-        anchor.target = '_blank';
-        anchor.rel = 'noreferrer';
-        anchor.textContent = 'Link text';
-        range.insertNode(anchor);
-        onChange(ref.current.innerHTML);
-        return;
-      }
-      document.execCommand('createLink', false, actualUrl);
-      if (ref.current) onChange(ref.current.innerHTML);
+      wrapSelectionWithLink(actualUrl);
     },
     insertList(ordered = false) {
-      if (!ref.current) return;
-      try { ref.current.focus && ref.current.focus(); } catch (e) {}
-      const sel = window.getSelection();
-      if (!sel || !sel.rangeCount) restoreSelection();
-      const command = ordered ? 'insertOrderedList' : 'insertUnorderedList';
-      document.execCommand(command, false);
-      onChange && onChange(ref.current.innerHTML);
+      wrapSelectionWithList(ordered);
     },
     focus() {
       ref.current && ref.current.focus();
@@ -145,20 +126,129 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
   }));
 
   useEffect(() => {
-    if (ref.current && ref.current.innerHTML !== value) {
+    if (ref.current && document.activeElement !== ref.current && ref.current.innerHTML !== value) {
       ref.current.innerHTML = value || '';
     }
   }, [value]);
 
   const exec = (command, arg) => {
     if (ref.current) {
-      ref.current.focus();
+      try { ref.current.focus && ref.current.focus(); } catch (e) {}
       try {
         const cs = ref.current && window.getComputedStyle(ref.current);
         // eslint-disable-next-line no-console
         console.debug('RichEditor.exec', { command, arg, direction: cs && cs.direction, unicodeBidi: cs && cs.unicodeBidi });
       } catch (e) {}
       document.execCommand(command, false, arg);
+      onChange && onChange(ref.current.innerHTML);
+    }
+  };
+
+  // Apply an inline formatting by wrapping the current selection with a tag (e.g. strong, em, u)
+  const applyInlineFormat = (tagName) => {
+    if (!ref.current) return;
+    // Prefer live selection; otherwise restore a saved selection
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) restoreSelection();
+    const s2 = window.getSelection();
+    if (!s2 || !s2.rangeCount) return;
+    const range = s2.getRangeAt(0);
+    if (range.collapsed) return; // nothing selected
+
+    try {
+      // Extract contents and wrap
+      const extracted = range.extractContents();
+      const wrapper = document.createElement(tagName);
+      wrapper.setAttribute('dir', 'ltr');
+      wrapper.style.direction = 'ltr';
+      wrapper.style.unicodeBidi = 'isolate';
+      wrapper.appendChild(extracted);
+      range.insertNode(wrapper);
+
+      // reselect the newly inserted node
+      const newRange = document.createRange();
+      newRange.selectNodeContents(wrapper);
+      newRange.collapse(false);
+      s2.removeAllRanges();
+      s2.addRange(newRange);
+
+      onChange && onChange(ref.current.innerHTML);
+    } catch (err) {
+      // Fallback to execCommand if DOM manipulation fails
+      try { document.execCommand(tagName === 'strong' ? 'bold' : tagName === 'em' ? 'italic' : 'underline', false); } catch (e) {}
+      onChange && onChange(ref.current.innerHTML);
+    }
+  };
+
+  const getActiveRange = () => {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount) return sel.getRangeAt(0);
+    restoreSelection();
+    const restored = window.getSelection();
+    return restored && restored.rangeCount ? restored.getRangeAt(0) : null;
+  };
+
+  const placeCaretAfterNode = (node) => {
+    if (!node) return;
+    const sel = window.getSelection();
+    if (!sel) return;
+    const range = document.createRange();
+    range.setStartAfter(node);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  };
+
+  const wrapSelectionWithLink = (href) => {
+    if (!ref.current) return;
+    const range = getActiveRange();
+    if (!range) return;
+
+    try {
+      const extracted = range.extractContents();
+      const anchor = document.createElement('a');
+      anchor.href = href;
+      anchor.target = '_blank';
+      anchor.rel = 'noreferrer';
+      anchor.setAttribute('dir', 'ltr');
+      anchor.style.direction = 'ltr';
+      anchor.style.unicodeBidi = 'isolate';
+      if (extracted && extracted.childNodes && extracted.childNodes.length > 0) {
+        anchor.appendChild(extracted);
+      } else {
+        anchor.textContent = href;
+      }
+      range.insertNode(anchor);
+      placeCaretAfterNode(anchor);
+      onChange && onChange(ref.current.innerHTML);
+    } catch (e) {
+      try { document.execCommand('createLink', false, href); } catch (err) {}
+      onChange && onChange(ref.current.innerHTML);
+    }
+  };
+
+  const wrapSelectionWithList = (ordered = false) => {
+    if (!ref.current) return;
+    const range = getActiveRange();
+    if (!range) return;
+
+    try {
+      const extracted = range.extractContents();
+      const list = document.createElement(ordered ? 'ol' : 'ul');
+      list.setAttribute('dir', 'ltr');
+      list.style.direction = 'ltr';
+      list.style.unicodeBidi = 'isolate';
+      const li = document.createElement('li');
+      li.setAttribute('dir', 'ltr');
+      li.style.direction = 'ltr';
+      li.style.unicodeBidi = 'isolate';
+      li.appendChild(extracted);
+      list.appendChild(li);
+      range.insertNode(list);
+      placeCaretAfterNode(list);
+      onChange && onChange(ref.current.innerHTML);
+    } catch (e) {
+      try { document.execCommand(ordered ? 'insertOrderedList' : 'insertUnorderedList', false); } catch (err) {}
       onChange && onChange(ref.current.innerHTML);
     }
   };
@@ -174,30 +264,7 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
   const insertLink = (url) => {
     const actualUrl = normalizeUrl(url || window.prompt('Enter link URL'));
     if (!actualUrl || !ref.current) return;
-
-    const sel = window.getSelection();
-    if (!sel || !sel.rangeCount) {
-      ref.current.insertAdjacentHTML('beforeend', `<a href="${actualUrl}" target="_blank" rel="noreferrer">Link text</a>`);
-      onChange(ref.current.innerHTML);
-      return;
-    }
-
-    const range = sel.getRangeAt(0);
-    const selectedText = sel.toString();
-    if (!selectedText) {
-      range.deleteContents();
-      const anchor = document.createElement('a');
-      anchor.href = actualUrl;
-      anchor.target = '_blank';
-      anchor.rel = 'noreferrer';
-      anchor.textContent = 'Link text';
-      range.insertNode(anchor);
-      onChange(ref.current.innerHTML);
-      return;
-    }
-
-    document.execCommand('createLink', false, actualUrl);
-    if (ref.current) onChange(ref.current.innerHTML);
+    wrapSelectionWithLink(actualUrl);
   };
 
   const insertTable = () => {
@@ -216,73 +283,6 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
     }
   };
 
-  const insertButton = () => {
-    const html = '<button class="fa-btn" type="button">Click</button>';
-    if (ref.current) {
-      ref.current.insertAdjacentHTML('beforeend', html);
-      onChange(ref.current.innerHTML);
-    }
-  };
-
-  const triggerImageUpload = () => {
-    if (fileRef.current) fileRef.current.click();
-  };
-
-  const handleFileChange = async (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-
-    // Prepare form data
-    const form = new FormData();
-    form.append('image', file);
-
-    // Determine auth token if present
-    const token = window.localStorage.getItem('token') || window.localStorage.getItem('authToken') || '';
-
-    try {
-      const res = await fetch(`${API.baseURL}/api/upload`, {
-        method: 'POST',
-        body: form,
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
-      const json = await res.json();
-      if (json && json.success && json.data && json.data.url) {
-        const url = json.data.url;
-        const html = `<img src="${url}" alt="Image" style="max-width:100%;height:auto;" />`;
-        if (ref.current) {
-          ref.current.insertAdjacentHTML('beforeend', html);
-          onChange(ref.current.innerHTML);
-        }
-      } else {
-        // fallback to prompt if upload failed
-        const url = window.prompt('Upload failed. Enter image URL manually');
-        if (url && ref.current) {
-          ref.current.insertAdjacentHTML('beforeend', `<img src="${url}" alt="Image" style="max-width:100%;height:auto;" />`);
-          onChange(ref.current.innerHTML);
-        }
-      }
-    } catch (err) {
-      console.error('Upload error', err);
-      const url = window.prompt('Upload error. Enter image URL manually');
-      if (url && ref.current) {
-        ref.current.insertAdjacentHTML('beforeend', `<img src="${url}" alt="Image" style="max-width:100%;height:auto;" />`);
-        onChange(ref.current.innerHTML);
-      }
-    } finally {
-      // reset file input
-      if (fileRef.current) fileRef.current.value = '';
-    }
-  };
-
-  const insertList = (ordered = false) => {
-    const tag = ordered ? 'ol' : 'ul';
-    const html = `<${tag}><li>List item</li><li>List item</li></${tag}>`;
-    if (ref.current) {
-      ref.current.insertAdjacentHTML('beforeend', html);
-      onChange(ref.current.innerHTML);
-    }
-  };
-
   const insertCard = () => {
     const html = `<div class="fa-card" style="border:1px solid #e5e7eb;padding:12px;border-radius:8px;display:flex;gap:12px;align-items:center;"><img src="/images/placeholder.png" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:6px;"/><div><h4 style="margin:0 0 6px 0;font-weight:700;">Card Title</h4><p style="margin:0;color:#374151;">Card description goes here.</p></div></div>`;
     if (ref.current) {
@@ -291,33 +291,87 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
     }
   };
 
+  const escapeTextContent = (value) => String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+  const stripBackgroundColorsFromPasted = (html) => {
+    if (!html) return html;
+    let cleaned = html;
+    // Remove style attributes containing background-color or backgroundColor
+    cleaned = cleaned.replace(/\s*style\s*=\s*(['"])([^'"]*?)(background-color|backgroundColor)[^'"]*?\1/gi, '');
+    // Remove background HTML attribute
+    cleaned = cleaned.replace(/\s+background\s*=\s*(['"][^'"]*?['"])/gi, '');
+    // Remove bgcolor attribute
+    cleaned = cleaned.replace(/\s+bgcolor\s*=\s*(['"][^'"]*?['"])/gi, '');
+    return cleaned;
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    try {
+      const textData = e.clipboardData?.getData('text/plain');
+      const htmlData = e.clipboardData?.getData('text/html');
+      if (!textData && !htmlData) return;
+
+      let cleanedHtml = '';
+      if (textData) {
+        const normalizedText = String(textData).replace(/\r\n/g, '\n');
+        cleanedHtml = normalizedText
+          .split('\n')
+          .map((line) => line === '' ? '<div><br/></div>' : `<div>${escapeTextContent(line)}</div>`)
+          .join('');
+      } else {
+        cleanedHtml = stripBackgroundColorsFromPasted(htmlData || '');
+      }
+
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) {
+        ref.current.insertAdjacentHTML('beforeend', cleanedHtml);
+      } else {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        try {
+          const frag = range.createContextualFragment(cleanedHtml);
+          range.insertNode(frag);
+        } catch (err) {
+          range.insertNode(document.createTextNode((textData || '').replace(/\r\n/g, '\n')));
+        }
+      }
+
+      setTimeout(() => {
+        onChange && onChange(ref.current.innerHTML);
+      }, 0);
+    } catch (err) {
+      console.error('Paste error:', err);
+    }
+  };
+
   return (
     <div>
       {showToolbar && (
         <div className="mb-2 flex flex-wrap gap-2">
-          <button type="button" onClick={() => exec('bold')} className="px-2 py-1 border rounded" data-testid="re-bold">B</button>
-          <button type="button" onClick={() => exec('italic')} className="px-2 py-1 border rounded" data-testid="re-italic">I</button>
-          <button type="button" onClick={insertLink} className="px-2 py-1 border rounded" data-testid="re-link">Link</button>
-          <button type="button" onClick={() => exec('formatBlock', '<H2>')} className="px-2 py-1 border rounded" data-testid="re-h2">H2</button>
-          <button type="button" onClick={() => exec('formatBlock', '<H3>')} className="px-2 py-1 border rounded" data-testid="re-h3">H3</button>
-          <button type="button" onClick={() => exec('insertParagraph')} className="px-2 py-1 border rounded" data-testid="re-p">P</button>
-          <button type="button" onClick={() => exec('insertUnorderedList')} className="px-2 py-1 border rounded" data-testid="re-ul">UL</button>
-          <button type="button" onClick={() => exec('insertOrderedList')} className="px-2 py-1 border rounded" data-testid="re-ol">OL</button>
-          <button type="button" onClick={insertTable} className="px-2 py-1 border rounded" data-testid="re-table">Table</button>
-          <button type="button" onClick={triggerImageUpload} className="px-2 py-1 border rounded" data-testid="re-image">Image</button>
-          <button type="button" onClick={insertButton} className="px-2 py-1 border rounded" data-testid="re-button">Button</button>
-          <button type="button" onClick={insertCard} className="px-2 py-1 border rounded" data-testid="re-card">Card</button>
+          <button type="button" onMouseDown={(e) => { e.preventDefault(); applyInlineFormat('strong'); }} className="px-2 py-1 border rounded" data-testid="re-bold">B</button>
+          <button type="button" onMouseDown={(e) => { e.preventDefault(); applyInlineFormat('em'); }} className="px-2 py-1 border rounded" data-testid="re-italic">I</button>
+          <button type="button" onMouseDown={(e) => { e.preventDefault(); applyInlineFormat('u'); }} className="px-2 py-1 border rounded" data-testid="re-underline">U</button>
+          <button type="button" onMouseDown={(e) => { e.preventDefault(); insertLink(); }} className="px-2 py-1 border rounded" data-testid="re-link">Link</button>
+          <button type="button" onMouseDown={(e) => { e.preventDefault(); insertList(false); }} className="px-2 py-1 border rounded" data-testid="re-ul">UL</button>
+          <button type="button" onMouseDown={(e) => { e.preventDefault(); insertList(true); }} className="px-2 py-1 border rounded" data-testid="re-ol">OL</button>
         </div>
       )}
-      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} data-testid="re-file-input" />
       <div
         ref={ref}
         contentEditable
+        dir="ltr"
         suppressContentEditableWarning
         onInput={(e) => onChange(e.currentTarget.innerHTML)}
         onMouseUp={saveSelection}
         onKeyUp={saveSelection}
         onFocus={saveSelection}
+        onPaste={handlePaste}
         className="min-h-[120px] border rounded p-2 bg-white text-sm"
         style={{ whiteSpace: 'pre-wrap', direction: 'ltr', unicodeBidi: 'isolate' }}
         data-testid="re-editor"

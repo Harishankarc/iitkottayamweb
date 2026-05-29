@@ -3,7 +3,6 @@ import { Plus, Edit, Trash2, Search, Zap, Heading2, Type, Image, ImagePlus, List
 import { useLocation } from 'react-router-dom';
 import API from '../../api/api';
 import ImageUploader from '../components/ImageUploader';
-import RichEditor from '../components/RichEditor';
 
 const BLOCK_TYPE_ICONS = {
   hero: Zap,
@@ -320,11 +319,70 @@ const textToList = (value) => {
   return trimmed.split(',').map((item) => item.trim()).filter(Boolean);
 };
 
-const normalizeMainSection = (value) => {
+const stripInlineTextColors = (html) => {
+  if (typeof html !== 'string') return '';
+  let cleaned = html;
+  cleaned = cleaned.replace(/<font\b[^>]*\bcolor\s*=\s*(['"]?)(?:#[0-9a-fA-F]{3,6}|rgb\([^)]*\)|rgba\([^)]*\)|[a-zA-Z]+)\1[^>]*>/gi, '');
+  cleaned = cleaned.replace(/<\/font>/gi, '');
+  cleaned = cleaned.replace(/\s*\bcolor\s*=\s*(['"]?)(?:#[0-9a-fA-F]{3,6}|rgb\([^)]*\)|rgba\([^)]*\)|[a-zA-Z]+)\1/gi, '');
+  cleaned = cleaned.replace(/\s*style\s*=\s*(['"])(.*?)\1/gi, (match, quote, styleText) => {
+    const resultStyle = styleText
+      .split(';')
+      .map((part) => part.trim())
+      .filter((part) => part && !/^color\s*:/i.test(part))
+      .join('; ');
+    return resultStyle ? ` style=${quote}${resultStyle}${quote}` : '';
+  });
+  cleaned = cleaned.replace(/\s+(?:style|color)\s*=\s*(['"]?)\s*\1/gi, '');
+  return cleaned;
+};
+
+const normalizeMainSectionPage = (value) => {
   if (typeof value !== 'string') return '';
-  const normalized = value.replace(/\r\n/g, '\n').replace(/\\/g, '\n');
-  const lines = normalized.split('\n').slice(0, MAIN_SECTION_MAX_LINES).map((line) => line.slice(0, MAIN_SECTION_MAX_LINE_LENGTH));
+  const sanitized = stripInlineTextColors(value);
+  const normalized = sanitized.replace(/\r\n/g, '\n').replace(/\\/g, '\n');
+  const lines = normalized
+    .split('\n')
+    .slice(0, MAIN_SECTION_MAX_LINES)
+    .map((line) => line.slice(0, MAIN_SECTION_MAX_LINE_LENGTH));
   return lines.join('\n');
+};
+
+const normalizeMainSectionPages = (value) => {
+  if (Array.isArray(value)) {
+    return value.map((page) => normalizeMainSectionPage(String(page || ''))).filter((page) => page.trim() !== '');
+  }
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return normalizeMainSectionPages(parsed);
+      }
+    } catch {
+      // Continue to treat it as a single page string.
+    }
+    const page = normalizeMainSectionPage(value);
+    return page ? [page] : [];
+  }
+  return [];
+};
+
+const parseMainSectionPages = (value) => {
+  if (Array.isArray(value)) {
+    return value.map((page) => String(page || ''));
+  }
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parsed.map((page) => String(page || ''));
+      }
+    } catch {
+      // Use plain string as a single page.
+    }
+    return [value];
+  }
+  return [''];
 };
 
 const toDetailArray = (value) => {
@@ -336,7 +394,8 @@ const toDetailArray = (value) => {
     } catch {
       // ignore
     }
-    return value.split(',').map((item) => item.trim()).filter(Boolean);
+    const normalized = value.replace(/\r\n/g, '\n');
+    return normalized.split(/[\n,]+/).map((item) => item.trim()).filter(Boolean);
   }
   return [];
 };
@@ -354,7 +413,7 @@ export default function ManageFaculty() {
   const [detailBlocks, setDetailBlocks] = useState([]);
   const [editingBlockIndex, setEditingBlockIndex] = useState(null);
   const [activeEditorStep, setActiveEditorStep] = useState(1);
-  const [formData, setFormData] = useState({ name: '', designation: '', department: 'General', email: '', phone: '', photo: '', qualification: '', specialization: '', experience: '', researchInterests: '', publications: '', googleScholar: '', linkedIn: '', researchGate: '', mainSection: '', fullDetails: '', fullDetailsHtml: '', useHtmlEditor: false, isActive: true });
+  const [formData, setFormData] = useState({ name: '', designation: '', department: 'General', email: '', phone: '', photo: '', qualification: '', specialization: '', experience: '', researchInterests: '', publications: '', googleScholar: '', linkedIn: '', researchGate: '', mainSectionPages: [''], fullDetails: '', fullDetailsHtml: '', useHtmlEditor: false, isActive: true });
   const [pendingListType, setPendingListType] = useState(null);
   const [pendingListItemCount, setPendingListItemCount] = useState(0);
   const paragraphEditorRef = React.useRef(null);
@@ -394,7 +453,7 @@ export default function ManageFaculty() {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', designation: '', department: 'General', email: '', phone: '', photo: '', qualification: '', specialization: '', experience: '', researchInterests: '', publications: '', googleScholar: '', linkedIn: '', researchGate: '', mainSection: '', fullDetails: '', fullDetailsHtml: '', useHtmlEditor: false, isActive: true });
+    setFormData({ name: '', designation: '', department: 'General', email: '', phone: '', photo: '', qualification: '', specialization: '', experience: '', researchInterests: '', publications: '', googleScholar: '', linkedIn: '', researchGate: '', mainSectionPages: [''], fullDetails: '', fullDetailsHtml: '', useHtmlEditor: false, isActive: true });
     setDetailBuilder(createBlockBuilderState('heading'));
     setDetailBlocks([]);
     setEditingBlockIndex(null);
@@ -454,12 +513,12 @@ export default function ManageFaculty() {
       qualification: item.qualification || '',
       specialization: item.specialization || '',
       experience: item.experience || '',
-      researchInterests: Array.isArray(item.researchInterests) ? item.researchInterests.join(', ') : (item.researchInterests || ''),
-      publications: Array.isArray(item.publications) ? item.publications.join(', ') : (item.publications || ''),
+      researchInterests: Array.isArray(item.researchInterests) ? item.researchInterests.join('\n') : (item.researchInterests || ''),
+      publications: Array.isArray(item.publications) ? item.publications.join('\n') : (item.publications || ''),
       googleScholar: item.googleScholar || '',
       linkedIn: item.linkedIn || '',
       researchGate: item.researchGate || '',
-      mainSection: normalizeMainSection(item.mainSection || ''),
+      mainSectionPages: parseMainSectionPages(item.mainSection || ''),
       fullDetails: (resolvedFullDetails.length > 0 ? resolvedFullDetails : fallbackFullDetails).join('\n'),
       fullDetailsHtml: item.fullDetailsHtml || '',
       useHtmlEditor: parsedBlocks.length > 0,
@@ -468,7 +527,7 @@ export default function ManageFaculty() {
     setDetailBlocks(parsedBlocks.length > 0 ? parsedBlocks : []);
     setDetailBuilder(createBlockBuilderState('heading'));
     setEditingBlockIndex(null);
-    setActiveEditorStep(item.fullDetailsHtml ? 3 : 1);
+    setActiveEditorStep(1);
     setShowModal(true);
   };
 
@@ -492,12 +551,27 @@ export default function ManageFaculty() {
         })(),
         phone: (formData.phone?.trim() || (editingItem && editingItem.phone)) || '',
         photo: (formData.photo || (editingItem && editingItem.photo)) || '',
-        mainSection: normalizeMainSection(formData.mainSection || (editingItem && editingItem.mainSection) || '').trim(),
+        qualification: (formData.qualification?.trim() || (editingItem && editingItem.qualification)) || '',
+        specialization: (formData.specialization?.trim() || (editingItem && editingItem.specialization)) || '',
+        experience: (() => {
+          if (typeof formData.experience === 'string') return formData.experience.trim();
+          if (formData.experience != null && formData.experience !== '') return String(formData.experience).trim();
+          if (editingItem && editingItem.experience != null && editingItem.experience !== '') return String(editingItem.experience).trim();
+          return '';
+        })(),
+        googleScholar: (formData.googleScholar?.trim() || (editingItem && editingItem.googleScholar)) || '',
+        linkedIn: (formData.linkedIn?.trim() || (editingItem && editingItem.linkedIn)) || '',
+        researchGate: (formData.researchGate?.trim() || (editingItem && editingItem.researchGate)) || '',
+        researchInterests: (formData.researchInterests?.trim() || (editingItem && editingItem.researchInterests)) || '',
+        publications: (formData.publications?.trim() || (editingItem && editingItem.publications)) || '',
+        mainSection: normalizeMainSectionPages(formData.mainSectionPages || (editingItem && editingItem.mainSection) || []),
         fullDetails: (textToList(formData.fullDetails).length > 0 ? textToList(formData.fullDetails) : (editingItem && (Array.isArray(editingItem.fullDetails) ? editingItem.fullDetails : toDetailArray(editingItem.fullDetails))) || []),
         fullDetailsHtml: (fullDetailsHtmlToSave && fullDetailsHtmlToSave.length > 0) ? fullDetailsHtmlToSave : ((editingItem && editingItem.fullDetailsHtml) || ''),
         isActive: !!formData.isActive
       };
-      console.log('ManageFaculty payload preview:', { id: editingItem?.id, name: payload.name, fullDetailsHtmlLength: (payload.fullDetailsHtml || '').length, fullDetailsCount: (payload.fullDetails || []).length });
+      console.log('ManageFaculty payload preview:', { id: editingItem?.id, name: payload.name, researchInterests: payload.researchInterests, publications: payload.publications, fullDetailsHtmlLength: (payload.fullDetailsHtml || '').length, fullDetailsCount: (payload.fullDetails || []).length });
+      console.log('📄 MainSection being saved:', payload.mainSection);
+      console.log('🔢 MainSectionPages count:', (payload.mainSection || []).length);
       console.log('ManageFaculty saving fullDetailsHtml (first 500 chars):', (fullDetailsHtmlToSave || '').slice(0, 500));
       const response = await fetch(url, {
         method: editingItem ? 'PUT' : 'POST',
@@ -580,7 +654,7 @@ export default function ManageFaculty() {
             </div>
             <div className="space-y-4">
               <div><label htmlFor="faculty-name" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Name *</label><input id="faculty-name" type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" /></div>
-              <div><label htmlFor="faculty-designation" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Designation *</label><input id="faculty-designation" type="text" required value={formData.designation} onChange={(e) => setFormData({ ...formData, designation: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" /></div>
+              <div><label htmlFor="faculty-designation" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Designation *</label><select id="faculty-designation" required value={formData.designation} onChange={(e) => setFormData({ ...formData, designation: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"><option value="">-- Select Designation --</option><option value="Professor">Professor</option><option value="Associate Professor">Associate Professor</option><option value="Assistant Professor">Assistant Professor</option></select></div>
               <div><label htmlFor="faculty-department" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Department *</label><input id="faculty-department" type="text" required value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" /></div>
               <div className="grid grid-cols-1 gap-4"><div><label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Email</label><input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="faculty@example.com" /></div><div><label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Phone Number</label><input type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="+91 9876543210" /></div></div>
             </div>
@@ -632,34 +706,60 @@ export default function ManageFaculty() {
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div>
             <h4 className="text-sm font-bold text-slate-900">Main Details</h4>
-            <p className="text-xs text-slate-500">Summary information that appears before the full details section.</p>
+            <p className="text-xs text-slate-500">Enter rotating summary pages for the public faculty page. Each page supports up to 7 lines and 42 characters per line.</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Qualification</label>
-              <input type="text" value={formData.qualification} onChange={(e) => setFormData({ ...formData, qualification: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Ph.D., M.Tech, etc." />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Specialization</label>
-              <input type="text" value={formData.specialization} onChange={(e) => setFormData({ ...formData, specialization: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="Machine Learning, Networks, etc." />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Experience</label>
-              <input type="text" value={formData.experience} onChange={(e) => setFormData({ ...formData, experience: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="10+ years" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Google Scholar</label>
-              <input type="url" value={formData.googleScholar} onChange={(e) => setFormData({ ...formData, googleScholar: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="https://scholar.google.com/..." />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">LinkedIn</label>
-              <input type="url" value={formData.linkedIn} onChange={(e) => setFormData({ ...formData, linkedIn: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="https://linkedin.com/in/..." />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">ResearchGate</label>
-              <input type="url" value={formData.researchGate} onChange={(e) => setFormData({ ...formData, researchGate: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="https://researchgate.net/..." />
-            </div>
+          <div className="space-y-4">
+            {formData.mainSectionPages.map((page, index) => (
+              <div key={`main-page-${index}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+                  <div>
+                    <h5 className="text-sm font-semibold text-slate-900">Page {index + 1}</h5>
+                    <p className="text-xs text-slate-500">Page content displays for 7 seconds, then fades to the next page.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData((prev) => {
+                        const next = [...prev.mainSectionPages];
+                        next.splice(index, 1);
+                        return { ...prev, mainSectionPages: next.length > 0 ? next : [''] };
+                      });
+                    }}
+                    className="text-xs font-semibold text-red-600 hover:text-red-800"
+                    disabled={formData.mainSectionPages.length === 1}
+                  >
+                    Remove page
+                  </button>
+                </div>
+                <textarea
+                  rows={7}
+                  value={page}
+                  onChange={(e) => {
+                    const nextPage = normalizeMainSectionPage(e.target.value);
+                    setFormData((prev) => {
+                      const next = [...prev.mainSectionPages];
+                      next[index] = nextPage;
+                      return { ...prev, mainSectionPages: next };
+                    });
+                  }}
+                  className="w-full min-h-[220px] resize-none rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm leading-6 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  placeholder="Enter up to 7 lines, 42 characters per line"
+                />
+                <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
+                  <span>{page.split('\n').filter(Boolean).length} / {MAIN_SECTION_MAX_LINES} lines</span>
+                  <span>Longest line {Math.max(...page.split('\n').map((line) => line.length), 0)} / {MAIN_SECTION_MAX_LINE_LENGTH} chars</span>
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setFormData((prev) => ({ ...prev, mainSectionPages: [...prev.mainSectionPages, ''] }))}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              <Plus className="h-4 w-4" />
+              Add more page
+            </button>
           </div>
 
           <div className="grid grid-cols-1 gap-4">

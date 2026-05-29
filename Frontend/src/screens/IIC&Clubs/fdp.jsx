@@ -18,12 +18,31 @@ export default function Fdp() {
     fetchContent();
   }, []);
 
+  const parseBlockContent = (block) => {
+    if (!block) return null;
+    if (typeof block.content === 'string') {
+      try {
+        return JSON.parse(block.content);
+      } catch (error) {
+        console.warn('Failed to parse FDP block content:', block.blockId, error);
+        return block.content;
+      }
+    }
+    return block.content;
+  };
+
   const fetchContent = () => {
     API.get('/api/content-blocks/page/fdp')
       .then((response) => {
-        const blocks = response.data.data || response.data || [];
+        const rawBlocks = response.data.data || response.data || [];
+        const blocks = Array.isArray(rawBlocks) ? rawBlocks : [];
         console.log('FDP Content Blocks:', blocks);
-        const visibleBlocks = blocks.filter(block => block.isVisible);
+        const visibleBlocks = blocks
+          .filter(block => block.isVisible !== false)
+          .map(block => ({
+            ...block,
+            content: parseBlockContent(block)
+          }));
         console.log('Visible Blocks:', visibleBlocks);
         setContentBlocks(visibleBlocks);
       })

@@ -106,18 +106,18 @@ export default function AdminLayout() {
       path: '/admin',
       hasDropdown: false
     },
-    {
-      id: 'nirf',
-      label: 'NIRF',
-      icon: Award,
-      hasDropdown: true,
-      submenu: [
-        { icon: Award, label: 'NIRF Rankings', path: '/admin/nirf' }
-      ]
-    },
+    // {
+    //   id: 'nirf',
+    //   label: 'NIRF',
+    //   icon: Award,
+    //   hasDropdown: true,
+    //   submenu: [
+    //     { icon: Award, label: 'NIRF Rankings', path: '/admin/nirf' }
+    //   ]
+    // },
     {
       id: 'content',
-      label: 'Content Management',
+      label: 'Edit Page Content ',
       icon: FileText,
       path: '/admin/content',
       hasDropdown: false
@@ -135,6 +135,24 @@ export default function AdminLayout() {
         { icon: Link, label: 'Navigation', path: '/admin/navigation' }
       ]
     },
+    // { id :' home ',
+    //   label: 'Home Page',
+    //   icon: Home,
+    //   hasDropdown: true,
+    //   submenu: [
+            //           { icon: Presentation, label: 'Hero Sliders', path: '/admin/hero-sliders' },
+            // { icon: Megaphone, label: 'Announcements', path: '/admin/announcements' },
+            // ]
+    // },
+
+    // {
+    // id : 'footer'
+    // label: 'Footer',
+    // icon: Layout,
+    // hasDropdown: false,
+    // path: '/admin/footer'
+    //},
+    
     {
       id: 'course',
       label: 'Course',
@@ -204,18 +222,7 @@ export default function AdminLayout() {
         { icon: Building2, label: 'Company Logos', path: '/admin/company-logos' }
       ]
     },
-    // {
-    //   id: 'latest-news-updates',
-    //   label: 'Latest News & Updates',
-    //   icon: Monitor,
-    //   hasDropdown: true,
-    //   submenu: latestNewsSubsections.map((subsection) => ({
-    //     icon: Newspaper,
-    //     label: subsection.title,
-    //     // simplified path: /admin/latest-news-updates/<subsection-id>
-    //     path: `/admin/latest-news-updates/${encodeURIComponent(subsection.id || (subsection.title || '').toLowerCase().replace(/\s+/g, '-'))}`
-    //   }))
-    // },
+    
     {
       id: 'latest-news-updates',
       label: 'Latest News & Updates',

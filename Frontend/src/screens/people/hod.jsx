@@ -121,11 +121,6 @@ export default function HeadofDepartment() {
   const [searchTerm, setSearchTerm] = useState('');
   const [hodData, setHodData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [headerSettings, setHeaderSettings] = useState({
-    badge: 'Leadership & Faculty',
-    title: 'Head of Department',
-    description: 'Meet the leaders driving excellence in education and research.'
-  });
 
   useEffect(() => {
     const fetchHODs = async () => {
@@ -169,48 +164,10 @@ export default function HeadofDepartment() {
       }
     };
 
-    const fetchSettings = async () => {
-      try {
-        const responses = await Promise.all([
-          fetch(`${API.baseURL}/api/site-settings/hod_badge`),
-          fetch(`${API.baseURL}/api/site-settings/hod_title`),
-          fetch(`${API.baseURL}/api/site-settings/hod_description`)
-        ]);
-        
-        for (let i = 0; i < responses.length; i++) {
-          if (!responses[i].ok) {
-            console.warn(`Settings response ${i} not OK:`, responses[i].status);
-          }
-        }
-        
-        const [badgeRes, titleRes, descRes] = await Promise.all(
-          responses.map(r => r.json())
-        );
-        
-        setHeaderSettings({
-          badge: badgeRes.data?.settingValue || 'Leadership & Faculty',
-          title: titleRes.data?.settingValue || 'Head of Department',
-          description: descRes.data?.settingValue || 'Meet the leaders driving excellence in education and research.'
-        });
-      } catch (error) {
-        console.error('Error fetching settings:', error);
-      }
-    };
-    
     fetchHODs();
-    fetchSettings();
-    
-    // Poll for settings updates every 5 seconds
-    const settingsInterval = setInterval(fetchSettings, 5000);
-    
-    // Refetch settings when window regains focus
-    const handleFocus = () => fetchSettings();
-    window.addEventListener('focus', handleFocus);
-    
-    // Cleanup
+
     return () => {
-      clearInterval(settingsInterval);
-      window.removeEventListener('focus', handleFocus);
+      // cleanup if needed
     };
   }, []);
 
@@ -235,23 +192,6 @@ export default function HeadofDepartment() {
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Hero Section - Minimal Design */}
-      <div className={`py-2 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
-            <GraduationCap className="w-4 h-4" style={{ color: color1 }} />
-            {headerSettings.badge}
-          </div>
-          <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-            {headerSettings.title}
-          </h1>
-          <p className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            {headerSettings.description}
-          </p>
-        </div>
-      </div>
-
-      {/* Main Content */}
       <div className="mx-auto py-8 px-6 max-w-full">
         {/* Search Bar Section */}
         <div className="mb-12">

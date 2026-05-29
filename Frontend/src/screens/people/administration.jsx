@@ -2,10 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
-import { Users, Mail, Phone, MapPin, Search, BookOpenText } from 'lucide-react';
-import RotatingDetails from '../../components/RotatingDetails.jsx';
-
-
+import { Users, Mail, Phone, Search } from 'lucide-react';
 
 // Sub-component for the profile card - matching reference design
 const ProfileCard = ({ person, color1, darkMode }) => {
@@ -69,21 +66,40 @@ const ProfileCard = ({ person, color1, darkMode }) => {
           <h4 className={`text-sm font-bold mb-1 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
             {person.title}
           </h4>
-          {person.roles.map((role, index) => (
+          {/*
+          person.roles.map((role, index) => (
             <p 
               key={index} 
               className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'} leading-tight`}
             >
               {role}
             </p>
-          ))}
+          ))
+          */}
         </div>
         
         {/* Divider */}
         <div className={`h-px w-full mb-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} />
         
-        {/* Contact Information - Rotating */}
-        <RotatingDetails person={person} color1={color1} darkMode={darkMode} />
+        {/* Contact Information */}
+        <div className="mt-4 space-y-3 text-sm leading-relaxed text-gray-700">
+          <div>
+            <p className="font-semibold text-green-600">Email</p>
+            <p className="break-all">{person.email || 'N/A'}</p>
+          </div>
+          <div>
+            <p className="font-semibold text-green-600">Phone</p>
+            <p>{person.phone || 'N/A'}</p>
+          </div>
+          <div>
+            <p className="font-semibold text-green-600">Phone 2</p>
+            <p>{person.phone2 || 'N/A'}</p>
+          </div>
+          <div>
+            <p className="font-semibold text-green-600">Room No</p>
+            <p>{person.room || 'N/A'}</p>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -97,11 +113,6 @@ export default function Administration() {
   const [searchTerm, setSearchTerm] = useState('');
   const [administrationData, setAdministrationData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [headerSettings, setHeaderSettings] = useState({
-    badge: 'Administration Team',
-    title: 'Administration',
-    description: 'Meet our dedicated administrative team ensuring excellence in institutional management and student services.'
-  });
 
   // Fetch administration data from API
   useEffect(() => {
@@ -144,18 +155,18 @@ export default function Administration() {
               return {
                 name: person.name || 'Unknown',
                 title: person.designation || 'Administrator',
-                roles: person.department ? [person.department] : [],
                 email: person.email || 'N/A',
                 phone: person.phone || 'N/A',
-                phone2: person.phone2 || '',
-                qualification: person.qualification || 'N/A',
-                department: person.department || 'N/A',
-                specialization: person.specialization || 'N/A',
-                experience: person.experience || 'N/A',
-                room: person.qualification || 'N/A',
-                image: API.getImageUrl(person.photo) || `https://placehold.co/128x128/22a05e/ffffff?text=${person.name?.charAt(0) || 'A'}`,
-                category: category
+                phone2: person.phone2 || 'N/A',
+                room: person.room || person.experience || person.qualification || 'N/A',
+                category: category,
+                image: API.getImageUrl(person.photo) || `https://placehold.co/128x128/22a05e/ffffff?text=${person.name?.charAt(0) || 'A'}`
+                // department: person.department || 'N/A',
+                // qualification: person.qualification || 'N/A',
+                // specialization: person.specialization || 'N/A',
+                // experience: person.experience || 'N/A',
               };
+
             });
           console.log('✅ Transformed data sample:', transformedData[0]);
           console.log('✅ Transformed data:', transformedData.length, 'records');
@@ -177,48 +188,10 @@ export default function Administration() {
       }
     };
 
-    const fetchSettings = async () => {
-      try {
-        const responses = await Promise.all([
-          fetch(`${API.baseURL}/api/site-settings/admin_badge`),
-          fetch(`${API.baseURL}/api/site-settings/admin_title`),
-          fetch(`${API.baseURL}/api/site-settings/admin_description`)
-        ]);
-        
-        for (let i = 0; i < responses.length; i++) {
-          if (!responses[i].ok) {
-            console.warn(`Settings response ${i} not OK:`, responses[i].status);
-          }
-        }
-        
-        const [badgeRes, titleRes, descRes] = await Promise.all(
-          responses.map(r => r.json())
-        );
-        
-        setHeaderSettings({
-          badge: badgeRes.data?.settingValue || 'Administration Team',
-          title: titleRes.data?.settingValue || 'Administration',
-          description: descRes.data?.settingValue || 'Meet our dedicated administrative team ensuring excellence in institutional management and student services.'
-        });
-      } catch (error) {
-        console.error('Error fetching settings:', error);
-      }
-    };
-
     fetchAdministration();
-    fetchSettings();
-    
-    // Poll for settings updates every 5 seconds
-    const settingsInterval = setInterval(fetchSettings, 5000);
-    
-    // Refetch settings when window regains focus
-    const handleFocus = () => fetchSettings();
-    window.addEventListener('focus', handleFocus);
-    
-    // Cleanup
+
     return () => {
-      clearInterval(settingsInterval);
-      window.removeEventListener('focus', handleFocus);
+      // cleanup if needed in future
     };
   }, []);
 
@@ -246,23 +219,6 @@ export default function Administration() {
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
-      {/* Hero Section - Minimal Design */}
-      <div className={`py-2 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
-            <Users className="w-4 h-4" style={{ color: color1 }} />
-            {headerSettings.badge}
-          </div>
-          <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-            {headerSettings.title}
-          </h1>
-          <p className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            {headerSettings.description}
-          </p>
-        </div>
-      </div>
-
-      {/* Main Content Container */}
       <div className="mx-auto py-8 px-6 max-w-full">
         {/* Tab Navigation */}
         <div className="mb-12  top-20 z-40 w-full"> 

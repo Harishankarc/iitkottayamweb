@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Mail, Phone, Settings } from 'lucide-react';
 import API from '../../api/api';
 import ImageUploader from '../components/ImageUploader';
-import RotatingDetails from '../../components/RotatingDetails';
 
 export default function ManageAdministration() {
   const [people, setPeople] = useState([]);
@@ -20,17 +19,17 @@ export default function ManageAdministration() {
   const [formData, setFormData] = useState({
     name: '',
     designation: '',
-    department: '',
     email: '',
     phone: '',
     phone2: '',
     photo: '',
-    qualification: '',
-    specialization: '',
+    experience: '', // Room No
     category: '',
-    experience: '',
     userType: 'administration',
-    isActive: true
+    isActive: true,
+    // department: '',
+    // qualification: '',
+    // specialization: ''
   });
 
   useEffect(() => {
@@ -136,12 +135,13 @@ export default function ManageAdministration() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Prepare data to send - only send fields that exist in database
+      // Prepare data to send - category is stored in specialization for this model
       const submitData = {
         ...formData,
-        specialization: formData.category || formData.specialization
+        specialization: formData.category // category is mapped to specialization in the backend
+        // department: formData.department,
+        // qualification: formData.qualification,
       };
-      // Remove category field as it's not in the database
       delete submitData.category;
       
       if (editingItem) {
@@ -172,17 +172,17 @@ export default function ManageAdministration() {
     setFormData({
       name: '',
       designation: '',
-      department: '',
       email: '',
       phone: '',
       phone2: '',
       photo: '',
-      qualification: '',
-      specialization: '',
+      experience: '', // Room No
       category: '',
-      experience: '',
       userType: 'administration',
-      isActive: true
+      isActive: true,
+      // department: '',
+      // qualification: '',
+      // specialization: ''
     });
     setEditingItem(null);
   };
@@ -211,17 +211,17 @@ export default function ManageAdministration() {
     setFormData({
       name: item.name,
       designation: item.designation,
-      department: item.department || '',
       email: item.email || '',
       phone: item.phone || '',
       phone2: item.phone2 || '',
       photo: item.photo || '',
-      qualification: item.qualification || '',
-      specialization: item.specialization || '',
-      category: category,
-      experience: item.experience || '',
+      experience: item.experience || item.room || item.qualification || '',
+      category,
       userType: 'administration',
-      isActive: item.isActive
+      isActive: item.isActive,
+      // department: item.department || '',
+      // qualification: item.qualification || '',
+      // specialization: item.specialization || ''
     });
     setShowModal(true);
   };
@@ -344,11 +344,26 @@ export default function ManageAdministration() {
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-1">{member.name}</h3>
               <p className="text-sm text-gray-600 mb-2">{member.designation}</p>
-              {member.department && (
-                <p className="text-sm font-medium" style={{ color: API.color1 }}>{member.department}</p>
+              {member.category && (
+                <p className="text-sm font-medium mb-3" style={{ color: API.color1 }}>{member.category}</p>
               )}
-              <div className="mt-4">
-                <RotatingDetails person={member} color1={API.color1} darkMode={false} />
+              <div className="mt-4 space-y-3 text-sm text-gray-700">
+                <div>
+                  <p className="font-semibold text-green-600">Email</p>
+                  <p className="break-all">{member.email || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-green-600">Phone</p>
+                  <p>{member.phone || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-green-600">Phone 2</p>
+                  <p>{member.phone2 || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-green-600">Room No</p>
+                  <p>{member.experience || member.room || 'N/A'}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -384,6 +399,7 @@ export default function ManageAdministration() {
                   />
                 </div>
               </div>
+              {/*
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
                 <input
@@ -393,6 +409,7 @@ export default function ManageAdministration() {
                   className="w-full px-3 py-2 border rounded-lg"
                 />
               </div>
+              */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -431,6 +448,7 @@ export default function ManageAdministration() {
                 folder="people"
                 aspectRatio="1/1"
               />
+              {/*
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Qualification</label>
@@ -441,6 +459,9 @@ export default function ManageAdministration() {
                     className="w-full px-3 py-2 border rounded-lg"
                   />
                 </div>
+              </div>
+              */}
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Room No:</label>
                   <input
@@ -451,6 +472,7 @@ export default function ManageAdministration() {
                   />
                 </div>
               </div>
+              {/*
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Specialization</label>
                 <input
@@ -461,6 +483,7 @@ export default function ManageAdministration() {
                   placeholder="e.g., Finance, HR, IT Infrastructure"
                 />
               </div>
+              */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                 <select

@@ -3,6 +3,7 @@ import { useTheme } from '../../context/createContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import API from '../../api/api.jsx';
 import { ExternalLink, Calendar, Users, BookOpen } from 'lucide-react';
+import { cleanHtmlFormatting } from '../../utils/sanitizeHtml.js';
 
 
 
@@ -119,7 +120,9 @@ export default function FdpWebinar() {
             </h2>
             <div 
               className={`text-lg leading-relaxed mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-              dangerouslySetInnerHTML={{ __html: block.content.text }}
+              dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.text) }}
+              style={{ wordBreak: 'break-word' }}
+            />
             />
             {block.content.title === 'Access FDP Details' && (
               <div className="text-center mt-6">

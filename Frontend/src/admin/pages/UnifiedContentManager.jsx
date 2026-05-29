@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Plus, Edit2, Trash2, Eye, EyeOff, Save, FileText, Layout, 
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import API from '../../api/api';
 import ImageUploader from '../components/ImageUploader';
+import RichEditor from '../components/RichEditor';
 
 const BLOCK_TYPES = [
   { value: 'hero', label: '🎯 Hero Banner', color: '#8b5cf6' },
@@ -14,11 +15,8 @@ const BLOCK_TYPES = [
   { value: 'paragraph', label: '📄 Paragraph', color: '#10b981' },
   { value: 'image', label: '🖼️ Single Image', color: '#f59e0b' },
   { value: 'gallery', label: '🎨 Image Gallery', color: '#ec4899' },
-  { value: 'list', label: '📋 List', color: '#6366f1' },
-  { value: 'card', label: '🃏 Card', color: '#14b8a6' },
   { value: 'table', label: '📊 Table', color: '#06b6d4' },
-  { value: 'statistics', label: '📈 Statistics', color: '#239244' },
-  { value: 'button', label: '🔘 Button', color: '#ef4444' }
+  { value: 'statistics', label: '📈 Statistics', color: '#239244' }
 ];
 
 // All available pages
@@ -73,6 +71,46 @@ const AVAILABLE_PAGES = [
   { pageName: 'scholarships', pageTitle: 'Scholarships', category: 'Others' }
 ];
 
+const sanitizeParagraphHtml = (html) => {
+  if (!html) return '';
+  
+  // Remove empty tags
+  let cleaned = html.replace(/<(\w+)>[<\s]*<\/\1>/g, '');
+  
+  // Fix unclosed tags by removing orphaned closing tags
+  cleaned = cleaned.replace(/<\/b>(?![\s\S]*<b>)/g, '');
+  cleaned = cleaned.replace(/<\/i>(?![\s\S]*<i>)/g, '');
+  cleaned = cleaned.replace(/<\/u>(?![\s\S]*<u>)/g, '');
+  
+  // Normalize links without protocol
+  cleaned = cleaned.replace(/href="([^"]*)"/g, (match, url) => {
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl) return match;
+    if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://') || trimmedUrl.startsWith('mailto:')) {
+      return match;
+    }
+    return `href="https://${trimmedUrl}"`;
+  });
+  
+  // Ensure common inline tags are balanced
+  try {
+    const inlineTags = ['b', 'i', 'u', 'strong', 'em', 'a', 'span'];
+    inlineTags.forEach((tag) => {
+      const openRegex = new RegExp(`<${tag}(\\s|>)`, 'gi');
+      const closeRegex = new RegExp(`</${tag}>`, 'gi');
+      const opens = (cleaned.match(openRegex) || []).length;
+      const closes = (cleaned.match(closeRegex) || []).length;
+      for (let k = 0; k < Math.max(0, opens - closes); k++) {
+        cleaned += `</${tag}>`;
+      }
+    });
+  } catch (e) {
+    // ignore balancing errors
+  }
+
+  return cleaned.trim();
+};
+
 export default function UnifiedContentManager() {
   const navigate = useNavigate();
   const [view, setView] = useState('pages'); // 'pages' or 'editor'
@@ -80,14 +118,11 @@ export default function UnifiedContentManager() {
   const [selectedPage, setSelectedPage] = useState(null);
   const [blocks, setBlocks] = useState([]);
   const [editingBlock, setEditingBlock] = useState(null);
-  const [showBlockEditor, setShowBlockEditor] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [expandedBlock, setExpandedBlock] = useState(null);
-  const [pageBlockCounts, setPageBlockCounts] = useState({});
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [showPageModal, setShowPageModal] = useState(false);
-  const [editingPage, setEditingPage] = useState(null);
+  const [pendingListType, setPendingListType] = useState(null);
+  const [pendingListItemCount, setPendingListItemCount] = useState(0);
   
   // Page metadata form
   const [pageMetadata, setPageMetadata] = useState({
@@ -98,10 +133,23 @@ export default function UnifiedContentManager() {
     isPublished: true
   });
 
+  // Refs
+  const paragraphEditorRef = useRef(null);
+
   const color1 = API.color1 || '#239244';
   const color2 = API.color2 || '#e8f5f0';
 
   const categories = ['All', 'Main', 'Research', 'Placements', 'Courses', 'Facilities', 'Clubs', 'Others'];
+
+  const appendPendingListItem = () => {
+    if (!pendingListType) return;
+    const tag = pendingListType;
+    const liContent = tag === 'ol' ? `${pendingListItemCount + 1}.&nbsp;` : '&nbsp;';
+    const liHtml = `<li>${liContent}</li>`;
+    
+    paragraphEditorRef.current?.insertHtml(liHtml);
+    setPendingListItemCount(pendingListItemCount + 1);
+  };
 
   useEffect(() => {
     fetchPagesAndBlocks();
@@ -129,20 +177,6 @@ export default function UnifiedContentManager() {
       });
       
       setPages(mergedPages);
-      
-      // Fetch block counts for all pages
-      const counts = {};
-      for (const page of AVAILABLE_PAGES) {
-        try {
-          const blocksResponse = await API.get(`/api/content-blocks/page/${page.pageName}`);
-          if (blocksResponse.success) {
-            counts[page.pageName] = (blocksResponse.data.data || blocksResponse.data || []).length;
-          }
-        } catch (err) {
-          counts[page.pageName] = 0;
-        }
-      }
-      setPageBlockCounts(counts);
     } catch (error) {
       console.error('Error fetching pages:', error);
     } finally {
@@ -199,18 +233,6 @@ export default function UnifiedContentManager() {
     }
   };
 
-  const handleAddBlock = () => {
-    setEditingBlock({
-      blockId: `block-${Date.now()}`,
-      pageName: selectedPage.pageName,
-      blockType: 'paragraph',
-      content: {},
-      blockOrder: blocks.length + 1,
-      isVisible: true
-    });
-    setShowBlockEditor(true);
-  };
-
   const handleEditBlock = (block) => {
     let parsedContent = block.content;
     if (typeof parsedContent === 'string') {
@@ -224,7 +246,6 @@ export default function UnifiedContentManager() {
       ...block,
       content: parsedContent
     });
-    setShowBlockEditor(true);
   };
 
   const handleSaveBlock = async () => {
@@ -234,28 +255,17 @@ export default function UnifiedContentManager() {
         content: JSON.stringify(editingBlock.content)
       };
 
-      console.log('=== SAVING BLOCK ===');
-      console.log('Has ID:', !!editingBlock.id);
-      console.log('Block Data:', blockData);
-
       if (editingBlock.id) {
-        console.log('Updating block:', editingBlock.id);
-        const response = await API.put(`/api/content-blocks/${editingBlock.id}`, blockData);
-        console.log('Update response:', response);
+        await API.put(`/api/content-blocks/${editingBlock.id}`, blockData);
       } else {
-        console.log('Creating new block');
-        const response = await API.post('/api/content-blocks', blockData);
-        console.log('Create response:', response);
+        await API.post('/api/content-blocks', blockData);
       }
 
       alert('Block saved successfully!');
-      setShowBlockEditor(false);
-      setEditingBlock(null);
       fetchBlocks();
       fetchPagesAndBlocks();
     } catch (error) {
       console.error('Error saving block:', error);
-      console.error('Error details:', error.response?.data || error.message);
       alert('Error saving block: ' + (error.response?.data?.message || error.message));
     }
   };
@@ -286,15 +296,53 @@ export default function UnifiedContentManager() {
     }
   };
 
-  const handleSelectPage = (page) => {
-    // Special handling for FDP - redirect to FDP Programs management page
-    if (page.pageName === 'fdp') {
-      navigate('/admin/fdp-programs');
-      return;
+  const handleMultipleImageUpload = async (files, block) => {
+    try {
+      const uploadPromises = Array.from(files).map(file => {
+        return new Promise(async (resolve, reject) => {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('folder', 'gallery');
+          try {
+            const response = await API.post('/api/upload', formData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            if (response.success) {
+              resolve(response.data.url);
+            } else {
+              reject(new Error('Upload failed'));
+            }
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      const currentImages = block.content.images || [];
+      setEditingBlock({
+        ...block,
+        content: { ...block.content, images: [...currentImages, ...uploadedUrls] }
+      });
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      alert('❌ Error uploading some images. Please try again.');
     }
-    
+  };
+
+  const getPageBlockCount = async (pageName) => {
+    try {
+      const blocksResponse = await API.get(`/api/content-blocks/page/${pageName}`);
+      return (blocksResponse.data?.data || blocksResponse.data || []).length;
+    } catch (err) {
+      return 0;
+    }
+  };
+
+  const handleSelectPage = (page) => {
     setSelectedPage(page);
     setView('editor');
+    setEditingBlock(null);
   };
 
   const handleBackToPages = () => {
@@ -427,48 +475,50 @@ export default function UnifiedContentManager() {
               />
             </div>
             <div>
+              <label className="block text-sm font-medium mb-2">Text Formatting Options</label>
+              <div className="p-2 bg-gray-50 border rounded-lg flex flex-wrap gap-2">
+                <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.applyInlineFormat('strong'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">B</button>
+                <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.applyInlineFormat('em'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">I</button>
+                <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.applyInlineFormat('u'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">U</button>
+                <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.insertLink(); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">Link</button>
+                <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType('ul'); setPendingListItemCount(0); paragraphEditorRef.current?.insertHtml('<ul style="margin:12px 0;padding-left:28px;list-style-position:outside;list-style-type:disc;"><li>&nbsp;</li></ul>'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">UL</button>
+                <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType('ol'); setPendingListItemCount(0); paragraphEditorRef.current?.insertHtml('<ol style="margin:12px 0;padding-left:28px;list-style-position:outside;list-style-type:none;"><li>1.&nbsp;</li></ol>'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">OL</button>
+              </div>
+            </div>
+            {pendingListType && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-xs text-blue-700 font-medium mb-2">
+                  {pendingListType === 'ul' ? 'Unordered List' : 'Ordered List'} mode active ({pendingListItemCount} items)
+                </p>
+                <button
+                  type="button"
+                  onMouseDown={(e) => { e.preventDefault(); appendPendingListItem(); }}
+                  className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700"
+                >
+                  Add Item
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); setPendingListItemCount(0); }}
+                  className="px-3 py-1 ml-2 bg-gray-300 text-gray-700 rounded text-xs font-medium hover:bg-gray-400"
+                >
+                  Done
+                </button>
+              </div>
+            )}
+            <div>
               <label className="block text-sm font-medium mb-2">Content</label>
-              <textarea
-                value={block.content.text || ''}
-                onChange={(e) => setEditingBlock({
-                  ...block,
-                  content: { ...block.content, text: e.target.value }
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-                rows={6}
-                placeholder="Paragraph text..."
-              />
-            </div>
-          </div>
-        );
-
-      case 'list':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">List Title</label>
-              <input
-                type="text"
-                value={block.content.title || ''}
-                onChange={(e) => setEditingBlock({
-                  ...block,
-                  content: { ...block.content, title: e.target.value }
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">List Items (one per line)</label>
-              <textarea
-                value={(block.content.items || []).join('\n')}
-                onChange={(e) => setEditingBlock({
-                  ...block,
-                  content: { ...block.content, items: e.target.value.split('\n').filter(i => i.trim()) }
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-                rows={8}
-                placeholder="Item 1 - Description&#10;Item 2 - Description&#10;..."
-              />
+              <div className="border rounded-lg overflow-hidden">
+                <RichEditor
+                  ref={paragraphEditorRef}
+                  value={block.content.text || ''}
+                  onChange={(html) => setEditingBlock({
+                    ...block,
+                    content: { ...block.content, text: sanitizeParagraphHtml(html) }
+                  })}
+                  showToolbar={false}
+                />
+              </div>
             </div>
           </div>
         );
@@ -477,16 +527,16 @@ export default function UnifiedContentManager() {
         return (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Image URL</label>
+              <label className="block text-sm font-medium mb-2">Image Title</label>
               <input
                 type="text"
-                value={block.content.url || ''}
+                value={block.content.title || ''}
                 onChange={(e) => setEditingBlock({
                   ...block,
-                  content: { ...block.content, url: e.target.value }
+                  content: { ...block.content, title: e.target.value }
                 })}
                 className="w-full px-4 py-2 border rounded-lg"
-                placeholder="/uploads/image.jpg"
+                placeholder="Image Title"
               />
             </div>
             <div>
@@ -523,19 +573,14 @@ export default function UnifiedContentManager() {
                 className="w-full px-4 py-2 border rounded-lg"
               />
             </div>
-            {block.content.url && (
-              <div className="mt-4">
-                <img src={block.content.url} alt="Preview" className="max-w-xs rounded-lg border" />
-              </div>
-            )}
           </div>
         );
 
-      case 'card':
+      case 'gallery':
         return (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Card Title</label>
+              <label className="block text-sm font-medium mb-2">Gallery Title</label>
               <input
                 type="text"
                 value={block.content.title || ''}
@@ -544,45 +589,73 @@ export default function UnifiedContentManager() {
                   content: { ...block.content, title: e.target.value }
                 })}
                 className="w-full px-4 py-2 border rounded-lg"
+                placeholder="Gallery title (optional)"
               />
             </div>
+            
             <div>
-              <label className="block text-sm font-medium mb-2">Description</label>
+              <label className="block text-sm font-medium mb-2">Add Multiple Images (Upload all at once)</label>
+              <div 
+                className="w-full border-2 border-dashed border-green-400 rounded-lg p-8 text-center bg-green-50 cursor-pointer hover:bg-green-100 transition"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.add('bg-green-200');
+                }}
+                onDragLeave={(e) => {
+                  e.currentTarget.classList.remove('bg-green-200');
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.remove('bg-green-200');
+                  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                  if (files.length > 0) {
+                    handleMultipleImageUpload(files, block);
+                  }
+                }}
+                onClick={() => {
+                  const fileInput = document.createElement('input');
+                  fileInput.type = 'file';
+                  fileInput.multiple = true;
+                  fileInput.accept = 'image/*';
+                  fileInput.onchange = (e) => {
+                    const files = Array.from(e.target.files);
+                    if (files.length > 0) {
+                      handleMultipleImageUpload(files, block);
+                    }
+                  };
+                  fileInput.click();
+                }}
+              >
+                <div className="text-green-700">
+                  <p className="font-semibold text-lg mb-2">📤 Click to upload or drag images</p>
+                  <p className="text-sm text-green-600">Select multiple images at once to upload them all together</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Or enter URLs manually (one per line)</label>
               <textarea
-                value={block.content.description || ''}
-                onChange={(e) => setEditingBlock({
-                  ...block,
-                  content: { ...block.content, description: e.target.value }
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-                rows={4}
+                value={(block.content.images || []).map(img => 
+                  typeof img === 'string' ? img : img.url
+                ).join('\n')}
+                onChange={(e) => {
+                  const urls = e.target.value.split('\n').filter(url => url.trim());
+                  const images = urls.map(url => ({
+                    url: url.trim(),
+                    alt: 'Gallery Image',
+                    caption: ''
+                  }));
+                  setEditingBlock({
+                    ...block,
+                    content: { ...block.content, images }
+                  });
+                }}
+                className="w-full px-4 py-2 border rounded-lg font-mono text-sm"
+                rows={6}
+                placeholder="/uploads/image1.jpg\n/uploads/image2.jpg\n/uploads/image3.jpg"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Icon (emoji or icon name)</label>
-              <input
-                type="text"
-                value={block.content.icon || ''}
-                onChange={(e) => setEditingBlock({
-                  ...block,
-                  content: { ...block.content, icon: e.target.value }
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-                placeholder="📚 or icon-name"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Link URL (optional)</label>
-              <input
-                type="text"
-                value={block.content.link || ''}
-                onChange={(e) => setEditingBlock({
-                  ...block,
-                  content: { ...block.content, link: e.target.value }
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-                placeholder="/path/to/page"
-              />
+              <p className="text-xs text-gray-500 mt-1">Display: 3 images per row on user side</p>
             </div>
           </div>
         );
@@ -603,117 +676,63 @@ export default function UnifiedContentManager() {
                 placeholder="Gallery title (optional)"
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium mb-2">Images (one URL per line)</label>
+              <label className="block text-sm font-medium mb-2">Add Multiple Images (Upload all at once)</label>
+              <div 
+                className="w-full border-2 border-dashed border-green-400 rounded-lg p-8 text-center bg-green-50 cursor-pointer hover:bg-green-100 transition"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.add('bg-green-200');
+                }}
+                onDragLeave={(e) => {
+                  e.currentTarget.classList.remove('bg-green-200');
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.remove('bg-green-200');
+                  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                  if (files.length > 0) {
+                    handleMultipleImageUpload(files, block);
+                  }
+                }}
+                onClick={() => {
+                  const fileInput = document.createElement('input');
+                  fileInput.type = 'file';
+                  fileInput.multiple = true;
+                  fileInput.accept = 'image/*';
+                  fileInput.onchange = (e) => {
+                    const files = Array.from(e.target.files);
+                    if (files.length > 0) {
+                      handleMultipleImageUpload(files, block);
+                    }
+                  };
+                  fileInput.click();
+                }}
+              >
+                <div className="text-green-700">
+                  <p className="font-semibold text-lg mb-2">📤 Click to upload or drag images</p>
+                  <p className="text-sm text-green-600">Select multiple images at once to upload them all together</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Or enter URLs manually (one per line)</label>
               <textarea
-                value={(block.content.images || []).map(img => 
-                  typeof img === 'string' ? img : img.url
-                ).join('\n')}
+                value={(block.content.images || []).join('\n')}
                 onChange={(e) => {
                   const urls = e.target.value.split('\n').filter(url => url.trim());
-                  const images = urls.map(url => ({
-                    url: url.trim(),
-                    alt: `Gallery Image`,
-                    caption: ''
-                  }));
                   setEditingBlock({
                     ...block,
-                    content: { ...block.content, images }
+                    content: { ...block.content, images: urls }
                   });
                 }}
                 className="w-full px-4 py-2 border rounded-lg font-mono text-sm"
-                rows={8}
+                rows={6}
                 placeholder="/uploads/image1.jpg\n/uploads/image2.jpg\n/uploads/image3.jpg"
               />
-              <p className="text-xs text-gray-500 mt-1">Enter image URLs, one per line. Use ImageUploader below to upload new images.</p>
-            </div>
-            <ImageUploader
-              onChange={(url) => {
-                const newImage = { url, alt: 'Gallery Image', caption: '' };
-                const images = [...(block.content.images || []), newImage];
-                setEditingBlock({
-                  ...block,
-                  content: { ...block.content, images }
-                });
-              }}
-            />
-          </div>
-        );
-
-      case 'button':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Button Text</label>
-              <input
-                type="text"
-                value={block.content.text || ''}
-                onChange={(e) => setEditingBlock({
-                  ...block,
-                  content: { ...block.content, text: e.target.value }
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-                placeholder="Click Here"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Link URL</label>
-              <input
-                type="text"
-                value={block.content.url || ''}
-                onChange={(e) => setEditingBlock({
-                  ...block,
-                  content: { ...block.content, url: e.target.value }
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-                placeholder="/path/to/page"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Button Style</label>
-              <select
-                value={block.content.style || 'primary'}
-                onChange={(e) => setEditingBlock({
-                  ...block,
-                  content: { ...block.content, style: e.target.value }
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-              >
-                <option value="primary">Primary</option>
-                <option value="secondary">Secondary</option>
-                <option value="outline">Outline</option>
-              </select>
-            </div>
-          </div>
-        );
-
-      case 'gallery':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Gallery Title</label>
-              <input
-                type="text"
-                value={block.content.title || ''}
-                onChange={(e) => setEditingBlock({
-                  ...block,
-                  content: { ...block.content, title: e.target.value }
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Image URLs (one per line)</label>
-              <textarea
-                value={(block.content.images || []).join('\n')}
-                onChange={(e) => setEditingBlock({
-                  ...block,
-                  content: { ...block.content, images: e.target.value.split('\n').filter(i => i.trim()) }
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-                rows={6}
-                placeholder="/uploads/image1.jpg&#10;/uploads/image2.jpg"
-              />
+              <p className="text-xs text-gray-500 mt-1">Display: 3 images per row on user side</p>
             </div>
           </div>
         );
@@ -722,25 +741,95 @@ export default function UnifiedContentManager() {
         return (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Statistics (format: value|label, one per line)</label>
-              <textarea
-                value={(block.content.stats || []).map(s => `${s.value}|${s.label}`).join('\n')}
+              <label className="block text-sm font-semibold mb-2 text-gray-700">Section Title</label>
+              <input
+                type="text"
+                value={block.content.title || ''}
                 onChange={(e) => setEditingBlock({
                   ...block,
-                  content: { 
-                    ...block.content, 
-                    stats: e.target.value.split('\n')
-                      .filter(i => i.trim())
-                      .map(line => {
-                        const [value, label] = line.split('|');
-                        return { value: value?.trim() || '', label: label?.trim() || '' };
-                      })
-                  }
+                  content: { ...block.content, title: e.target.value }
                 })}
-                className="w-full px-4 py-2 border rounded-lg"
-                rows={6}
-                placeholder="100+|Students&#10;50+|Faculty&#10;10+|Programs"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Our Achievements"
               />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-semibold text-gray-700">Statistics</label>
+                <button
+                  type="button"
+                  onClick={() => setEditingBlock({
+                    ...block,
+                    content: {
+                      ...block.content,
+                      stats: [...(block.content.stats || []), { value: '', label: '' }]
+                    }
+                  })}
+                  className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  + Add Stat
+                </button>
+              </div>
+              <div className="space-y-3">
+                {(block.content.stats || []).map((stat, index) => (
+                  <div key={index} className="bg-gradient-to-br from-blue-50 to-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="font-semibold text-gray-800">Statistic #{index + 1}</h4>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newStats = block.content.stats.filter((_, i) => i !== index);
+                          setEditingBlock({
+                            ...block,
+                            content: { ...block.content, stats: newStats }
+                          });
+                        }}
+                        className="text-sm px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-semibold mb-2 text-gray-700">Value</label>
+                        <input
+                          type="text"
+                          value={stat.value || ''}
+                          onChange={(e) => {
+                            const newStats = [...block.content.stats];
+                            newStats[index] = { ...stat, value: e.target.value };
+                            setEditingBlock({
+                              ...block,
+                              content: { ...block.content, stats: newStats }
+                            });
+                          }}
+                          className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-semibold"
+                          placeholder="100+"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">e.g., 100+, 500K, 1000</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-2 text-gray-700">Label</label>
+                        <input
+                          type="text"
+                          value={stat.label || ''}
+                          onChange={(e) => {
+                            const newStats = [...block.content.stats];
+                            newStats[index] = { ...stat, label: e.target.value };
+                            setEditingBlock({
+                              ...block,
+                              content: { ...block.content, stats: newStats }
+                            });
+                          }}
+                          className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Students"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">e.g., Students, Faculty, Courses</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         );
@@ -1034,7 +1123,7 @@ export default function UnifiedContentManager() {
                 <div className="flex items-center gap-2">
                   <Layout className="w-4 h-4" style={{ color: color1 }} />
                   <span className="text-gray-600">
-                    {pageBlockCounts[page.pageName] || 0} blocks
+                    Content blocks
                   </span>
                 </div>
                 <span
@@ -1065,40 +1154,142 @@ export default function UnifiedContentManager() {
     );
   }
 
-  // Content Editor View
+  // Content Editor View - Two Column Block Editor Layout
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen bg-white">
       {/* Top Bar */}
-      <div className="bg-white border-b px-6 py-4">
-        <div className="flex items-center justify-between">
+      <div className="border-b px-6 py-4 bg-white shadow-sm">
+        <div className="flex items-center justify-between max-w-full">
           <div className="flex items-center gap-4">
             <button
               onClick={handleBackToPages}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ChevronRight className="w-5 h-5 rotate-180" />
-              <span>Back to Pages</span>
+              <span className="font-medium">Back</span>
             </button>
             <div className="h-6 w-px bg-gray-300" />
             <div>
-              <h2 className="text-xl font-bold" style={{ color: color1 }}>
+              <h2 className="text-2xl font-bold" style={{ color: color1 }}>
                 {selectedPage?.pageTitle}
               </h2>
-              <p className="text-sm text-gray-500">/{selectedPage?.pageName}</p>
+              <p className="text-xs text-gray-500">/{selectedPage?.pageName}</p>
             </div>
           </div>
           
           <div className="flex gap-2">
             <button
               onClick={handleSavePageMetadata}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-gray-50"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-gray-50 transition-colors font-medium"
             >
               <Save className="w-4 h-4" />
-              Save Metadata
+              Save
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Two-Column Editor Layout */}
+      <div className="flex-1 overflow-hidden flex gap-0">
+        {/* LEFT SIDEBAR - Block Type Selector, Options & Block List */}
+        <div className="w-72 border-r bg-gray-50 flex flex-col min-h-0 overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* Block Type Selector */}
+            <div className="bg-white rounded-lg border p-4 shadow-sm">
+              <label className="block text-sm font-bold text-slate-900 mb-3">Block Type</label>
+              <select 
+                value={editingBlock?.blockType || 'paragraph'} 
+                onChange={(e) => {
+                  const newType = e.target.value;
+                  const newContent = {};
+                  switch(newType) {
+                    case 'table': newContent.headers = []; newContent.rows = []; break;
+                    case 'gallery': newContent.title = ''; newContent.images = []; break;
+                    default: newContent.text = '';
+                  }
+                  setEditingBlock({ ...editingBlock, blockType: newType, content: newContent });
+                }} 
+                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                {BLOCK_TYPES.map((type) => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Block ID Input */}
+            <div className="bg-white rounded-lg border p-4 shadow-sm">
+              <label className="block text-sm font-bold text-slate-900 mb-3">Block ID</label>
+              <input
+                type="text"
+                value={editingBlock?.blockId || ''}
+                onChange={(e) => setEditingBlock({ ...editingBlock, blockId: e.target.value })}
+                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="unique-block-id"
+              />
+            </div>
+
+            {/* Visibility Toggle */}
+            <div className="bg-white rounded-lg border p-4 shadow-sm">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={editingBlock?.isVisible !== false}
+                  onChange={(e) => setEditingBlock({ ...editingBlock, isVisible: e.target.checked })}
+                  className="h-5 w-5 rounded"
+                />
+                <span className="text-sm font-semibold text-slate-700">Visible</span>
+              </label>
+            </div>
+
+            {/* Added Blocks List */}
+            <div className="bg-white rounded-lg border p-4 shadow-sm flex-1 min-h-0 flex flex-col overflow-hidden">
+              <h4 className="text-sm font-bold text-slate-900 mb-3">Blocks ({blocks.length})</h4>
+              <div className="flex-1 min-h-0 overflow-y-auto space-y-1">
+                {blocks.length === 0 ? (
+                  <p className="text-xs text-gray-400">No blocks yet</p>
+                ) : (
+                  blocks.map((block, index) => {
+                    const blockType = BLOCK_TYPES.find(t => t.value === block.blockType);
+                    const isSelected = editingBlock?.id === block.id;
+                    return (
+                      <button
+                        key={block.id}
+                        onClick={() => handleEditBlock(block)}
+                        className={`w-full flex items-center gap-2 p-2 rounded-lg text-left text-xs transition-colors ${
+                          isSelected 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        <span className={`flex-shrink-0 h-5 w-5 flex items-center justify-center rounded text-xs font-bold ${isSelected ? 'bg-white text-green-500' : 'bg-gray-300 text-gray-700'}`}>
+                          {index + 1}
+                        </span>
+                        <span className="flex-1 truncate">{blockType?.label || block.blockType}</span>
+                        {block.isVisible === false && <EyeOff size={12} />}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Add Block Button */}
+          <div className="p-4 border-t bg-white">
             <button
-              onClick={handleAddBlock}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white"
+              onClick={() => {
+                const newBlock = {
+                  blockId: `block-${Date.now()}`,
+                  pageName: selectedPage.pageName,
+                  blockType: 'paragraph',
+                  content: { text: '' },
+                  blockOrder: blocks.length + 1,
+                  isVisible: true
+                };
+                setEditingBlock(newBlock);
+              }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-white font-medium transition-all"
               style={{ backgroundColor: color1 }}
             >
               <Plus className="w-4 h-4" />
@@ -1106,267 +1297,77 @@ export default function UnifiedContentManager() {
             </button>
           </div>
         </div>
-      </div>
 
-      <div className="flex-1 overflow-hidden flex">
-        {/* Left Panel - Page Settings */}
-        <div className="w-80 border-r bg-gray-50 p-6 overflow-y-auto">
-          <h3 className="font-bold mb-4 flex items-center gap-2">
-            <Settings className="w-5 h-5" />
-            Page Settings
-          </h3>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Page Title</label>
-              <input
-                type="text"
-                value={pageMetadata.pageTitle}
-                onChange={(e) => setPageMetadata({ ...pageMetadata, pageTitle: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">Page Slug</label>
-              <input
-                type="text"
-                value={pageMetadata.pageSlug}
-                onChange={(e) => setPageMetadata({ ...pageMetadata, pageSlug: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">Meta Description</label>
-              <textarea
-                value={pageMetadata.metaDescription}
-                onChange={(e) => setPageMetadata({ ...pageMetadata, metaDescription: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-                rows={3}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">Meta Keywords</label>
-              <input
-                type="text"
-                value={pageMetadata.metaKeywords}
-                onChange={(e) => setPageMetadata({ ...pageMetadata, metaKeywords: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
-                placeholder="keyword1, keyword2"
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Published</label>
-              <button
-                onClick={() => setPageMetadata({ ...pageMetadata, isPublished: !pageMetadata.isPublished })}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  pageMetadata.isPublished ? 'bg-green-600' : 'bg-gray-300'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    pageMetadata.isPublished ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Center Panel - Content Blocks */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-4xl mx-auto">
-            <h3 className="font-bold mb-4 flex items-center gap-2">
-              <Layout className="w-5 h-5" />
-              Content Blocks ({blocks.length})
-            </h3>
-
-            {loading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: color1 }} />
-              </div>
-            ) : blocks.length === 0 ? (
-              <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed">
+        {/* RIGHT PANEL - Block Content Editor */}
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col">
+          {!editingBlock ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
                 <Layout className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                <p className="text-gray-600 mb-4">No content blocks yet</p>
+                <p className="text-gray-500 mb-4">Select a block to edit or create a new one</p>
                 <button
-                  onClick={handleAddBlock}
-                  className="px-4 py-2 rounded-lg text-white"
+                  onClick={() => {
+                    const newBlock = {
+                      blockId: `block-${Date.now()}`,
+                      pageName: selectedPage.pageName,
+                      blockType: 'paragraph',
+                      content: { text: '' },
+                      blockOrder: blocks.length + 1,
+                      isVisible: true
+                    };
+                    setEditingBlock(newBlock);
+                  }}
+                  className="px-6 py-2 rounded-lg text-white font-medium"
                   style={{ backgroundColor: color1 }}
                 >
                   Create First Block
                 </button>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {blocks.map((block, index) => {
-                  const blockType = BLOCK_TYPES.find(t => t.value === block.blockType);
-                  const isExpanded = expandedBlock === block.id;
-                  
-                  return (
-                    <div
-                      key={block.id}
-                      className="border rounded-xl overflow-hidden bg-white hover:shadow-md transition-shadow"
-                    >
-                      <div className="p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3 flex-1">
-                          <div
-                            className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold"
-                            style={{ backgroundColor: blockType?.color || '#94a3b8' }}
-                          >
-                            {index + 1}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-bold">{blockType?.label || block.blockType}</h4>
-                              {!block.isVisible && (
-                                <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">
-                                  Hidden
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-gray-500">ID: {block.blockId}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleToggleVisibility(block)}
-                            className="p-2 hover:bg-gray-100 rounded-lg"
-                            title={block.isVisible ? 'Hide' : 'Show'}
-                          >
-                            {block.isVisible ? (
-                              <Eye className="w-4 h-4 text-gray-600" />
-                            ) : (
-                              <EyeOff className="w-4 h-4 text-gray-400" />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => handleEditBlock(block)}
-                            className="p-2 hover:bg-gray-100 rounded-lg"
-                            title="Edit"
-                          >
-                            <Edit2 className="w-4 h-4 text-blue-600" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteBlock(block.id)}
-                            className="p-2 hover:bg-gray-100 rounded-lg"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4 text-red-600" />
-                          </button>
-                          <button
-                            onClick={() => setExpandedBlock(isExpanded ? null : block.id)}
-                            className="p-2 hover:bg-gray-100 rounded-lg"
-                          >
-                            {isExpanded ? (
-                              <ChevronDown className="w-4 h-4" />
-                            ) : (
-                              <ChevronRight className="w-4 h-4" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-
-                      {isExpanded && (
-                        <div className="px-4 pb-4 pt-2 border-t bg-gray-50">
-                          <pre className="text-xs bg-white p-3 rounded border overflow-x-auto">
-                            {JSON.stringify(typeof block.content === 'string' ? JSON.parse(block.content) : block.content, null, 2)}
-                          </pre>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+            </div>
+          ) : (
+            <div className="space-y-4 max-w-2xl">
+              <div>
+                <h3 className="text-lg font-bold mb-4">Block Content</h3>
+                {renderContentEditor(editingBlock)}
               </div>
-            )}
-          </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4 border-t">
+                <button
+                  onClick={() => setEditingBlock(null)}
+                  className="flex-1 px-4 py-2 rounded-lg border hover:bg-gray-50 font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                {editingBlock.id && (
+                  <button
+                    onClick={() => {
+                      handleDeleteBlock(editingBlock.id);
+                      setEditingBlock(null);
+                    }}
+                    className="flex-1 px-4 py-2 rounded-lg text-red-600 border border-red-200 hover:bg-red-50 font-medium transition-colors"
+                  >
+                    Delete
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    handleSaveBlock();
+                    setEditingBlock(null);
+                  }}
+                  className="flex-1 px-4 py-2 rounded-lg text-white font-medium flex items-center justify-center gap-2 transition-all"
+                  style={{ backgroundColor: color1 }}
+                >
+                  <Save className="w-4 h-4" />
+                  Save
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Block Editor Modal */}
-      {showBlockEditor && editingBlock && (
-        <div className="fixed inset-0 bg-white/10 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
-            <div className="p-6 border-b flex items-center justify-between">
-              <h3 className="text-xl font-bold">
-                {editingBlock.id ? 'Edit Block' : 'Create Block'}
-              </h3>
-              <button
-                onClick={() => setShowBlockEditor(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            <div className="p-6 overflow-y-auto flex-1">
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Block ID</label>
-                  <input
-                    type="text"
-                    value={editingBlock.blockId}
-                    onChange={(e) => setEditingBlock({ ...editingBlock, blockId: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg"
-                    placeholder="unique-block-id"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Block Type</label>
-                  <select
-                    value={editingBlock.blockType}
-                    onChange={(e) => setEditingBlock({ ...editingBlock, blockType: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg"
-                  >
-                    {BLOCK_TYPES.map(type => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Block Order</label>
-                  <input
-                    type="number"
-                    value={editingBlock.blockOrder}
-                    onChange={(e) => setEditingBlock({ ...editingBlock, blockOrder: parseInt(e.target.value) })}
-                    className="w-full px-4 py-2 border rounded-lg"
-                  />
-                </div>
-
-                <div className="border-t pt-6">
-                  <h4 className="font-bold mb-4">Content</h4>
-                  {renderContentEditor(editingBlock)}
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 border-t flex gap-3 justify-end">
-              <button
-                onClick={() => setShowBlockEditor(false)}
-                className="px-6 py-2 border rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveBlock}
-                className="px-6 py-2 rounded-lg text-white flex items-center gap-2"
-                style={{ backgroundColor: color1 }}
-              >
-                <Save className="w-4 h-4" />
-                Save Block
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

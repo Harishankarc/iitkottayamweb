@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, Edit2, Trash2, Eye, EyeOff, Save, FileText, Layout, 
   Type, Image, List, Settings, ChevronRight, ChevronDown, Search,
@@ -7,6 +7,7 @@ import {
 import { Link } from 'react-router-dom';
 import API from '../../api/api';
 import ImageUploader from '../components/ImageUploader';
+import RichEditor from '../components/RichEditor';
 
 const BLOCK_TYPES = [
   { value: 'hero', label: '🎯 Hero Banner', color: '#8b5cf6' },
@@ -14,12 +15,49 @@ const BLOCK_TYPES = [
   { value: 'paragraph', label: '📄 Paragraph', color: '#10b981' },
   { value: 'image', label: '🖼️ Image', color: '#f59e0b' },
   { value: 'gallery', label: '🎨 Gallery', color: '#ec4899' },
-  { value: 'list', label: '📋 List', color: '#6366f1' },
-  { value: 'card', label: '🃏 Card', color: '#14b8a6' },
   { value: 'table', label: '📊 Table', color: '#06b6d4' },
-  { value: 'statistics', label: '📈 Statistics', color: '#239244' },
-  { value: 'button', label: '🔘 Button', color: '#ef4444' }
+  { value: 'statistics', label: '📈 Statistics', color: '#239244' }
 ];
+
+const sanitizeParagraphHtml = (html) => {
+  if (!html) return '';
+  
+  // Remove empty tags
+  let cleaned = html.replace(/<(\w+)>[<\s]*<\/\1>/g, '');
+  
+  // Fix unclosed tags by removing orphaned closing tags
+  cleaned = cleaned.replace(/<\/b>(?![\s\S]*<b>)/g, '');
+  cleaned = cleaned.replace(/<\/i>(?![\s\S]*<i>)/g, '');
+  cleaned = cleaned.replace(/<\/u>(?![\s\S]*<u>)/g, '');
+  
+  // Normalize links without protocol
+  cleaned = cleaned.replace(/href="([^"]*)"/g, (match, url) => {
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl) return match;
+    if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://') || trimmedUrl.startsWith('mailto:')) {
+      return match;
+    }
+    return `href="https://${trimmedUrl}"`;
+  });
+  
+  // Ensure common inline tags are balanced
+  try {
+    const inlineTags = ['b', 'i', 'u', 'strong', 'em', 'a', 'span'];
+    inlineTags.forEach((tag) => {
+      const openRegex = new RegExp(`<${tag}(\\s|>)`, 'gi');
+      const closeRegex = new RegExp(`</${tag}>`, 'gi');
+      const opens = (cleaned.match(openRegex) || []).length;
+      const closes = (cleaned.match(closeRegex) || []).length;
+      for (let k = 0; k < Math.max(0, opens - closes); k++) {
+        cleaned += `</${tag}>`;
+      }
+    });
+  } catch (e) {
+    // ignore balancing errors
+  }
+
+  return cleaned.trim();
+};
 
 export default function UnifiedContentEditor() {
   // States
@@ -33,6 +71,8 @@ export default function UnifiedContentEditor() {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedBlock, setExpandedBlock] = useState(null);
   const [pageBlockCounts, setPageBlockCounts] = useState({}); // Store block counts for each page
+  const [pendingListType, setPendingListType] = useState(null);
+  const [pendingListItemCount, setPendingListItemCount] = useState(0);
 
   // Page metadata form
   const [pageMetadata, setPageMetadata] = useState({
@@ -45,6 +85,19 @@ export default function UnifiedContentEditor() {
 
   const color1 = API.color1 || '#239244';
   const color2 = API.color2 || '#e8f5f0';
+
+  // Refs
+  const paragraphEditorRef = useRef(null);
+
+  const appendPendingListItem = () => {
+    if (!pendingListType) return;
+    const tag = pendingListType;
+    const liContent = tag === 'ol' ? `${pendingListItemCount + 1}.&nbsp;` : '&nbsp;';
+    const liHtml = `<li>${liContent}</li>`;
+    
+    paragraphEditorRef.current?.insertHtml(liHtml);
+    setPendingListItemCount(pendingListItemCount + 1);
+  };
 
   useEffect(() => {
     fetchPages();
@@ -294,6 +347,41 @@ export default function UnifiedContentEditor() {
     updateContent('rows', rows);
   };
 
+  const handleMultipleImageUpload = async (files) => {
+    try {
+      const uploadPromises = Array.from(files).map(file => {
+        return new Promise(async (resolve, reject) => {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('folder', 'gallery');
+          try {
+            const response = await API.post('/api/upload', formData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            if (response.success) {
+              resolve({
+                url: response.data.url,
+                alt: 'Gallery Image',
+                caption: ''
+              });
+            } else {
+              reject(new Error('Upload failed'));
+            }
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+
+      const uploadedImages = await Promise.all(uploadPromises);
+      const currentImages = content.images || [];
+      updateContent('images', [...currentImages, ...uploadedImages]);
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      alert('❌ Error uploading some images. Please try again.');
+    }
+  };
+
   const renderContentEditor = () => {
     if (!editingBlock) return null;
     const content = editingBlock.content || {};
@@ -417,14 +505,47 @@ export default function UnifiedContentEditor() {
             {editingBlock.blockType === 'paragraph' && (
               <>
                 <div>
+                  <label className="block text-sm font-semibold mb-2 text-gray-700">Text Formatting Options</label>
+                  <div className="p-3 bg-gray-50 border-2 border-gray-300 rounded-lg flex flex-wrap gap-2">
+                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.applyInlineFormat('strong'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">B</button>
+                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.applyInlineFormat('em'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">I</button>
+                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.applyInlineFormat('u'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">U</button>
+                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.insertLink(); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">Link</button>
+                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType('ul'); setPendingListItemCount(0); paragraphEditorRef.current?.insertHtml('<ul style="margin:12px 0;padding-left:28px;list-style-position:outside;list-style-type:disc;"><li>&nbsp;</li></ul>'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">UL</button>
+                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType('ol'); setPendingListItemCount(0); paragraphEditorRef.current?.insertHtml('<ol style="margin:12px 0;padding-left:28px;list-style-position:outside;list-style-type:none;"><li>1.&nbsp;</li></ol>'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">OL</button>
+                  </div>
+                </div>
+                {pendingListType && (
+                  <div className="p-3 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                    <p className="text-xs text-blue-700 font-medium mb-2">
+                      {pendingListType === 'ul' ? 'Unordered List' : 'Ordered List'} mode active ({pendingListItemCount} items)
+                    </p>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); appendPendingListItem(); }}
+                      className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700"
+                    >
+                      Add Item
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); setPendingListItemCount(0); }}
+                      className="px-3 py-1 ml-2 bg-gray-300 text-gray-700 rounded text-xs font-medium hover:bg-gray-400"
+                    >
+                      Done
+                    </button>
+                  </div>
+                )}
+                <div>
                   <label className="block text-sm font-semibold mb-2 text-gray-700">Content</label>
-                  <textarea
-                    value={content.text || ''}
-                    onChange={(e) => updateContent('text', e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    rows="6"
-                    placeholder="Write your content here..."
-                  />
+                  <div className="border-2 border-gray-300 rounded-lg overflow-hidden">
+                    <RichEditor 
+                      ref={paragraphEditorRef}
+                      value={content.text || ''} 
+                      onChange={(html) => updateContent('text', sanitizeParagraphHtml(html))}
+                      showToolbar={false}
+                    />
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -450,64 +571,6 @@ export default function UnifiedContentEditor() {
                 </div>
               </>
             )}
-          </div>
-        );
-
-      case 'list':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">List Title</label>
-              <input
-                type="text"
-                value={content.title || ''}
-                onChange={(e) => updateContent('title', e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Key Features"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Icon (optional)</label>
-              <input
-                type="text"
-                value={content.icon || ''}
-                onChange={(e) => updateContent('icon', e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="✓"
-              />
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-semibold text-gray-700">List Items</label>
-                <button
-                  type="button"
-                  onClick={() => addArrayItem('items', '')}
-                  className="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                >
-                  + Add Item
-                </button>
-              </div>
-              <div className="space-y-2">
-                {(content.items || []).map((item, index) => (
-                  <div key={index} className="flex gap-2">
-                    <input
-                      type="text"
-                      value={item}
-                      onChange={(e) => updateArrayContent('items', index, e.target.value)}
-                      className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder={`Item ${index + 1}`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeArrayItem('items', index)}
-                      className="px-3 py-2 text-red-600 hover:bg-red-50 rounded"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         );
 
@@ -553,6 +616,84 @@ export default function UnifiedContentEditor() {
           </div>
         );
 
+      case 'gallery':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-gray-700">Gallery Title</label>
+              <input
+                type="text"
+                value={content.title || ''}
+                onChange={(e) => updateContent('title', e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Gallery title (optional)"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-gray-700">Add Multiple Images (Upload all at once)</label>
+              <div 
+                className="w-full border-2 border-dashed border-green-400 rounded-lg p-8 text-center bg-green-50 cursor-pointer hover:bg-green-100 transition"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.add('bg-green-200');
+                }}
+                onDragLeave={(e) => {
+                  e.currentTarget.classList.remove('bg-green-200');
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.classList.remove('bg-green-200');
+                  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                  if (files.length > 0) {
+                    handleMultipleImageUpload(files);
+                  }
+                }}
+                onClick={() => {
+                  const fileInput = document.createElement('input');
+                  fileInput.type = 'file';
+                  fileInput.multiple = true;
+                  fileInput.accept = 'image/*';
+                  fileInput.onchange = (e) => {
+                    const files = Array.from(e.target.files);
+                    if (files.length > 0) {
+                      handleMultipleImageUpload(files);
+                    }
+                  };
+                  fileInput.click();
+                }}
+              >
+                <div className="text-green-700">
+                  <p className="font-semibold text-lg mb-2">📤 Click to upload or drag images</p>
+                  <p className="text-sm text-green-600">Select multiple images at once to upload them all together</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-gray-700">Or enter URLs manually (one per line)</label>
+              <textarea
+                value={(content.images || []).map(img => 
+                  typeof img === 'string' ? img : img.url
+                ).join('\n')}
+                onChange={(e) => {
+                  const urls = e.target.value.split('\n').filter(url => url.trim());
+                  const images = urls.map(url => ({
+                    url: url.trim(),
+                    alt: 'Gallery Image',
+                    caption: ''
+                  }));
+                  updateContent('images', images);
+                }}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-sm"
+                rows={8}
+                placeholder="/uploads/image1.jpg\n/uploads/image2.jpg\n/uploads/image3.jpg"
+              />
+              <p className="text-xs text-gray-500 mt-1">Display: 3 images per row on user side</p>
+            </div>
+          </div>
+        );
+
       case 'statistics':
         return (
           <div className="space-y-4">
@@ -579,88 +720,51 @@ export default function UnifiedContentEditor() {
               </div>
               <div className="space-y-3">
                 {(content.stats || []).map((stat, index) => (
-                  <div key={index} className="border-2 border-gray-200 rounded-lg p-4">
-                    <div className="grid grid-cols-2 gap-3 mb-2">
-                      <input
-                        type="text"
-                        value={stat.value || ''}
-                        onChange={(e) => {
-                          const newStats = [...(content.stats || [])];
-                          newStats[index] = { ...stat, value: e.target.value };
-                          updateContent('stats', newStats);
-                        }}
-                        className="px-3 py-2 border rounded focus:ring-2 focus:ring-green-500"
-                        placeholder="100+"
-                      />
-                      <input
-                        type="text"
-                        value={stat.label || ''}
-                        onChange={(e) => {
-                          const newStats = [...(content.stats || [])];
-                          newStats[index] = { ...stat, label: e.target.value };
-                          updateContent('stats', newStats);
-                        }}
-                        className="px-3 py-2 border rounded focus:ring-2 focus:ring-green-500"
-                        placeholder="Students"
-                      />
+                  <div key={index} className="bg-gradient-to-br from-blue-50 to-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="font-semibold text-gray-800">Statistic #{index + 1}</h4>
+                      <button
+                        type="button"
+                        onClick={() => removeArrayItem('stats', index)}
+                        className="text-sm px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                      >
+                        Remove
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => removeArrayItem('stats', index)}
-                      className="text-sm text-red-600 hover:text-red-800"
-                    >
-                      Remove
-                    </button>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-semibold mb-2 text-gray-700">Value</label>
+                        <input
+                          type="text"
+                          value={stat.value || ''}
+                          onChange={(e) => {
+                            const newStats = [...(content.stats || [])];
+                            newStats[index] = { ...stat, value: e.target.value };
+                            updateContent('stats', newStats);
+                          }}
+                          className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-semibold"
+                          placeholder="100+"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">e.g., 100+, 500K, 1000</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold mb-2 text-gray-700">Label</label>
+                        <input
+                          type="text"
+                          value={stat.label || ''}
+                          onChange={(e) => {
+                            const newStats = [...(content.stats || [])];
+                            newStats[index] = { ...stat, label: e.target.value };
+                            updateContent('stats', newStats);
+                          }}
+                          className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Students"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">e.g., Students, Faculty, Courses</p>
+                      </div>
+                    </div>
                   </div>
                 ))}
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'button':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Title</label>
-              <input
-                type="text"
-                value={content.title || content.text || ''}
-                onChange={(e) => updateContent('title', e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Interested in Joining?"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Description (Optional)</label>
-              <textarea
-                value={content.description || ''}
-                onChange={(e) => updateContent('description', e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                rows="2"
-                placeholder="Additional description"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Button Text</label>
-                <input
-                  type="text"
-                  value={content.buttonText || content.text || ''}
-                  onChange={(e) => updateContent('buttonText', e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Learn More"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Link URL</label>
-                <input
-                  type="text"
-                  value={content.link || ''}
-                  onChange={(e) => updateContent('link', e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="/page"
-                />
               </div>
             </div>
           </div>
@@ -681,42 +785,6 @@ export default function UnifiedContentEditor() {
               <p className="text-xs text-gray-500 mt-1">
                 You can use HTML tags like &lt;p&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;br&gt;
               </p>
-            </div>
-          </div>
-        );
-
-      case 'card':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Card Title</label>
-              <input
-                type="text"
-                value={content.title || ''}
-                onChange={(e) => updateContent('title', e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="Card title"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Description</label>
-              <textarea
-                value={content.description || content.text || ''}
-                onChange={(e) => updateContent('description', e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                rows="4"
-                placeholder="Card description"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Icon/Emoji</label>
-              <input
-                type="text"
-                value={content.icon || ''}
-                onChange={(e) => updateContent('icon', e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="🎯"
-              />
             </div>
           </div>
         );

@@ -1,7 +1,8 @@
- import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { Shield, Users, Eye, Clock, CheckCircle } from 'lucide-react';
+import cleanHtmlFormatting from '../../utils/cleanHtmlFormatting';
 
 
 
@@ -128,9 +129,7 @@ export default function Security() {
             <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
               {heroBlock.content.title || 'Security'}
             </h1>
-            <p className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {heroBlock.content.description || ''}
-            </p>
+            <div className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(heroBlock.content.description || '') }} />
           </div>
         </div>
       )}
@@ -151,9 +150,7 @@ export default function Security() {
             <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
               {block.content.title || 'About Campus Security'}
             </h2>
-            <p className={`text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {block.content.text || ''}
-            </p>
+            <div className={`text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.text || '') }} />
           </div>
         ))}
 

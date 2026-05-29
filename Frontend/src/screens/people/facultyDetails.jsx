@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, GraduationCap, Mail, MapPin, Phone, BookOpenText, Files } from 'lucide-react';
 import { useTheme } from '../../context/createContext.jsx';
@@ -11,9 +11,24 @@ const parseDetailList = (value) => {
 			const parsed = JSON.parse(value);
 			if (Array.isArray(parsed)) return parsed;
 		} catch {
-			// Fallback to comma-separated parsing when non-JSON strings are received.
+			// Fallback to comma/newline-separated parsing when non-JSON strings are received.
 		}
-		return value.split(',').map(item => item.trim()).filter(Boolean);
+		const normalized = value.replace(/\r\n/g, '\n');
+		return normalized.split(/[\n,]+/).map(item => item.trim()).filter(Boolean);
+	}
+	return [];
+};
+
+const parseMainSectionPages = (value) => {
+	if (Array.isArray(value)) return value.map((item) => String(item || ''));
+	if (typeof value === 'string') {
+		try {
+			const parsed = JSON.parse(value);
+			if (Array.isArray(parsed)) return parsed.map((item) => String(item || ''));
+		} catch {
+			// Use the raw string as a single page when not JSON.
+		}
+		return [value];
 	}
 	return [];
 };
@@ -38,6 +53,50 @@ const parseDetailEntries = (items) => {
 			}
 			return { type: 'item', text: item };
 		});
+};
+
+const escapeHtml = (value) => String(value || '')
+	.replace(/&/g, '&amp;')
+	.replace(/</g, '&lt;')
+	.replace(/>/g, '&gt;')
+	.replace(/"/g, '&quot;')
+	.replace(/'/g, '&#39;');
+
+const formatMainSectionText = (text) => {
+	if (!text) return '';
+	const escaped = escapeHtml(text);
+	const linkified = escaped.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#239244;font-weight:700;text-decoration:none;">$1</a>');
+	const bolded = linkified.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
+	const italicized = bolded.replace(/\*([^\*]+)\*/g, '<em>$1</em>');
+	const lines = italicized.split(/\r?\n/);
+	const hasListItems = lines.some((line) => /^\s*-\s+/.test(line));
+
+	if (hasListItems) {
+		let html = '';
+		let listOpen = false;
+		lines.forEach((line) => {
+			if (/^\s*-\s+/.test(line)) {
+				if (!listOpen) {
+					html += '<ul style="margin:12px 0;padding-left:20px;">';
+					listOpen = true;
+				}
+				html += `<li style="margin:6px 0;color:#374151;">${line.replace(/^\s*-\s+/, '')}</li>`;
+			} else {
+				if (listOpen) {
+					html += '</ul>';
+					listOpen = false;
+				}
+				if (line.trim()) {
+					html += `<p style="margin:8px 0;line-height:1.75;color:#374151;">${line}</p>`;
+				}
+			}
+		});
+		if (listOpen) html += '</ul>';
+		return html;
+	}
+
+	const paragraphHtml = lines.map((line) => line || '<br/>').join('<br/>');
+	return `<div style="line-height:1.75;color:#374151;">${paragraphHtml}</div>`;
 };
 
 const slugifyFacultyName = (name, designation = '') => {
@@ -91,7 +150,8 @@ export default function FacultyDetails() {
 			try {
 				setLoading(true);
 				setError('');
-				const response = await fetch(`${API.baseURL}/api/faculty`);
+				// Add timestamp to bypass browser cache
+				const response = await fetch(`${API.baseURL}/api/faculty?t=${Date.now()}`);
 				if (!response.ok) {
 					throw new Error('Unable to load faculty details');
 				}
@@ -107,9 +167,18 @@ export default function FacultyDetails() {
 					throw new Error('Faculty details not found');
 				}
 
+				console.log('✅ Faculty fetched successfully:', {
+					id: matchedFaculty.id,
+					name: matchedFaculty.name,
+					mainSectionRaw: matchedFaculty.mainSection,
+					mainSectionType: typeof matchedFaculty.mainSection,
+					mainSectionIsArray: Array.isArray(matchedFaculty.mainSection)
+				});
+
 				setFaculty(matchedFaculty);
 			} catch (fetchError) {
 				setError(fetchError.message || 'Unable to load faculty details');
+				console.error('❌ Error fetching faculty:', fetchError);
 			} finally {
 				setLoading(false);
 			}
@@ -119,6 +188,16 @@ export default function FacultyDetails() {
 			fetchFaculty();
 		}
 	}, [slug]);
+
+	// Debug: Log faculty data and mainSection parsing
+	useEffect(() => {
+		if (faculty) {
+			console.log('📋 Faculty loaded:', faculty.name);
+			console.log('🔍 Raw mainSection:', faculty.mainSection);
+			console.log('📄 Parsed mainSectionPages:', mainSectionPages);
+			console.log('📊 Page count:', mainSectionPages.length);
+		}
+	}, [faculty]);
 
 	const fullDetailEntries = parseDetailEntries((faculty?.fullDetails && faculty.fullDetails.length > 0) ? faculty.fullDetails : (faculty?.rightSideDetails || []));
 	const normalizeHtmlImageSrc = (html) => {
@@ -135,9 +214,42 @@ export default function FacultyDetails() {
 	};
 
 	const fullDetailsHtml = normalizeHtmlImageSrc(faculty?.fullDetailsHtml || '');
-	const mainSection = (faculty?.mainSection || '').trim();
+	const mainSectionPages = useMemo(() => parseMainSectionPages(faculty?.mainSection), [faculty?.mainSection]);
 	const researchInterests = parseDetailList(faculty?.researchInterests);
 	const publications = parseDetailList(faculty?.publications);
+
+	const [currentMainSectionPage, setCurrentMainSectionPage] = useState(0);
+	const [fadeOut, setFadeOut] = useState(false);
+
+	useEffect(() => {
+		setCurrentMainSectionPage(0);
+		setFadeOut(false);
+	}, [faculty?.mainSection]);
+
+	useEffect(() => {
+		// Only set up rotation if there are multiple pages
+		if (mainSectionPages.length <= 1) {
+			return undefined;
+		}
+
+		// Fade out after 6.5 seconds
+		const fadeOutTimer = setTimeout(() => {
+			setFadeOut(true);
+		}, 6500);
+
+		// Switch page at 7 seconds
+		const nextPageTimer = setTimeout(() => {
+			setCurrentMainSectionPage((prev) => (prev + 1) % mainSectionPages.length);
+			setFadeOut(false);
+		}, 7000);
+
+		return () => {
+			clearTimeout(fadeOutTimer);
+			clearTimeout(nextPageTimer);
+		};
+	}, [currentMainSectionPage, mainSectionPages.length]);
+
+	const mainSection = mainSectionPages[currentMainSectionPage] || '';
 
 	return (
 		<div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
@@ -263,27 +375,56 @@ export default function FacultyDetails() {
 								<Files className="w-5 h-5" style={{ color: color1 }} />
 								<h2 className={`text-lg font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Main Section</h2>
 							</div>
-							<p className={`text-sm leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-								{mainSection || 'No main section content available.'}
-							</p>
+
+							{mainSection ? (
+								/<[^>]+>/.test(mainSection) ? (
+									<div
+										className={`text-sm leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'} transition-opacity duration-500`}
+										dangerouslySetInnerHTML={{ __html: mainSection }}
+										style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', opacity: fadeOut ? 0 : 1 }}
+									/>
+								) : (
+									<div
+										className={`text-sm leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'} transition-opacity duration-500`}
+										dangerouslySetInnerHTML={{ __html: formatMainSectionText(mainSection) }}
+										style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', opacity: fadeOut ? 0 : 1 }}
+									/>
+								)
+							) : (
+								<p className={`text-sm leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+									No main section content available.
+								</p>
+							)}
+
+							{mainSectionPages.length > 1 && (
+								<div className="mt-4 flex justify-center gap-2">
+									{mainSectionPages.map((_, index) => (
+										<span
+											key={`detail-dot-${index}`}
+											className={`h-2.5 w-2.5 rounded-full transition-all ${index === currentMainSectionPage ? 'bg-green-600' : 'bg-gray-300'}`}
+											style={index === currentMainSectionPage ? { backgroundColor: color1 } : {}}
+										/>
+									))}
+								</div>
+							)}
 						</section>
 
-												{fullDetailsHtml ? (
-													<section className={`rounded-2xl border p-4 sm:p-5 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-														<div className="flex items-center gap-2 mb-3">
-															<BookOpenText className="w-5 h-5" style={{ color: color1 }} />
-															<h2 className={`text-lg font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Full Details</h2>
-														</div>
-														<div className="space-y-4" dangerouslySetInnerHTML={{ __html: fullDetailsHtml }} />
-													</section>
-												) : (
-													<DetailSection title="Full Details" icon={BookOpenText} items={fullDetailEntries} darkMode={darkMode} color1={color1} />
-												)}
+						{fullDetailsHtml ? (
+							<section className={`rounded-2xl border p-4 sm:p-5 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+								<div className="flex items-center gap-2 mb-3">
+									<BookOpenText className="w-5 h-5" style={{ color: color1 }} />
+									<h2 className={`text-lg font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Full Details</h2>
+								</div>
+								<div className="space-y-4" dangerouslySetInnerHTML={{ __html: fullDetailsHtml }} />
+							</section>
+						) : (
+							<DetailSection title="Full Details" icon={BookOpenText} items={fullDetailEntries} darkMode={darkMode} color1={color1} />
+						)}
 
 						<div className="grid gap-6 lg:grid-cols-2">
 							<section className={`rounded-2xl border p-4 sm:p-5 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
 								<div className="flex items-center gap-2 mb-3">
-									<Files className="w-5 h-5" style={{ color: color1 }} />
+									<BookOpenText className="w-5 h-5" style={{ color: color1 }} />
 									<h2 className={`text-lg font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Research Interests</h2>
 								</div>
 								{researchInterests.length > 0 ? (
@@ -310,14 +451,13 @@ export default function FacultyDetails() {
 											<li key={`publication-${index}`} className={`rounded-lg px-3 py-2 text-sm leading-relaxed ${darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-50 text-gray-700'}`}>
 												{item}
 											</li>
-										))}
+											))}
 									</ul>
 								) : (
 									<p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>No publications available.</p>
 								)}
 							</section>
 						</div>
-
 						<div className="flex justify-center">
 							<Link
 								to="/people/faculty"
