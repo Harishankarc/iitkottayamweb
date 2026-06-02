@@ -189,7 +189,7 @@ export default function UnifiedContentEditor() {
       list: { items: [], title: '' },
       card: { title: '', description: '', image: '', link: '' },
       table: { title: '', subtitle: '', headers: [], rows: [], notes: [] },
-      statistics: { items: [], title: '' },
+      statistics: { stats: [], title: '' },
       button: { text: '', link: '', style: 'primary' }
     };
     return defaultStructures[blockType] || {};
@@ -352,12 +352,10 @@ export default function UnifiedContentEditor() {
       const uploadPromises = Array.from(files).map(file => {
         return new Promise(async (resolve, reject) => {
           const formData = new FormData();
-          formData.append('file', file);
+          formData.append('image', file);
           formData.append('folder', 'gallery');
           try {
-            const response = await API.post('/api/upload', formData, {
-              headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const response = await API.post('/api/upload', formData);
             if (response.success) {
               resolve({
                 url: response.data.url,
@@ -1143,7 +1141,7 @@ export default function UnifiedContentEditor() {
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono"
                     placeholder="/about"
                   />
-                  <p className="text-xs text-gray-500 mt-1">URL path for this page (e.g., /about, /admissions)</p>
+                  <p className="text-xs text-gray-500 mt-1">URL path for this page (e.g., /about, /admission)</p>
                 </div>
 
                 <div>

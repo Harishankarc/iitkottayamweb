@@ -27,7 +27,7 @@ export default function VisualPageEditor() {
       { pageName: 'homepage', pageTitle: 'Homepage' },
       { pageName: 'why-iiitk', pageTitle: 'Why IIIT Kottayam' },
       { pageName: 'about', pageTitle: 'About' },
-      { pageName: 'admissions', pageTitle: 'Admissions' },
+      { pageName: 'admission', pageTitle: 'Admission' },
       { pageName: 'academics', pageTitle: 'Academics' },
       { pageName: 'research-groups', pageTitle: 'Research Groups' },
       { pageName: 'placements', pageTitle: 'Placements' },

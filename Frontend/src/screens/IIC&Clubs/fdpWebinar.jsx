@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import API from '../../api/api.jsx';
+import { renderContentBlock } from '../../hooks/usePageContent.jsx';
 import { ExternalLink, Calendar, Users, BookOpen } from 'lucide-react';
 import { cleanHtmlFormatting } from '../../utils/sanitizeHtml.js';
 
@@ -71,6 +72,9 @@ export default function FdpWebinar() {
   const paragraphBlocks = contentBlocks.filter(block => block.blockType === 'paragraph');
   const listBlocks = contentBlocks.filter(block => block.blockType === 'list');
   const buttonBlocks = contentBlocks.filter(block => block.blockType === 'button');
+  const tableBlocks = contentBlocks.filter(block => block.blockType === 'table');
+  const statisticsBlocks = contentBlocks.filter(block => block.blockType === 'statistics');
+  const galleryBlocks = contentBlocks.filter(block => block.blockType === 'gallery');
 
   const resolveButtonLink = (block) => {
     const rawLink = String(block?.content?.buttonLink || block?.content?.link || '').trim();
@@ -122,7 +126,6 @@ export default function FdpWebinar() {
               className={`text-lg leading-relaxed mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
               dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.text) }}
               style={{ wordBreak: 'break-word' }}
-            />
             />
             {block.content.title === 'Access FDP Details' && (
               <div className="text-center mt-6">
@@ -198,6 +201,24 @@ export default function FdpWebinar() {
             </div>
           </div>
         ))}
+
+        <div className="space-y-12">
+          {tableBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+          {statisticsBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+          {galleryBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
+import { renderContentBlock } from '../../hooks/usePageContent.jsx';
 import { Trophy, Users, Target, MapPin, Clock, Award, Camera, Activity } from 'lucide-react';
 import { cleanHtmlFormatting } from '../../utils/sanitizeHtml.js';
 
@@ -63,6 +64,9 @@ export default function Sports() {
   const paragraphBlocks = contentBlocks.filter(block => block.blockType === 'paragraph');
   const listBlocks = contentBlocks.filter(block => block.blockType === 'list');
   const imageBlocks = contentBlocks.filter(block => block.blockType === 'image');
+  const tableBlocks = contentBlocks.filter(block => block.blockType === 'table');
+  const statisticsBlocks = contentBlocks.filter(block => block.blockType === 'statistics');
+  const galleryBlocks = contentBlocks.filter(block => block.blockType === 'gallery');
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
@@ -151,7 +155,7 @@ export default function Sports() {
                onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
                onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}>
             <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
-              Sports Facilities Gallery
+              {imageBlocks[0]?.content?.title || 'Sports Facilities Gallery'}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {imageBlocks.map((block, index) => (
@@ -159,6 +163,13 @@ export default function Sports() {
                   key={index}
                   className={`rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
                 >
+                  {block.content.title && (
+                    <div className="p-4 border-b" style={{ borderColor: `${color1}20` }}>
+                      <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {block.content.title}
+                      </h3>
+                    </div>
+                  )}
                   <img
                     src={API.getImageUrl(block.content.src || block.content.url)}
                     alt={block.content.alt || `Sports facility ${index + 1}`}
@@ -177,6 +188,24 @@ export default function Sports() {
             </div>
           </div>
         )}
+
+        <div className="space-y-12">
+          {tableBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+          {statisticsBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+          {galleryBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

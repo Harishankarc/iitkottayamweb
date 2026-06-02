@@ -3,6 +3,7 @@ import { Plus, Edit, Trash2, Search, Zap, Heading2, Type, Image, ImagePlus, List
 import { useLocation } from 'react-router-dom';
 import API from '../../api/api';
 import ImageUploader from '../components/ImageUploader';
+import RichEditor from '../components/RichEditor';
 
 const BLOCK_TYPE_ICONS = {
   hero: Zap,

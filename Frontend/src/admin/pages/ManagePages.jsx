@@ -101,7 +101,7 @@ export default function ManagePages() {
     { name: 'homepage', title: 'Homepage', slug: '/' },
     { name: 'why-iiitk', title: 'Why IIIT Kottayam', slug: '/why-iiitk' },
     { name: 'about', title: 'About Us', slug: '/about' },
-    { name: 'admissions', title: 'Admissions', slug: '/admissions' },
+    { name: 'admission', title: 'Admission', slug: '/admission' },
     { name: 'academics', title: 'Academics', slug: '/academics' },
     { name: 'research-groups', title: 'Research Groups', slug: '/research-groups' },
     { name: 'placements', title: 'Placements', slug: '/placements' },
@@ -116,7 +116,7 @@ export default function ManagePages() {
     // Facilities
     { name: 'hostel', title: 'Hostel', slug: '/facilities/hostel' },
     { name: 'gym', title: 'Gymnasium', slug: '/facilities/gym' },
-    { name: 'internet', title: 'Internet', slug: '/facilities/internet' },
+    { name: 'internet', title: 'Internet', slug: '/facilities/campus-network' },
     { name: 'campus-network', title: 'Campus Network', slug: '/facilities/campus-network' },
     { name: 'medical-centre', title: 'Medical Centre', slug: '/facilities/medical-centre' },
     { name: 'student-mess', title: 'Student Mess', slug: '/facilities/student-mess' },

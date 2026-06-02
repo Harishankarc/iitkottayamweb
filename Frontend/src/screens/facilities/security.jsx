@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
+import { renderContentBlock } from '../../hooks/usePageContent.jsx';
 import { Shield, Users, Eye, Clock, CheckCircle } from 'lucide-react';
 import cleanHtmlFormatting from '../../utils/cleanHtmlFormatting';
 
@@ -78,6 +79,9 @@ export default function Security() {
   const paragraphBlocks = contentBlocks.filter(block => block.blockType === 'paragraph');
   const listBlocks = contentBlocks.filter(block => block.blockType === 'list');
   const imageBlocks = contentBlocks.filter(block => block.blockType === 'image');
+  const tableBlocks = contentBlocks.filter(block => block.blockType === 'table');
+  const statisticsBlocks = contentBlocks.filter(block => block.blockType === 'statistics');
+  const galleryBlocks = contentBlocks.filter(block => block.blockType === 'gallery');
 
   // Render list items with icons
   const renderListItem = (item, index) => {
@@ -185,7 +189,7 @@ export default function Security() {
             onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}
           >
             <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
-              Security Facilities Gallery
+              {imageBlocks[0]?.content?.title || 'Security Facilities Gallery'}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {imageBlocks.map((block, index) => (
@@ -195,6 +199,13 @@ export default function Security() {
                     darkMode ? 'bg-gray-700' : 'bg-gray-100'
                   }`}
                 >
+                  {block.content.title && (
+                    <div className="p-4 border-b" style={{ borderColor: `${color1}20` }}>
+                      <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {block.content.title}
+                      </h3>
+                    </div>
+                  )}
                   <img
                     src={API.getImageUrl(block.content.url)}
                     alt={block.content.alt || `Security image ${index + 1}`}
@@ -218,6 +229,24 @@ export default function Security() {
             </div>
           </div>
         )}
+
+        <div className="space-y-12">
+          {tableBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2 })}
+            </div>
+          ))}
+          {statisticsBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2 })}
+            </div>
+          ))}
+          {galleryBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2 })}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

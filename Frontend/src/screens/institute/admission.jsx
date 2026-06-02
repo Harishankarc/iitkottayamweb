@@ -9,7 +9,7 @@ import { usePageContent, getVisibleBlocks, renderContentBlock } from '../../hook
 
 export default function Admission() {
   const { darkMode } = useTheme();
-    const color1 = API.color1;
+  const color1 = API.color1;5
   const color2 = API.color2;
   const color3 = API.color3;
 

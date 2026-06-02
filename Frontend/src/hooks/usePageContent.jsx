@@ -49,16 +49,13 @@ export function usePageContent(pageName) {
 
       // Fetch actual content from content_blocks table (ALL content is here now!)
       const blocksResponse = await API.get(`/api/content-blocks/page/${pageName}`);
-      console.log('Blocks Response:', blocksResponse);
       if (blocksResponse.success && blocksResponse.data) {
         // Handle both nested and direct array responses
         const blocks = Array.isArray(blocksResponse.data) 
           ? blocksResponse.data 
           : (blocksResponse.data.data || blocksResponse.data);
-        console.log('Parsed blocks:', blocks);
         setContentBlocks(Array.isArray(blocks) ? blocks : []);
       } else {
-        console.log('No blocks found');
         setContentBlocks([]);
       }
     } catch (err) {
@@ -231,7 +228,7 @@ export function renderContentBlock(block, options = {}) {
     case 'paragraph':
       return (
         <div 
-          className={`w-full rounded-lg shadow-xl overflow-hidden border-2 transition-all duration-300 hover:shadow-2xl p-10 md:p-16 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+          className={`content-html w-full rounded-lg shadow-xl overflow-hidden border-2 transition-all duration-300 hover:shadow-2xl p-10 md:p-16 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
           onMouseEnter={(e) => e.currentTarget.style.borderColor = color1}
           onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb'}
         >
@@ -272,37 +269,14 @@ export function renderContentBlock(block, options = {}) {
             </div>
           )}
           <style>{`
-            ${darkMode ? `
-              div[class*="text-gray-300"] strong,
-              div[class*="text-gray-700"] strong { font-weight: 700; }
-              div[class*="text-gray-300"] em,
-              div[class*="text-gray-700"] em { font-style: italic; }
-              div[class*="text-gray-300"] u,
-              div[class*="text-gray-700"] u { text-decoration: underline; }
-              div[class*="text-gray-300"] a,
-              div[class*="text-gray-700"] a { color: ${color1}; font-weight: 600; text-decoration: underline; }
-              div[class*="text-gray-300"] ul,
-              div[class*="text-gray-700"] ul { margin: 12px 0; padding-left: 24px; list-style-type: disc; }
-              div[class*="text-gray-300"] ol,
-              div[class*="text-gray-700"] ol { margin: 12px 0; padding-left: 24px; list-style-type: decimal; }
-              div[class*="text-gray-300"] li,
-              div[class*="text-gray-700"] li { margin: 6px 0; }
-            ` : `
-              p strong,
-              div strong { font-weight: 700; }
-              p em,
-              div em { font-style: italic; }
-              p u,
-              div u { text-decoration: underline; }
-              p a,
-              div a { color: ${color1}; font-weight: 600; text-decoration: underline; }
-              p ul,
-              div ul { margin: 12px 0; padding-left: 24px; list-style-type: disc; }
-              p ol,
-              div ol { margin: 12px 0; padding-left: 24px; list-style-type: decimal; }
-              p li,
-              div li { margin: 6px 0; }
-            `}
+            .content-html strong { font-weight: 700; }
+            .content-html em { font-style: italic; }
+            .content-html u { text-decoration: underline; }
+            .content-html a { color: ${color1}; font-weight: 600; text-decoration: underline; }
+            .content-html a:hover { opacity: 0.8; }
+            .content-html ul { margin: 12px 0; padding-left: 24px; list-style-type: disc; }
+            .content-html ol { margin: 12px 0; padding-left: 24px; list-style-type: decimal; }
+            .content-html li { margin: 6px 0; }
           `}</style>
         </div>
       );
@@ -320,8 +294,18 @@ export function renderContentBlock(block, options = {}) {
     case 'image':
       // Handle both single image and image arrays
       if (content.images && Array.isArray(content.images)) {
+        const normalizedImages = content.images
+          .map((img) => {
+            if (!img) return null;
+            if (typeof img === 'string') {
+              return { url: img, alt: '', caption: '' };
+            }
+            return img;
+          })
+          .filter(Boolean);
+
         // Filter out images with invalid URLs
-        const validImages = content.images.filter(img => {
+        const validImages = normalizedImages.filter(img => {
           const url = img.url || img.src;
           return url && url !== 'undefined' && url !== 'null';
         });
@@ -676,6 +660,10 @@ export function renderContentBlock(block, options = {}) {
       );
 
     case 'table':
+      const tableHeaders = Array.isArray(content.headers) ? content.headers : (Array.isArray(content.columns) ? content.columns : []);
+      const tableRows = Array.isArray(content.rows) ? content.rows : (Array.isArray(content.data) ? content.data : []);
+      const tableNotes = Array.isArray(content.notes) ? content.notes : [];
+
       return (
         <div className={`w-full rounded-lg p-8 md:p-12 shadow-xl overflow-hidden relative border-2 transition-all duration-500 ${darkMode ? 'bg-gray-800' : ''}`}
           style={{ borderColor: darkMode ? '#374151' : `${color1}33`, backgroundColor: darkMode ? '' : '' }}
@@ -694,7 +682,7 @@ export function renderContentBlock(block, options = {}) {
               </h3>
             )}
 
-            {content.subtitle && content.headers && content.headers.length > 0 && (
+            {content.subtitle && tableHeaders.length > 0 && (
               <div className="mb-8 p-6 rounded-2xl border-2 border-dashed bg-white" style={{ borderColor: `${color1}66`, backgroundColor: darkMode ? '#1f2937' : 'white' }}>
                 <h4 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                   {content.subtitle}
@@ -703,7 +691,7 @@ export function renderContentBlock(block, options = {}) {
                   <table className="w-full text-center">
                     <thead style={{ backgroundColor: color2 }}>
                       <tr style={{ backgroundColor: darkMode ? '#374151' : color2 }}>
-                        {content.headers && content.headers.map((header, idx) => (
+                        {tableHeaders.map((header, idx) => (
                           <th key={idx} className="p-3 text-base font-bold text-center" style={{ color: color1, borderBottom: `2px solid ${color1}66` }}>
                             {header}
                           </th>
@@ -711,7 +699,7 @@ export function renderContentBlock(block, options = {}) {
                       </tr>
                     </thead>
                     <tbody>
-                      {content.rows && content.rows.map((row, rowIdx) => (
+                      {tableRows.map((row, rowIdx) => (
                         <tr key={rowIdx} className={`border-b ${darkMode ? 'text-gray-300' : ''}`} style={{ borderColor: `${color1}33` }}>
                           {row.map((cell, cellIdx) => (
                             <td key={cellIdx} className={`p-3 text-center ${cellIdx === 0 ? 'font-medium' : ''} ${darkMode ? (cellIdx === 0 ? 'text-gray-200' : 'text-gray-300') : (cellIdx === 0 ? 'text-gray-800' : 'text-gray-700')}`}>
@@ -726,21 +714,21 @@ export function renderContentBlock(block, options = {}) {
               </div>
             )}
 
-            {!content.subtitle && content.headers && content.headers.length > 0 && (
+            {!content.subtitle && tableHeaders.length > 0 && (
               <div className={`overflow-x-auto rounded-2xl shadow-md border-2 ${darkMode ? 'bg-gray-700' : 'bg-white'}`} style={{ borderColor: `${color1}66` }}>
                 <table className="w-full min-w-[600px] md:min-w-[800px] lg:min-w-[1200px] text-center text-sm">
                   <thead className="border-b" style={{ backgroundColor: darkMode ? '#1f2937' : color2, borderColor: `${color1}66` }}>
                     <tr>
-                      {content.headers.map((header, idx) => (
+                      {tableHeaders.map((header, idx) => (
                         <th key={idx} className={`p-3 font-semibold text-center ${idx === 0 ? 'text-base font-bold align-middle' : ''} ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-                          style={idx === 0 ? { color: color1, borderRight: `2px solid ${color1}66` } : (idx === content.headers.length - 1 ? {} : { borderRight: idx % 2 === 0 ? `2px solid ${color1}66` : `1px solid ${color1}33` })}>
+                          style={idx === 0 ? { color: color1, borderRight: `2px solid ${color1}66` } : (idx === tableHeaders.length - 1 ? {} : { borderRight: idx % 2 === 0 ? `2px solid ${color1}66` : `1px solid ${color1}33` })}>
                           {header}
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {content.rows && content.rows.map((row, rowIdx) => (
+                    {tableRows.map((row, rowIdx) => (
                       <tr key={rowIdx} className="border-b" style={{ borderColor: `${color1}33` }}>
                         {row.map((cell, cellIdx) => (
                           <td key={cellIdx} className={`p-3 text-center ${cellIdx === 0 ? 'font-semibold' : ''} ${darkMode ? (cellIdx === 0 ? 'text-gray-200' : 'text-gray-300') : (cellIdx === 0 ? 'text-gray-800' : 'text-gray-700')}`}
@@ -755,9 +743,9 @@ export function renderContentBlock(block, options = {}) {
               </div>
             )}
 
-            {content.notes && content.notes.length > 0 && (
+            {tableNotes.length > 0 && (
               <div className="mt-8 space-y-4">
-                {content.notes.map((note, idx) => {
+                {tableNotes.map((note, idx) => {
                   const [noteText, noteUrl] = note.includes('|') ? note.split('|') : [note, null];
                   return (
                     <div key={idx} className={`p-4 rounded-lg border ${darkMode ? 'bg-gray-700' : 'bg-white'}`} style={{ borderColor: `${color1}66` }}>
@@ -785,7 +773,7 @@ export function renderContentBlock(block, options = {}) {
               </div>
             )}
 
-            {(!content.headers || content.headers.length === 0) && !content.subtitle && (
+            {tableHeaders.length === 0 && !content.subtitle && (
               <div className={`p-8 text-center rounded-lg border-2 border-dashed ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`} style={{ borderColor: `${color1}66` }}>
                 <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>📊 Table with no data</p>
               </div>
@@ -795,6 +783,10 @@ export function renderContentBlock(block, options = {}) {
       );
 
     case 'statistics':
+      const statsItems = Array.isArray(content.stats)
+        ? content.stats
+        : (Array.isArray(content.items) ? content.items : []);
+
       return (
         <div className={`w-full rounded-lg p-8 md:p-12 shadow-xl overflow-hidden relative border-2 transition-all duration-500 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
           style={{ borderColor: darkMode ? '#374151' : `${color1}33` }}
@@ -813,9 +805,14 @@ export function renderContentBlock(block, options = {}) {
               </h3>
             )}
 
-            {content.stats && Array.isArray(content.stats) && content.stats.length > 0 ? (
+            {statsItems.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {content.stats.map((stat, idx) => (
+                {statsItems.map((stat, idx) => {
+                  const normalizedStat = typeof stat === 'string'
+                    ? { value: '', label: stat }
+                    : stat;
+
+                  return (
                   <div
                     key={idx}
                     className={`relative p-6 rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden group ${
@@ -837,14 +834,15 @@ export function renderContentBlock(block, options = {}) {
                         className="text-4xl md:text-5xl font-bold mb-3 transition-all duration-300"
                         style={{ color: color1 }}
                       >
-                        {stat.value}
+                        {normalizedStat.value}
                       </div>
                       <div className={`text-sm md:text-base font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        {stat.label}
+                        {normalizedStat.label}
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className={`p-8 text-center rounded-lg border-2 border-dashed ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`} style={{ borderColor: `${color1}66` }}>

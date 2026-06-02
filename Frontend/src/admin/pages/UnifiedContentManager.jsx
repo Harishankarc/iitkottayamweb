@@ -24,7 +24,7 @@ const AVAILABLE_PAGES = [
   { pageName: 'homepage', pageTitle: 'Homepage', category: 'Main' },
   { pageName: 'why-iiitk', pageTitle: 'Why IIIT Kottayam', category: 'Main' },
   { pageName: 'about', pageTitle: 'About', category: 'Main' },
-  { pageName: 'admissions', pageTitle: 'Admissions', category: 'Main' },
+  { pageName: 'admission', pageTitle: 'Admission', category: 'Main' },
   { pageName: 'academics', pageTitle: 'Academics', category: 'Main' },
   { pageName: 'research-groups', pageTitle: 'Research Groups', category: 'Research' },
   { pageName: 'faculty-research-papers', pageTitle: 'Faculty Research Papers', category: 'Research' },
@@ -250,23 +250,56 @@ export default function UnifiedContentManager() {
 
   const handleSaveBlock = async () => {
     try {
+      // Validate required fields
+      if (!editingBlock?.blockId) {
+        alert('❌ Block ID is required');
+        return;
+      }
+      if (!editingBlock?.pageName) {
+        alert('❌ Page name is required');
+        return;
+      }
+      if (!editingBlock?.blockType) {
+        alert('❌ Block type is required');
+        return;
+      }
+
       const blockData = {
-        ...editingBlock,
-        content: JSON.stringify(editingBlock.content)
+        blockId: editingBlock.blockId,
+        pageName: editingBlock.pageName,
+        blockType: editingBlock.blockType,
+        sectionName: editingBlock.sectionName || '',
+        blockLabel: editingBlock.blockLabel || editingBlock.blockType,
+        content: JSON.stringify(editingBlock.content),
+        styling: editingBlock.styling ? JSON.stringify(editingBlock.styling) : '{}',
+        layout: editingBlock.layout ? JSON.stringify(editingBlock.layout) : '{}',
+        responsive: editingBlock.responsive ? JSON.stringify(editingBlock.responsive) : '{}',
+        animation: editingBlock.animation ? JSON.stringify(editingBlock.animation) : '{}',
+        blockOrder: editingBlock.blockOrder || 0,
+        isVisible: editingBlock.isVisible !== undefined ? editingBlock.isVisible : true
       };
+
+      console.log('📤 Sending block data:', blockData);
+      console.log('📋 Complete block data:', { ...blockData, content: editingBlock.content });
 
       if (editingBlock.id) {
         await API.put(`/api/content-blocks/${editingBlock.id}`, blockData);
       } else {
-        await API.post('/api/content-blocks', blockData);
+        const response = await API.post('/api/content-blocks', blockData);
+        console.log('✅ Backend response:', response);
       }
 
       alert('Block saved successfully!');
       fetchBlocks();
       fetchPagesAndBlocks();
     } catch (error) {
-      console.error('Error saving block:', error);
-      alert('Error saving block: ' + (error.response?.data?.message || error.message));
+      console.error('❌ Error saving block:', error);
+      console.error('Error response data:', error.response?.data);
+      
+      const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
+      const errorDetail = error.response?.data?.error || '';
+      
+      alert(`❌ Error saving block:\n\n${errorMsg}${errorDetail ? '\nDetails: ' + errorDetail : ''}`);
     }
   };
 
@@ -301,12 +334,10 @@ export default function UnifiedContentManager() {
       const uploadPromises = Array.from(files).map(file => {
         return new Promise(async (resolve, reject) => {
           const formData = new FormData();
-          formData.append('file', file);
+          formData.append('image', file);
           formData.append('folder', 'gallery');
           try {
-            const response = await API.post('/api/upload', formData, {
-              headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const response = await API.post('/api/upload', formData);
             if (response.success) {
               resolve(response.data.url);
             } else {
@@ -649,83 +680,6 @@ export default function UnifiedContentManager() {
                   setEditingBlock({
                     ...block,
                     content: { ...block.content, images }
-                  });
-                }}
-                className="w-full px-4 py-2 border rounded-lg font-mono text-sm"
-                rows={6}
-                placeholder="/uploads/image1.jpg\n/uploads/image2.jpg\n/uploads/image3.jpg"
-              />
-              <p className="text-xs text-gray-500 mt-1">Display: 3 images per row on user side</p>
-            </div>
-          </div>
-        );
-
-      case 'gallery':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Gallery Title</label>
-              <input
-                type="text"
-                value={block.content.title || ''}
-                onChange={(e) => setEditingBlock({
-                  ...block,
-                  content: { ...block.content, title: e.target.value }
-                })}
-                className="w-full px-4 py-2 border rounded-lg"
-                placeholder="Gallery title (optional)"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Add Multiple Images (Upload all at once)</label>
-              <div 
-                className="w-full border-2 border-dashed border-green-400 rounded-lg p-8 text-center bg-green-50 cursor-pointer hover:bg-green-100 transition"
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  e.currentTarget.classList.add('bg-green-200');
-                }}
-                onDragLeave={(e) => {
-                  e.currentTarget.classList.remove('bg-green-200');
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  e.currentTarget.classList.remove('bg-green-200');
-                  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-                  if (files.length > 0) {
-                    handleMultipleImageUpload(files, block);
-                  }
-                }}
-                onClick={() => {
-                  const fileInput = document.createElement('input');
-                  fileInput.type = 'file';
-                  fileInput.multiple = true;
-                  fileInput.accept = 'image/*';
-                  fileInput.onchange = (e) => {
-                    const files = Array.from(e.target.files);
-                    if (files.length > 0) {
-                      handleMultipleImageUpload(files, block);
-                    }
-                  };
-                  fileInput.click();
-                }}
-              >
-                <div className="text-green-700">
-                  <p className="font-semibold text-lg mb-2">📤 Click to upload or drag images</p>
-                  <p className="text-sm text-green-600">Select multiple images at once to upload them all together</p>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Or enter URLs manually (one per line)</label>
-              <textarea
-                value={(block.content.images || []).join('\n')}
-                onChange={(e) => {
-                  const urls = e.target.value.split('\n').filter(url => url.trim());
-                  setEditingBlock({
-                    ...block,
-                    content: { ...block.content, images: urls }
                   });
                 }}
                 className="w-full px-4 py-2 border rounded-lg font-mono text-sm"
@@ -1201,13 +1155,70 @@ export default function UnifiedContentManager() {
                 value={editingBlock?.blockType || 'paragraph'} 
                 onChange={(e) => {
                   const newType = e.target.value;
-                  const newContent = {};
+                  
+                  // Initialize proper default content for each block type
+                  let newContent = {};
                   switch(newType) {
-                    case 'table': newContent.headers = []; newContent.rows = []; break;
-                    case 'gallery': newContent.title = ''; newContent.images = []; break;
-                    default: newContent.text = '';
+                    case 'hero': 
+                      newContent = { 
+                        title: '', 
+                        subtitle: '',
+                        description: '',
+                        badge: '',
+                        backgroundImage: '',
+                        cta: '',
+                        ctaLink: ''
+                      }; 
+                      break;
+                    case 'heading': 
+                      newContent = { 
+                        text: 'Your heading text',
+                        level: 'h2'
+                      }; 
+                      break;
+                    case 'paragraph': 
+                      newContent = { 
+                        text: 'Your paragraph text'
+                      }; 
+                      break;
+                    case 'image': 
+                      newContent = { 
+                        url: '',
+                        alt: '',
+                        caption: ''
+                      }; 
+                      break;
+                    case 'table': 
+                      newContent = { 
+                        title: '',
+                        subtitle: '',
+                        headers: ['Header 1', 'Header 2', 'Header 3'],
+                        rows: [['Cell 1', 'Cell 2', 'Cell 3']],
+                        notes: []
+                      }; 
+                      break;
+                    case 'gallery': 
+                      newContent = { 
+                        title: '',
+                        images: []
+                      }; 
+                      break;
+                    case 'statistics': 
+                      newContent = { 
+                        title: '',
+                        stats: [{label: 'Stat 1', value: '100+'}, {label: 'Stat 2', value: '50+'}]
+                      }; 
+                      break;
+                    default: 
+                      newContent = { text: '' };
                   }
-                  setEditingBlock({ ...editingBlock, blockType: newType, content: newContent });
+                  
+                  // Preserve blockId, pageName, and other metadata while updating blockType and content
+                  setEditingBlock({ 
+                    ...editingBlock, 
+                    blockType: newType, 
+                    content: newContent 
+                  });
                 }} 
                 className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-500"
               >
@@ -1282,8 +1293,14 @@ export default function UnifiedContentManager() {
                 const newBlock = {
                   blockId: `block-${Date.now()}`,
                   pageName: selectedPage.pageName,
+                  sectionName: '',
                   blockType: 'paragraph',
+                  blockLabel: 'New Block',
                   content: { text: '' },
+                  styling: {},
+                  layout: {},
+                  responsive: {},
+                  animation: {},
                   blockOrder: blocks.length + 1,
                   isVisible: true
                 };
@@ -1310,8 +1327,14 @@ export default function UnifiedContentManager() {
                     const newBlock = {
                       blockId: `block-${Date.now()}`,
                       pageName: selectedPage.pageName,
+                      sectionName: '',
                       blockType: 'paragraph',
+                      blockLabel: 'New Block',
                       content: { text: '' },
+                      styling: {},
+                      layout: {},
+                      responsive: {},
+                      animation: {},
                       blockOrder: blocks.length + 1,
                       isVisible: true
                     };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
+import { renderContentBlock } from '../../hooks/usePageContent.jsx';
 import { Dumbbell, Activity, Heart, Users, Clock, Trophy, Camera } from 'lucide-react';
 import cleanHtmlFormatting from '../../utils/cleanHtmlFormatting';
 
@@ -41,6 +42,9 @@ export default function Gym() {
           const paragraphBlocks = visibleBlocks.filter(b => b.blockType === 'paragraph');
           const listBlocks = visibleBlocks.filter(b => b.blockType === 'list');
           const imageBlocks = visibleBlocks.filter(b => b.blockType === 'image');
+          const tableBlocks = visibleBlocks.filter(b => b.blockType === 'table');
+          const statisticsBlocks = visibleBlocks.filter(b => b.blockType === 'statistics');
+          const galleryBlocks = visibleBlocks.filter(b => b.blockType === 'gallery');
           
           const findSection = (section, fallbackIds = [], expectedTypes = []) => {
             // Prefer explicit sectionName or known fallback blockIds
@@ -227,7 +231,7 @@ export default function Gym() {
                onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
                onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}>
             <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
-              Gymnasium Gallery
+              {content.images[0]?.title || 'Gymnasium Gallery'}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {content.images.map((image, index) => (
@@ -237,6 +241,13 @@ export default function Gym() {
                     darkMode ? 'bg-gray-700' : 'bg-gray-100'
                   }`}
                 >
+                  {image.title && (
+                    <div className="p-4 border-b" style={{ borderColor: `${color1}20` }}>
+                      <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {image.title}
+                      </h3>
+                    </div>
+                  )}
                   <img
                     src={API.getImageUrl(image.src || image.url)}
                     alt={image.alt}
@@ -260,6 +271,24 @@ export default function Gym() {
             </div>
           </div>
         )}
+
+        <div className="space-y-12">
+          {tableBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+          {statisticsBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+          {galleryBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

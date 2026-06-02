@@ -14,7 +14,25 @@ export default function Governance() {
 
   // Fetch dynamic content from database
   const { content: pageContent, blocks: contentBlocks, loading: contentLoading, refetch } = usePageContent('governance');
-  const visibleBlocks = contentBlocks ? getVisibleBlocks(contentBlocks) : [];
+  const hiddenGovernanceSubtitle = 'Explore the foundational acts, statutes, and annual reports of the institute.';
+  const visibleBlocks = contentBlocks
+    ? getVisibleBlocks(contentBlocks).filter(block => {
+        const subtitleText = typeof block.content === 'string'
+          ? block.content
+          : (block.content?.text || block.content?.subtitle || block.content?.description || '');
+
+        const normalizedSubtitle = subtitleText.replace(/\s+/g, ' ').trim().toLowerCase();
+        const normalizedHiddenSubtitle = hiddenGovernanceSubtitle.toLowerCase();
+
+        return !(
+          block.blockId === 'governance-hero-subtitle' ||
+          block.blockLabel === 'Hero Subtitle' ||
+          block.sectionName === 'hero' &&
+          block.blockType === 'paragraph' &&
+          normalizedSubtitle.includes(normalizedHiddenSubtitle)
+        );
+      })
+    : [];
 
   return (
     <>

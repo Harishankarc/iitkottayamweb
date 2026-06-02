@@ -36,7 +36,7 @@ export default function ManageContentBlocks() {
     { pageName: 'homepage', pageTitle: 'Homepage' },
     { pageName: 'why-iiitk', pageTitle: 'Why IIIT Kottayam' },
     { pageName: 'about', pageTitle: 'About' },
-    { pageName: 'admissions', pageTitle: 'Admissions' },
+    { pageName: 'admission', pageTitle: 'Admission' },
     { pageName: 'academics', pageTitle: 'Academics' },
     { pageName: 'research-groups', pageTitle: 'Research Groups' },
     { pageName: 'placements', pageTitle: 'Placements' },
@@ -169,15 +169,27 @@ export default function ManageContentBlocks() {
 
   const handleSaveBlock = async () => {
     try {
-      console.log('Saving block:', editingBlock); // Debug log
+      console.log('📤 Saving block:', editingBlock); // Debug log
       
+      // Ensure required fields are present
+      if (!editingBlock.blockId) throw new Error('blockId is required');
+      if (!editingBlock.pageName) throw new Error('pageName is required');
+      if (!editingBlock.blockType) throw new Error('blockType is required');
+      
+      let response;
       if (editingBlock.id) {
-        const response = await API.put(`/api/content-blocks/${editingBlock.id}`, editingBlock);
-        console.log('Update response:', response); // Debug log
+        response = await API.put(`/api/content-blocks/${editingBlock.id}`, editingBlock);
+        console.log('✅ Update response:', response); // Debug log
+        if (!response || response.success === false) {
+          throw new Error(response && response.error ? response.error : 'Failed to update block');
+        }
         alert('✅ Block updated successfully!');
       } else {
-        const response = await API.post('/api/content-blocks', editingBlock);
-        console.log('Create response:', response); // Debug log
+        response = await API.post('/api/content-blocks', editingBlock);
+        console.log('✅ Create response:', response); // Debug log
+        if (!response || response.success === false) {
+          throw new Error(response && response.error ? response.error : 'Failed to create block');
+        }
         alert('✅ Block created successfully!');
       }
       
@@ -185,7 +197,7 @@ export default function ManageContentBlocks() {
       setShowBlockEditor(false);
       setEditingBlock(null);
     } catch (error) {
-      console.error('Error saving block:', error);
+      console.error('❌ Error saving block:', error);
       alert('❌ Error saving block: ' + (error.message || 'Unknown error'));
     }
   };
@@ -383,7 +395,7 @@ export default function ManageContentBlocks() {
           { blockId: 'why-cta-text', sectionName: 'cta', blockType: 'paragraph', blockLabel: 'CTA Description',
             content: { text: 'Explore our admission process, eligibility criteria, and application deadlines' }, blockOrder: 34 },
           { blockId: 'why-cta-button', sectionName: 'cta', blockType: 'button', blockLabel: 'CTA Button',
-            content: { text: 'Learn More', url: '/admissions' }, blockOrder: 35 }
+            content: { text: 'Learn More', url: '/admission' }, blockOrder: 35 }
         ],
         'about': [
           { blockId: 'about-hero', sectionName: 'hero', blockType: 'hero', blockLabel: 'About Hero',
@@ -393,21 +405,21 @@ export default function ManageContentBlocks() {
           { blockId: 'about-mission', sectionName: 'mission', blockType: 'paragraph', blockLabel: 'Mission Statement',
             content: { text: 'To provide quality education, promote research, and develop skilled professionals for the technology sector.' }, blockOrder: 2 }
         ],
-        'admissions': [
-          { blockId: 'admissions-hero-badge', sectionName: 'hero', blockType: 'paragraph', blockLabel: 'Hero Badge',
-            content: { text: 'Join IIIT Kottayam' }, blockOrder: 0 },
-          { blockId: 'admissions-hero-title', sectionName: 'hero', blockType: 'heading', blockLabel: 'Hero Title',
-            content: { text: 'Admissions', level: 1 }, blockOrder: 1 },
-          { blockId: 'admissions-hero-subtitle', sectionName: 'hero', blockType: 'paragraph', blockLabel: 'Hero Subtitle',
-            content: { text: 'Explore our Undergraduate, Postgraduate, and Doctoral programmes.' }, blockOrder: 2 },
-          { blockId: 'admissions-intro', sectionName: 'intro', blockType: 'paragraph', blockLabel: 'Introduction',
-            content: { text: 'IIIT Kottayam offers world-class education with cutting-edge programs in technology and research. Our admission process is designed to identify talented students who are passionate about innovation and academic excellence.' }, blockOrder: 3 },
-          { blockId: 'admissions-ug-heading', sectionName: 'ug', blockType: 'heading', blockLabel: 'UG Programs Heading',
-            content: { text: 'Under Graduate Programmes', level: 2 }, blockOrder: 4 },
-          { blockId: 'admissions-ug-btech', sectionName: 'ug', blockType: 'heading', blockLabel: 'B.Tech Programs',
-            content: { text: 'B.Tech/B.Tech-MS Programmes:', level: 3 }, blockOrder: 5 },
-          { blockId: 'admissions-ug-programs', sectionName: 'ug', blockType: 'list', blockLabel: 'UG Programs List',
-            content: { items: ['Computer Science and Engineering (CSE)', 'Electronics and Communication Engineering (ECE)', 'Computer Science with specialisation in Cyber Security', 'Computer Science with specialisation in AI & Data Science'] }, blockOrder: 6 }
+        'admission': [
+          { blockId: 'admission-hero-badge', sectionName: 'hero', blockType: 'paragraph', blockLabel: 'Hero Badge',
+            content: { text: '' }, blockOrder: 0 },
+          { blockId: 'admission-hero-title', sectionName: 'hero', blockType: 'heading', blockLabel: 'Hero Title',
+            content: { text: '', level: 1 }, blockOrder: 1 },
+          { blockId: 'admission-hero-subtitle', sectionName: 'hero', blockType: 'paragraph', blockLabel: 'Hero Subtitle',
+            content: { text: '' }, blockOrder: 2 },
+          { blockId: 'admission-intro', sectionName: 'intro', blockType: 'paragraph', blockLabel: 'Introduction',
+            content: { text: '' }, blockOrder: 3 },
+          { blockId: 'admission-ug-heading', sectionName: 'ug', blockType: 'heading', blockLabel: 'UG Programs Heading',
+            content: { text: '', level: 2 }, blockOrder: 4 },
+          { blockId: 'admission-ug-btech', sectionName: 'ug', blockType: 'heading', blockLabel: 'B.Tech Programs',
+            content: { text: '', level: 3 }, blockOrder: 5 },
+          { blockId: 'admission-ug-programs', sectionName: 'ug', blockType: 'list', blockLabel: 'UG Programs List',
+            content: { items: [] }, blockOrder: 6 }
         ],
         'academics': [
           { blockId: 'academics-hero-badge', sectionName: 'hero', blockType: 'paragraph', blockLabel: 'Hero Badge',
@@ -1163,7 +1175,7 @@ export default function ManageContentBlocks() {
           </div>
         );
 
-      case 'button':
+      case 'statistics':
         return (
           <div className="space-y-4">
             <div>
@@ -1220,6 +1232,32 @@ export default function ManageContentBlocks() {
               >
                 + Add Statistic
               </button>
+            </div>
+          </div>
+        );
+
+      case 'button':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Button Text</label>
+              <input
+                type="text"
+                value={content.text || ''}
+                onChange={(e) => updateContent('text', e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="Click Here"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Button Link</label>
+              <input
+                type="text"
+                value={content.link || ''}
+                onChange={(e) => updateContent('link', e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="/page"
+              />
             </div>
           </div>
         );
@@ -1414,6 +1452,227 @@ export default function ManageContentBlocks() {
           </div>
         );
 
+      case 'gallery':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Gallery Title (optional)</label>
+              <input
+                type="text"
+                value={content.title || ''}
+                onChange={(e) => updateContent('title', e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="Campus Gallery"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Gallery Images</label>
+              {(content.images || []).map((img, index) => (
+                <div key={index} className="border rounded-lg p-3 mb-3 bg-gray-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Image {index + 1}</span>
+                    <button
+                      onClick={() => {
+                        const newImages = (content.images || []).filter((_, i) => i !== index);
+                        updateContent('images', newImages);
+                      }}
+                      className="px-2 py-1 text-red-600 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <ImageUploader
+                    value={img.src || ''}
+                    onChange={(url) => {
+                      const newImages = [...(content.images || [])];
+                      newImages[index] = { ...newImages[index], src: url };
+                      updateContent('images', newImages);
+                    }}
+                    label="Image"
+                    folder="gallery"
+                  />
+                  <input
+                    type="text"
+                    value={img.alt || ''}
+                    onChange={(e) => {
+                      const newImages = [...(content.images || [])];
+                      newImages[index] = { ...newImages[index], alt: e.target.value };
+                      updateContent('images', newImages);
+                    }}
+                    className="w-full px-3 py-2 border rounded-lg mt-2 bg-white"
+                    placeholder="Alt text"
+                  />
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  updateContent('images', [...(content.images || []), { src: '', alt: '' }]);
+                }}
+                className="w-full px-3 py-2 border-2 border-dashed rounded-lg hover:bg-gray-50 text-gray-600"
+              >
+                + Add Image
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'card':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Card Title</label>
+              <input
+                type="text"
+                value={content.title || ''}
+                onChange={(e) => updateContent('title', e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="Card Title"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Icon (emoji)</label>
+              <input
+                type="text"
+                value={content.icon || ''}
+                onChange={(e) => updateContent('icon', e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="🎯"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Description</label>
+              <textarea
+                value={content.description || ''}
+                onChange={(e) => updateContent('description', e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+                rows="3"
+                placeholder="Card description"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Link (optional)</label>
+              <input
+                type="text"
+                value={content.link || ''}
+                onChange={(e) => updateContent('link', e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="/page"
+              />
+            </div>
+            <ImageUploader
+              value={content.image || ''}
+              onChange={(url) => updateContent('image', url)}
+              label="Card Image (optional)"
+              folder="cards"
+            />
+          </div>
+        );
+
+      case 'accordion':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Accordion Items</label>
+              {(content.items || []).map((item, index) => (
+                <div key={index} className="border rounded-lg p-3 mb-3 bg-gray-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Item {index + 1}</span>
+                    <button
+                      onClick={() => {
+                        const newItems = (content.items || []).filter((_, i) => i !== index);
+                        updateContent('items', newItems);
+                      }}
+                      className="px-2 py-1 text-red-600 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={item.title || ''}
+                    onChange={(e) => {
+                      const newItems = [...(content.items || [])];
+                      newItems[index] = { ...newItems[index], title: e.target.value };
+                      updateContent('items', newItems);
+                    }}
+                    className="w-full px-3 py-2 border rounded-lg bg-white mb-2"
+                    placeholder="Accordion title"
+                  />
+                  <textarea
+                    value={item.content || ''}
+                    onChange={(e) => {
+                      const newItems = [...(content.items || [])];
+                      newItems[index] = { ...newItems[index], content: e.target.value };
+                      updateContent('items', newItems);
+                    }}
+                    className="w-full px-3 py-2 border rounded-lg bg-white"
+                    rows="3"
+                    placeholder="Accordion content"
+                  />
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  updateContent('items', [...(content.items || []), { title: '', content: '' }]);
+                }}
+                className="w-full px-3 py-2 border-2 border-dashed rounded-lg hover:bg-gray-50 text-gray-600"
+              >
+                + Add Item
+              </button>
+            </div>
+          </div>
+        );
+
+      case 'divider':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Divider Style</label>
+              <select
+                value={content.style || 'line'}
+                onChange={(e) => updateContent('style', e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg"
+              >
+                <option value="line">Simple Line</option>
+                <option value="dashed">Dashed Line</option>
+                <option value="dotted">Dotted Line</option>
+                <option value="text">Text Divider</option>
+              </select>
+            </div>
+            {content.style === 'text' && (
+              <div>
+                <label className="block text-sm font-medium mb-1">Divider Text</label>
+                <input
+                  type="text"
+                  value={content.text || ''}
+                  onChange={(e) => updateContent('text', e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="or"
+                />
+              </div>
+            )}
+            <div>
+              <label className="block text-sm font-medium mb-1">Color</label>
+              <input
+                type="color"
+                value={content.color || '#e5e7eb'}
+                onChange={(e) => updateContent('color', e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg cursor-pointer"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Spacing (px)</label>
+              <input
+                type="number"
+                value={content.spacing || 20}
+                onChange={(e) => updateContent('spacing', parseInt(e.target.value))}
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="20"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div>
@@ -1440,7 +1699,7 @@ export default function ManageContentBlocks() {
           <h1 className="text-2xl font-bold text-gray-900">Page Builder - Content Blocks</h1>
           <p className="text-gray-600 text-sm mt-1">Design each page with customizable content blocks</p>
         </div>
-        {pages.length > 0 && selectedPage && (
+        {selectedPage && (
           <button
             onClick={handleCreateBlock}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
@@ -1449,42 +1708,24 @@ export default function ManageContentBlocks() {
             Add Block
           </button>
         )}
-      </div>
 
-      {/* No Pages Message */}
-      {pages.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-md p-12 text-center">
-          <LayoutIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">No Pages Found</h2>
-          <p className="text-gray-600 mb-6">
-            You need to create a page first before adding content blocks.
-          </p>
-          <a
-            href="/admin/pages"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
-          >
-            <Plus className="w-5 h-5" />
-            Create Your First Page
-          </a>
-        </div>
-      ) : (
-        <>
-          {/* Page Selector */}
-          <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg shadow-md p-6 mb-6 border-2 border-green-200">
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
-              📄 Select Page to Edit
-            </label>
-            <select
-              value={selectedPage}
-              onChange={(e) => setSelectedPage(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white text-lg font-medium"
-              style={{ maxHeight: '400px' }}
-            >
+
+      {/* Page Selector */}
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg shadow-md p-6 mb-6 border-2 border-green-200">
+        <label className="block text-sm font-semibold text-gray-900 mb-3">
+          📄 Select Page to Edit
+        </label>
+        <select
+          value={selectedPage}
+          onChange={(e) => setSelectedPage(e.target.value)}
+          className="w-full px-4 py-3 border-2 border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white text-lg font-medium"
+          style={{ maxHeight: '400px' }}
+        >
               <optgroup label="📚 Institute & General">
                 <option value="homepage">Homepage</option>
                 <option value="why-iiitk">Why IIIT Kottayam</option>
                 <option value="about">About</option>
-                <option value="admissions">Admissions</option>
+                <option value="admission">Admission</option>
                 <option value="academics">Academics</option>
                 <option value="research-groups">Research Groups</option>
                 <option value="placements">Placements</option>
@@ -1650,8 +1891,6 @@ export default function ManageContentBlocks() {
               )}
             </div>
           )}
-        </>
-      )}
 
       {/* Block Editor Modal */}
       {showBlockEditor && editingBlock && (
