@@ -451,7 +451,7 @@ export default function FacultyDetails() {
 											<li key={`publication-${index}`} className={`rounded-lg px-3 py-2 text-sm leading-relaxed ${darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-50 text-gray-700'}`}>
 												{item}
 											</li>
-											))}
+										))}
 									</ul>
 								) : (
 									<p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>No publications available.</p>

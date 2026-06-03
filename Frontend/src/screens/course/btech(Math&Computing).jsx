@@ -1,19 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
 import { usePageContent, getVisibleBlocks, renderContentBlock } from '../../hooks/usePageContent.jsx';
 
-
-
-export default function BTechCyberSecurity() {
+export default function BTechMathComputing() {
   const { darkMode } = useTheme();
-    const color1 = API.color1;
+  const color1 = API.color1;
   const color2 = API.color2;
-  const color3 = API.color3;
 
   // Fetch dynamic content from database
-  const { content: pageContent, blocks: contentBlocks, loading: contentLoading, refetch } = usePageContent('btech-cybersecurity');
+  const { content: pageContent, blocks: contentBlocks, loading: contentLoading, refetch } = usePageContent('btech-math-computing');
   const visibleBlocks = contentBlocks ? getVisibleBlocks(contentBlocks) : [];
 
   return (
@@ -45,4 +41,3 @@ export default function BTechCyberSecurity() {
     </>
   );
 }
-

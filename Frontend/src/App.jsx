@@ -107,7 +107,7 @@ import ICC from './screens/footer/icc';
 import AntiRagging from './screens/footer/antiRagging';
 import AssociateDeans from './screens/people/associatedean';
 import Deans from './screens/people/dean';
-
+import BTechMathComputing from './screens/course/btech(Math&Computing)';
 
 function App() {
   useEffect(() => {
@@ -120,14 +120,14 @@ function App() {
         try {
           const html = e.clipboardData?.getData('text/html');
           const plainText = e.clipboardData?.getData('text/plain');
-          
+
           const textToPaste = html || plainText;
           if (!textToPaste) return;
-          
+
           // Strip background colors from HTML and remove tags for plain text insertion
           const cleanedText = stripBackgroundColors(textToPaste);
           const plainTextOnly = plainText || cleanedText.replace(/<[^>]*>/g, '');
-          
+
           // For textarea, insert as plain text only
           const start = e.target.selectionStart;
           const end = e.target.selectionEnd;
@@ -143,7 +143,7 @@ function App() {
         }
       }
     };
-    
+
     document.addEventListener('paste', handleGlobalPaste, true);
     return () => {
       document.removeEventListener('paste', handleGlobalPaste, true);
@@ -195,10 +195,10 @@ function App() {
             <Route path="fdp-programs" element={<ManageFdpPrograms />} />
             <Route path="latest-news-updates" element={<ManageLatestNewsUpdates />} />
             <Route path="latest-news-updates/:subsection" element={<ManageLatestNewsUpdates />} />
-                        <Route path="content-sections" element={<ManageContentSections />} />
-                        <Route path="content-sections/:sectionName" element={<ManageContentSections />} />
-                        {/* simplified subsection routes, e.g. /admin/latest-news-updates/campus-update */}
-                        <Route path=":sectionName/:subsection" element={<ManageContentSections />} />
+            <Route path="content-sections" element={<ManageContentSections />} />
+            <Route path="content-sections/:sectionName" element={<ManageContentSections />} />
+            {/* simplified subsection routes, e.g. /admin/latest-news-updates/campus-update */}
+            <Route path=":sectionName/:subsection" element={<ManageContentSections />} />
             <Route path="research-activities" element={<ManageResearchActivities />} />
             <Route path="settings" element={<Settings />} />
             <Route path="visitor-stats" element={<AdminVisitorStats />} />
@@ -219,7 +219,7 @@ function App() {
                 <Route path="/rti" element={<RTI />} />
                 <Route path="/icc" element={<ICC />} />
                 <Route path="/anti-ragging" element={<AntiRagging />} />
-                <Route path="/why-iiitk" element={<WhyIIIT/>} />
+                <Route path="/why-iiitk" element={<WhyIIIT />} />
                 <Route path="/nirf/2025" element={<Nirf />} />
                 <Route path="/institute/governance" element={<Governance />} />
                 <Route path="/institute/admission" element={<Admission />} />
@@ -229,6 +229,7 @@ function App() {
                 <Route path="/course/btech-ece" element={<BTechECE />} />
                 <Route path="/course/btech-cybersecurity" element={<BTechCyberSecurity />} />
                 <Route path="/course/btech-ai-ds" element={<BTechCseAI_DS />} />
+                <Route path="/course/btech-math-computing" element={<BTechMathComputing />} />
                 <Route path="/people/administration" element={<Administration />} />
                 <Route path="/people/hod" element={<HeadofDepartment />} />
                 <Route path="/people/faculty" element={<Faculty />} />

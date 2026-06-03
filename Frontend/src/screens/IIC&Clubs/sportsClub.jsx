@@ -120,7 +120,11 @@ export default function SportsClub() {
     API.get('/api/content-blocks/page/sports-club')
       .then((response) => {
         const blocks = response.data.data || response.data || [];
-        const visibleBlocks = blocks.filter(block => block.isVisible);
+        const parsedBlocks = blocks.map(block => ({
+          ...block,
+          content: typeof block.content === 'string' ? JSON.parse(block.content) : block.content
+        }));
+        const visibleBlocks = parsedBlocks.filter(block => block.isVisible);
         setContentBlocks(visibleBlocks);
         setLoading(false);
       })

@@ -113,11 +113,11 @@ export default function ManagePages() {
     { name: 'btech-ece', title: 'B.Tech ECE', slug: '/course/btech-ece' },
     { name: 'btech-cybersecurity', title: 'B.Tech Cybersecurity', slug: '/course/btech-cybersecurity' },
     { name: 'btech-ai-ds', title: 'B.Tech AI & Data Science', slug: '/course/btech-ai-ds' },
+    { name: 'btech-math-computing', title: 'B.Tech Mathematics & Computing', slug: '/course/btech-math-computing' },
     // Facilities
     { name: 'hostel', title: 'Hostel', slug: '/facilities/hostel' },
     { name: 'gym', title: 'Gymnasium', slug: '/facilities/gym' },
-    { name: 'internet', title: 'Internet', slug: '/facilities/campus-network' },
-    { name: 'campus-network', title: 'Campus Network', slug: '/facilities/campus-network' },
+    { name: 'internet', title: 'Campus Network', slug: '/facilities/campus-network' },
     { name: 'medical-centre', title: 'Medical Centre', slug: '/facilities/medical-centre' },
     { name: 'student-mess', title: 'Student Mess', slug: '/facilities/student-mess' },
     { name: 'security', title: 'Security', slug: '/facilities/security' },

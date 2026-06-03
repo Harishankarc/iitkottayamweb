@@ -29,7 +29,7 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
         const cs = ref.current && window.getComputedStyle(ref.current);
         // eslint-disable-next-line no-console
         console.debug('RichEditor.saveSelection', { startContainer: r.startContainer.nodeName, startOffset: r.startOffset, endContainer: r.endContainer.nodeName, endOffset: r.endOffset, direction: cs && cs.direction, unicodeBidi: cs && cs.unicodeBidi, transform: cs && cs.transform });
-      } catch (e) {}
+      } catch (e) { }
       savedSelection.current = r;
     } catch (e) {
       // ignore
@@ -85,7 +85,7 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
             s2.removeAllRanges();
             s2.addRange(range2);
             ref.current.focus && ref.current.focus();
-          } catch (e) {}
+          } catch (e) { }
         }, 10);
       }
     },
@@ -97,7 +97,7 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
         }
 
         // ensure editor retains focus but don't force a focus call that may alter selection
-        try { ref.current.focus && ref.current.focus(); } catch (e) {}
+        try { ref.current.focus && ref.current.focus(); } catch (e) { }
         // If there's already a browser selection use it, otherwise restore a previously saved selection
         const sel = window.getSelection();
         if (!sel || !sel.rangeCount) restoreSelection();
@@ -106,7 +106,7 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
           const cs = ref.current && window.getComputedStyle(ref.current);
           // eslint-disable-next-line no-console
           console.debug('RichEditor.exec (imperative)', { command, arg, direction: cs && cs.direction, unicodeBidi: cs && cs.unicodeBidi });
-        } catch (e) {}
+        } catch (e) { }
         document.execCommand(command, false, arg);
         onChange && onChange(ref.current.innerHTML);
       }
@@ -122,6 +122,11 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
     },
     focus() {
       ref.current && ref.current.focus();
+    },
+    setContent(html) {
+      if (!ref.current) return;
+      ref.current.innerHTML = html || '';
+      onChange && onChange(ref.current.innerHTML);
     }
   }));
 
@@ -133,12 +138,12 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
 
   const exec = (command, arg) => {
     if (ref.current) {
-      try { ref.current.focus && ref.current.focus(); } catch (e) {}
+      try { ref.current.focus && ref.current.focus(); } catch (e) { }
       try {
         const cs = ref.current && window.getComputedStyle(ref.current);
         // eslint-disable-next-line no-console
         console.debug('RichEditor.exec', { command, arg, direction: cs && cs.direction, unicodeBidi: cs && cs.unicodeBidi });
-      } catch (e) {}
+      } catch (e) { }
       document.execCommand(command, false, arg);
       onChange && onChange(ref.current.innerHTML);
     }
@@ -175,7 +180,7 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
       onChange && onChange(ref.current.innerHTML);
     } catch (err) {
       // Fallback to execCommand if DOM manipulation fails
-      try { document.execCommand(tagName === 'strong' ? 'bold' : tagName === 'em' ? 'italic' : 'underline', false); } catch (e) {}
+      try { document.execCommand(tagName === 'strong' ? 'bold' : tagName === 'em' ? 'italic' : 'underline', false); } catch (e) { }
       onChange && onChange(ref.current.innerHTML);
     }
   };
@@ -222,7 +227,7 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
       placeCaretAfterNode(anchor);
       onChange && onChange(ref.current.innerHTML);
     } catch (e) {
-      try { document.execCommand('createLink', false, href); } catch (err) {}
+      try { document.execCommand('createLink', false, href); } catch (err) { }
       onChange && onChange(ref.current.innerHTML);
     }
   };
@@ -248,7 +253,7 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
       placeCaretAfterNode(list);
       onChange && onChange(ref.current.innerHTML);
     } catch (e) {
-      try { document.execCommand(ordered ? 'insertOrderedList' : 'insertUnorderedList', false); } catch (err) {}
+      try { document.execCommand(ordered ? 'insertOrderedList' : 'insertUnorderedList', false); } catch (err) { }
       onChange && onChange(ref.current.innerHTML);
     }
   };

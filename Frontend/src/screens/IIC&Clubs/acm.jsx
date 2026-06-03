@@ -122,7 +122,11 @@ export default function ACM() {
         console.log('ACM API Response:', response);
         const blocks = response.data.data || response.data || [];
         console.log('Content blocks received:', blocks);
-        const visibleBlocks = blocks.filter(block => block.isVisible !== false);
+        const parsedBlocks = blocks.map(block => ({
+          ...block,
+          content: typeof block.content === 'string' ? JSON.parse(block.content) : block.content
+        }));
+        const visibleBlocks = parsedBlocks.filter(block => block.isVisible !== false);
         console.log('Visible blocks:', visibleBlocks);
         setContentBlocks(visibleBlocks);
         setLoading(false);

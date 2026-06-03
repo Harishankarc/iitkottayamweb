@@ -39,13 +39,13 @@ export default function VisualPageEditor() {
       { pageName: 'btech-cse', pageTitle: 'B.Tech CSE' },
       { pageName: 'btech-ece', pageTitle: 'B.Tech ECE' },
       { pageName: 'btech-cybersecurity', pageTitle: 'B.Tech Cybersecurity' },
-      { pageName: 'btech-ai-ds', pageTitle: 'B.Tech AI & Data Science' }
+      { pageName: 'btech-ai-ds', pageTitle: 'B.Tech AI & Data Science' },
+      { pageName: 'btech-math-computing', pageTitle: 'B.Tech Mathematics & Computing' }
     ]},
     { category: 'Facilities', pages: [
       { pageName: 'hostel', pageTitle: 'Hostel' },
       { pageName: 'gym', pageTitle: 'Gymnasium' },
-      { pageName: 'internet', pageTitle: 'Internet' },
-      { pageName: 'campus-network', pageTitle: 'Campus Network' },
+      { pageName: 'internet', pageTitle: 'Campus Network' },
       { pageName: 'medical-centre', pageTitle: 'Medical Centre' },
       { pageName: 'student-mess', pageTitle: 'Student Mess' },
       { pageName: 'security', pageTitle: 'Security' },

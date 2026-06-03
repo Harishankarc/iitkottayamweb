@@ -39,6 +39,7 @@ export const navigationConfig = [
       { id: 'btech-ece', label: 'B.Tech ECE', link: '/course/btech-ece' },
       { id: 'btech-cybersecurity', label: 'B.Tech Cybersecurity', link: '/course/btech-cybersecurity' },
       { id: 'btech-ai-ds', label: 'B.Tech AI and Data Science', link: '/course/btech-ai-ds' },
+      { id: 'btech-math-computing', label: 'B.Tech Mathematics and Computing', link: '/course/btech-math-computing' },
       { id: 'imtech', label: 'iM.Tech (After 12th)', link: 'https://emtech.iiitkottayam.ac.in/' },
       { id: 'e-mtech', label: 'e-M.Tech', link: 'https://mtech.iiitkottayam.ac.in/' },
       { id: 'mtech', label: 'M.Tech (After B.Tech/MCA/M.Sc)', link: 'https://imtech.iiitkottayam.ac.in/' },
@@ -52,8 +53,8 @@ export const navigationConfig = [
     submenu: [
       { id: 'administration', label: 'Administration', link: '/people/administration' },
       { id: 'hod', label: 'Head of Department', link: '/people/hod' },
-      {id: 'dean', label: 'Deans', link: '/people/deans' },
-      {id:'associate-dean', label: 'Associate Deans', link: '/people/associate-deans' },
+      { id: 'dean', label: 'Deans', link: '/people/deans' },
+      { id: 'associate-dean', label: 'Associate Deans', link: '/people/associate-deans' },
       { id: 'faculty', label: 'Faculty', link: '/people/faculty' },
       { id: 'technical', label: 'Technical', link: '/people/technical' },
       { id: 'support-staff', label: 'Professional Support Staff', link: '/people/support-staff' },
@@ -130,13 +131,13 @@ export const navigationConfig = [
     label: 'More',
     hasDropdown: true,
     submenu: [
-      {id : 'media', label: '@Media', link: '/media' },
+      { id: 'media', label: '@Media', link: '/media' },
       { id: 'download', label: 'Download', link: '/download' },
       { id: 'contact', label: 'Contact', link: '/contact' },
-      {id : 'rti', label: 'RTI', link: '/rti' }
+      { id: 'rti', label: 'RTI', link: '/rti' }
     ]
   },
-  
+
 
 ];
 

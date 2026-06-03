@@ -21,7 +21,11 @@ export default function Security() {
         setError(null);
         const response = await API.get('/api/content-blocks/page/security');
         const blocks = response.data.data || response.data || [];
-        setContentBlocks(blocks.filter(block => block.isVisible));
+        const parsedBlocks = blocks.map(block => ({
+          ...block,
+          content: typeof block.content === 'string' ? JSON.parse(block.content) : block.content
+        }));
+        setContentBlocks(parsedBlocks.filter(block => block.isVisible));
       } catch (error) {
         console.error('Error fetching security data:', error);
         setError('Failed to load security information. Please try again later.');
@@ -39,7 +43,11 @@ export default function Security() {
     API.get('/api/content-blocks/page/security')
       .then((response) => {
         const blocks = response.data.data || response.data || [];
-        setContentBlocks(blocks.filter(block => block.isVisible));
+        const parsedBlocks = blocks.map(block => ({
+          ...block,
+          content: typeof block.content === 'string' ? JSON.parse(block.content) : block.content
+        }));
+        setContentBlocks(parsedBlocks.filter(block => block.isVisible));
       })
       .catch((error) => {
         console.error('Error fetching security data:', error);
@@ -76,12 +84,8 @@ export default function Security() {
 
   // Get blocks by type
   const heroBlock = contentBlocks.find(block => block.blockType === 'hero');
-  const paragraphBlocks = contentBlocks.filter(block => block.blockType === 'paragraph');
-  const listBlocks = contentBlocks.filter(block => block.blockType === 'list');
-  const imageBlocks = contentBlocks.filter(block => block.blockType === 'image');
-  const tableBlocks = contentBlocks.filter(block => block.blockType === 'table');
-  const statisticsBlocks = contentBlocks.filter(block => block.blockType === 'statistics');
-  const galleryBlocks = contentBlocks.filter(block => block.blockType === 'gallery');
+  const orderedBlocks = [...contentBlocks]
+    .sort((a, b) => (a.blockOrder ?? 0) - (b.blockOrder ?? 0) || (a.id ?? 0) - (b.id ?? 0));
 
   // Render list items with icons
   const renderListItem = (item, index) => {
@@ -120,133 +124,173 @@ export default function Security() {
     );
   };
 
-  return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Hero Section */}
-      {heroBlock && (
-        <div className={`py-2 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+  const renderSingleBlock = (block, index) => {
+    if (block.blockType === 'hero') {
+      return (
+        <div key={block.id || index} className={`py-2 px-6 mb-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
           <div className="max-w-7xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
               <Shield className="w-4 h-4" style={{ color: color1 }} />
-              {heroBlock.content.badge || 'Campus Safety'}
+              {block.content.badge || 'Campus Safety'}
             </div>
             <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-              {heroBlock.content.title || 'Security'}
+              {block.content.title || 'Security'}
             </h1>
-            <div className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(heroBlock.content.description || '') }} />
+            {block.content.subtitle && (
+              <p className={`text-sm md:text-base font-semibold mb-2 max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                {block.content.subtitle}
+              </p>
+            )}
+            {block.content.description && (
+              <div 
+                className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}
+                dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.description) }}
+              />
+            )}
           </div>
         </div>
-      )}
+      );
+    }
 
+    if (block.blockType === 'paragraph') {
+      return (
+        <div 
+          key={block.id || index}
+          className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
+            darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'
+          } shadow-xl border-2 hover:border-opacity-100`} 
+          style={{ borderColor: `${color1}20` }} 
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}
+        >
+          <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
+            {block.content.title || 'About Campus Security'}
+          </h2>
+          <div className={`content-html text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.text || '') }} />
+        </div>
+      );
+    }
+
+    if (block.blockType === 'list') {
+      return (
+        <div 
+          key={block.id || index}
+          className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
+            darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'
+          } shadow-xl border-2 hover:border-opacity-100`}
+          style={{ borderColor: `${color1}20` }} 
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}
+        >
+          <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
+            {block.content.title || 'Features'}
+          </h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            {block.content.items && block.content.items.map((item, idx) => renderListItem(item, idx))}
+          </div>
+        </div>
+      );
+    }
+
+    // Default for other types: table, statistics, gallery, heading, button, card
+    return (
+      <div key={block.id || index} className="mb-12">
+        {renderContentBlock(block, { darkMode, color1, color2 })}
+      </div>
+    );
+  };
+
+  const renderImageGroup = (blocks, index) => {
+    return (
+      <div 
+        key={`image-group-${index}`}
+        className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
+          darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'
+        } shadow-xl border-2 hover:border-opacity-100`}
+        style={{ borderColor: `${color1}20` }} 
+        onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
+        onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}
+      >
+        <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
+          {blocks[0]?.content?.title || 'Security Facilities Gallery'}
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {blocks.map((block, idx) => (
+            <div
+              key={block.id || idx}
+              className={`rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ${
+                darkMode ? 'bg-gray-800' : 'bg-white'
+              }`}
+            >
+              {block.content.title && (
+                <div className="p-4 border-b" style={{ borderColor: `${color1}20` }}>
+                  <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {block.content.title}
+                  </h3>
+                </div>
+              )}
+              <img
+                src={API.getImageUrl(block.content.url || block.content.src)}
+                alt={block.content.alt || `Security image ${idx + 1}`}
+                className="w-full h-64 object-cover"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.parentElement.innerHTML = `
+                    <div class="w-full h-64 flex items-center justify-center ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}">
+                      <div class="text-center">
+                        <svg class="w-12 h-12 mx-auto mb-2 opacity-30" style="color: ${color1}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p class="text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}">Image ${idx + 1}</p>
+                      </div>
+                    </div>
+                  `;
+                }}
+              />
+              {block.content.caption && (
+                <div className="p-4">
+                  <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {block.content.caption}
+                  </p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderOrderedBlocks = () => {
+    const rendered = [];
+    let currentImageGroup = [];
+
+    for (let i = 0; i < orderedBlocks.length; i++) {
+      const block = orderedBlocks[i];
+
+      if (block.blockType === 'image') {
+        currentImageGroup.push(block);
+      } else {
+        if (currentImageGroup.length > 0) {
+          rendered.push(renderImageGroup(currentImageGroup, rendered.length));
+          currentImageGroup = [];
+        }
+        rendered.push(renderSingleBlock(block, rendered.length));
+      }
+    }
+
+    if (currentImageGroup.length > 0) {
+      rendered.push(renderImageGroup(currentImageGroup, rendered.length));
+    }
+
+    return rendered;
+  };
+
+  return (
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
       {/* Main Content */}
       <div className="mx-auto py-8 px-6 max-w-full">
-        {/* About Security */}
-        {paragraphBlocks.map((block, index) => (
-          <div 
-            key={block.id}
-            className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
-              darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'
-            } shadow-xl border-2 hover:border-opacity-100`} 
-            style={{ borderColor: `${color1}20` }} 
-            onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
-            onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}
-          >
-            <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
-              {block.content.title || 'About Campus Security'}
-            </h2>
-            <div className={`text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.text || '') }} />
-          </div>
-        ))}
-
-        {/* Security Features List */}
-        {listBlocks.map((block, index) => (
-          <div 
-            key={block.id}
-            className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
-              darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'
-            } shadow-xl border-2 hover:border-opacity-100`}
-            style={{ borderColor: `${color1}20` }} 
-            onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
-            onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}
-          >
-            <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
-              {block.content.title || 'Features'}
-            </h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              {block.content.items && block.content.items.map((item, idx) => renderListItem(item, idx))}
-            </div>
-          </div>
-        ))}
-
-        {/* Image Gallery */}
-        {imageBlocks.length > 0 && (
-          <div 
-            className={`p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
-              darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'
-            } shadow-xl border-2 hover:border-opacity-100`}
-            style={{ borderColor: `${color1}20` }} 
-            onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
-            onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}
-          >
-            <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
-              {imageBlocks[0]?.content?.title || 'Security Facilities Gallery'}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {imageBlocks.map((block, index) => (
-                <div
-                  key={block.id}
-                  className={`aspect-video rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
-                    darkMode ? 'bg-gray-700' : 'bg-gray-100'
-                  }`}
-                >
-                  {block.content.title && (
-                    <div className="p-4 border-b" style={{ borderColor: `${color1}20` }}>
-                      <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                        {block.content.title}
-                      </h3>
-                    </div>
-                  )}
-                  <img
-                    src={API.getImageUrl(block.content.url)}
-                    alt={block.content.alt || `Security image ${index + 1}`}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.parentElement.innerHTML = `
-                        <div class="w-full h-full flex items-center justify-center ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}">
-                          <div class="text-center">
-                            <svg class="w-12 h-12 mx-auto mb-2 opacity-30" style="color: ${color1}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <p class="text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}">Image ${index + 1}</p>
-                          </div>
-                        </div>
-                      `;
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-12">
-          {tableBlocks.map((block, index) => (
-            <div key={block.blockId || index}>
-              {renderContentBlock(block, { darkMode, color1, color2 })}
-            </div>
-          ))}
-          {statisticsBlocks.map((block, index) => (
-            <div key={block.blockId || index}>
-              {renderContentBlock(block, { darkMode, color1, color2 })}
-            </div>
-          ))}
-          {galleryBlocks.map((block, index) => (
-            <div key={block.blockId || index}>
-              {renderContentBlock(block, { darkMode, color1, color2 })}
-            </div>
-          ))}
-        </div>
+        {renderOrderedBlocks()}
       </div>
     </div>
   );

@@ -160,10 +160,14 @@ const HomePage = () => {
         console.log('Content Blocks Response:', blocksRes);
         if (blocksRes?.success && blocksRes?.data) {
           const blocks = Array.isArray(blocksRes.data) ? blocksRes.data : [];
-          console.log('Content Blocks Loaded:', blocks);
-          console.log('Vision Block:', blocks.find(b => b.blockId === 'homepage-vision'));
-          console.log('Mission Block:', blocks.find(b => b.blockId === 'homepage-mission'));
-          setContentBlocks(blocks);
+          const parsedBlocks = blocks.map(block => ({
+            ...block,
+            content: typeof block.content === 'string' ? JSON.parse(block.content) : block.content
+          }));
+          console.log('Content Blocks Loaded:', parsedBlocks);
+          console.log('Vision Block:', parsedBlocks.find(b => b.blockId === 'homepage-vision'));
+          console.log('Mission Block:', parsedBlocks.find(b => b.blockId === 'homepage-mission'));
+          setContentBlocks(parsedBlocks);
         }
 
           // Fetch Latest News & Updates ContentSection

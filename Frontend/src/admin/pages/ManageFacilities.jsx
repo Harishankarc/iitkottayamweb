@@ -224,7 +224,7 @@ export default function ManageFacilities() {
                     <option value="sports">Sports</option>
                     <option value="medical">Medical</option>
                     <option value="mess">Mess</option>
-                    <option value="internet">Internet</option>
+                    <option value="internet">Campus Network</option>
                     <option value="security">Security</option>
                   </select>
                 </div>

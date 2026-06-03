@@ -91,12 +91,37 @@ export default function UnifiedContentEditor() {
 
   const appendPendingListItem = () => {
     if (!pendingListType) return;
+    const existingHtml = editingBlock.content?.text || '';
+    const nextItemNumber = pendingListItemCount + 1;
+    const itemLabel = `List item ${nextItemNumber}`;
     const tag = pendingListType;
-    const liContent = tag === 'ol' ? `${pendingListItemCount + 1}.&nbsp;` : '&nbsp;';
-    const liHtml = `<li>${liContent}</li>`;
-    
-    paragraphEditorRef.current?.insertHtml(liHtml);
-    setPendingListItemCount(pendingListItemCount + 1);
+    const listRegex = new RegExp(`(<${tag}[^>]*>)([\\s\\S]*?)(</${tag}>)`, 'gi');
+    let updatedHtml = '';
+    let lastIndex = -1;
+    let lastMatch = null;
+    let match;
+    while ((match = listRegex.exec(existingHtml)) !== null) {
+      lastIndex = match.index;
+      lastMatch = match;
+    }
+
+    if (lastMatch) {
+      const [fullMatch, openTag, body, closeTag] = lastMatch;
+      // Ensure the list element has explicit inline styles so markers are not removed by global CSS
+      const styleAttr = `style="margin:12px 0;padding-left:28px;list-style-position:outside;${tag === 'ol' ? 'list-style-type:none;' : 'list-style-type:disc;' }"`;
+      const hasStyle = /style=/.test(openTag);
+      const finalOpenTag = hasStyle ? openTag : openTag.replace(new RegExp(`^<${tag}`), `<${tag} ${styleAttr}`);
+      const liContent = tag === 'ol' ? `${nextItemNumber}.&nbsp;` : '&nbsp;';
+      const replacement = `${finalOpenTag}${body}<li>${liContent}</li>${closeTag}`;
+      updatedHtml = `${existingHtml.slice(0, lastIndex)}${replacement}${existingHtml.slice(lastIndex + fullMatch.length)}`;
+    } else {
+      const styleAttr = `style="margin:12px 0;padding-left:28px;list-style-position:outside;${tag === 'ol' ? 'list-style-type:none;' : 'list-style-type:disc;' }"`;
+      const liContent = tag === 'ol' ? `${nextItemNumber}.&nbsp;` : '&nbsp;';
+      updatedHtml = `${existingHtml}${existingHtml ? '' : ''}<${tag} ${styleAttr}><li>${liContent}</li></${tag}>`;
+    }
+
+    updateContent('text', sanitizeParagraphHtml(updatedHtml));
+    setPendingListItemCount(nextItemNumber);
   };
 
   useEffect(() => {
@@ -197,6 +222,8 @@ export default function UnifiedContentEditor() {
 
   const createBlock = () => {
     const defaultContent = getDefaultContent('paragraph');
+    setPendingListType(null);
+    setPendingListItemCount(0);
     setEditingBlock({
       blockId: `block-${Date.now()}`,
       pageName: selectedPage.pageName,
@@ -223,6 +250,8 @@ export default function UnifiedContentEditor() {
       return field;
     };
 
+    setPendingListType(null);
+    setPendingListItemCount(0);
     setEditingBlock({
       id: block.id,
       blockId: block.blockId || `block-${Date.now()}`,
@@ -265,6 +294,8 @@ export default function UnifiedContentEditor() {
       }
       setShowBlockEditor(false);
       setEditingBlock(null);
+      setPendingListType(null);
+      setPendingListItemCount(0);
       fetchBlocks();
     } catch (error) {
       console.error('Error saving block:', error);
@@ -509,31 +540,10 @@ export default function UnifiedContentEditor() {
                     <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.applyInlineFormat('em'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">I</button>
                     <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.applyInlineFormat('u'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">U</button>
                     <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.insertLink(); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">Link</button>
-                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType('ul'); setPendingListItemCount(0); paragraphEditorRef.current?.insertHtml('<ul style="margin:12px 0;padding-left:28px;list-style-position:outside;list-style-type:disc;"><li>&nbsp;</li></ul>'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">UL</button>
-                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType('ol'); setPendingListItemCount(0); paragraphEditorRef.current?.insertHtml('<ol style="margin:12px 0;padding-left:28px;list-style-position:outside;list-style-type:none;"><li>1.&nbsp;</li></ol>'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">OL</button>
+                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType('ul'); setPendingListItemCount(0); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">UL</button>
+                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType('ol'); setPendingListItemCount(0); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">OL</button>
                   </div>
                 </div>
-                {pendingListType && (
-                  <div className="p-3 bg-blue-50 border-2 border-blue-200 rounded-lg">
-                    <p className="text-xs text-blue-700 font-medium mb-2">
-                      {pendingListType === 'ul' ? 'Unordered List' : 'Ordered List'} mode active ({pendingListItemCount} items)
-                    </p>
-                    <button
-                      type="button"
-                      onMouseDown={(e) => { e.preventDefault(); appendPendingListItem(); }}
-                      className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700"
-                    >
-                      Add Item
-                    </button>
-                    <button
-                      type="button"
-                      onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); setPendingListItemCount(0); }}
-                      className="px-3 py-1 ml-2 bg-gray-300 text-gray-700 rounded text-xs font-medium hover:bg-gray-400"
-                    >
-                      Done
-                    </button>
-                  </div>
-                )}
                 <div>
                   <label className="block text-sm font-semibold mb-2 text-gray-700">Content</label>
                   <div className="border-2 border-gray-300 rounded-lg overflow-hidden">
@@ -545,6 +555,27 @@ export default function UnifiedContentEditor() {
                     />
                   </div>
                 </div>
+                {pendingListType && (
+                  <div className="p-3 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                    <p className="text-xs text-blue-700 font-medium mb-2">
+                      {pendingListType === 'ul' ? 'Unordered List' : 'Ordered List'} mode active ({pendingListItemCount} items)
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => appendPendingListItem()}
+                      className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700"
+                    >
+                      Add Item
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setPendingListType(null); setPendingListItemCount(0); }}
+                      className="px-3 py-1 ml-2 bg-gray-300 text-gray-700 rounded text-xs font-medium hover:bg-gray-400"
+                    >
+                      Done
+                    </button>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold mb-2 text-gray-700">Link Text (optional)</label>
@@ -1437,6 +1468,8 @@ export default function UnifiedContentEditor() {
                   onClick={() => {
                     setShowBlockEditor(false);
                     setEditingBlock(null);
+                    setPendingListType(null);
+                    setPendingListItemCount(0);
                   }}
                   className="text-gray-400 hover:text-gray-600 text-3xl font-bold"
                 >
@@ -1457,6 +1490,8 @@ export default function UnifiedContentEditor() {
                       onChange={(e) => {
                         const newBlockType = e.target.value;
                         const newContent = getDefaultContent(newBlockType);
+                        setPendingListType(null);
+                        setPendingListItemCount(0);
                         setEditingBlock({
                           ...editingBlock,
                           blockType: newBlockType,
@@ -1509,13 +1544,19 @@ export default function UnifiedContentEditor() {
                 onClick={() => {
                   setShowBlockEditor(false);
                   setEditingBlock(null);
+                  setPendingListType(null);
+                  setPendingListItemCount(0);
                 }}
                 className="px-6 py-3 border-2 border-gray-300 rounded-lg hover:bg-white font-semibold transition-all"
               >
                 Cancel
               </button>
               <button
-                onClick={saveBlock}
+                onClick={() => {
+                  saveBlock();
+                  setPendingListType(null);
+                  setPendingListItemCount(0);
+                }}
                 className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold flex items-center gap-2 transition-all shadow-lg hover:shadow-xl"
               >
                 <Save className="w-5 h-5" />

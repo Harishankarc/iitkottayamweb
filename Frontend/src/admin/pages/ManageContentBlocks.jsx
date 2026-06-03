@@ -46,12 +46,12 @@ export default function ManageContentBlocks() {
     { pageName: 'btech-ece', pageTitle: 'B.Tech ECE' },
     { pageName: 'btech-cybersecurity', pageTitle: 'B.Tech Cybersecurity' },
     { pageName: 'btech-ai-ds', pageTitle: 'B.Tech AI & Data Science' },
+    { pageName: 'btech-math-computing', pageTitle: 'B.Tech Mathematics & Computing' },
     // Facilities
     { pageName: 'hostel', pageTitle: 'Hostel' },
     { pageName: 'gym', pageTitle: 'Gymnasium' },
     { pageName: 'gymnasium', pageTitle: 'Gymnasium (Alt)' },
-    { pageName: 'internet', pageTitle: 'Internet' },
-    { pageName: 'campus-network', pageTitle: 'Campus Network' },
+    { pageName: 'internet', pageTitle: 'Campus Network' },
     { pageName: 'medical-centre', pageTitle: 'Medical Centre' },
     { pageName: 'student-mess', pageTitle: 'Student Mess' },
     { pageName: 'security', pageTitle: 'Security' },
@@ -1739,13 +1739,13 @@ export default function ManageContentBlocks() {
                 <option value="btech-ece">B.Tech ECE</option>
                 <option value="btech-cybersecurity">B.Tech Cybersecurity</option>
                 <option value="btech-ai-ds">B.Tech AI & Data Science</option>
+                <option value="btech-math-computing">B.Tech Mathematics & Computing</option>
               </optgroup>
               
               <optgroup label="🏢 Facilities">
                 <option value="hostel">Hostel</option>
                 <option value="gym">Gymnasium</option>
-                <option value="internet">Internet</option>
-                <option value="campus-network">Campus Network</option>
+                <option value="internet">Campus Network</option>
                 <option value="medical-centre">Medical Centre</option>
                 <option value="student-mess">Student Mess</option>
                 <option value="security">Security</option>

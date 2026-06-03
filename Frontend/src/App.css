@@ -167,3 +167,37 @@ img {
 .animate-fadeIn {
   animation: fadeIn 0.2s ease-out;
 }
+
+/* Rich Text Editor HTML Output Styling */
+.content-html strong, .content-html b {
+  font-weight: 700 !important;
+}
+.content-html em, .content-html i {
+  font-style: italic !important;
+}
+.content-html u {
+  text-decoration: underline !important;
+}
+.content-html a {
+  color: #239244 !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+  cursor: pointer !important;
+}
+.content-html a:hover {
+  opacity: 0.8 !important;
+}
+.content-html ul {
+  margin: 12px 0 !important;
+  padding-left: 24px !important;
+  list-style-type: disc !important;
+}
+.content-html ol {
+  margin: 12px 0 !important;
+  padding-left: 24px !important;
+  list-style-type: decimal !important;
+}
+.content-html li {
+  margin: 6px 0 !important;
+  display: list-item !important;
+}

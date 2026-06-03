@@ -176,7 +176,11 @@ export default function Hostel() {
         setError(null);
         const response = await API.get('/api/content-blocks/page/hostel');
         const blocks = response.data.data || response.data || [];
-        setContentBlocks(blocks.filter(block => block.isVisible));
+        const parsedBlocks = blocks.map(block => ({
+          ...block,
+          content: typeof block.content === 'string' ? JSON.parse(block.content) : block.content
+        }));
+        setContentBlocks(parsedBlocks.filter(block => block.isVisible));
       } catch (error) {
         console.error('Error fetching hostel data:', error);
         setError('Failed to load hostel information. Please try again later.');
@@ -194,7 +198,11 @@ export default function Hostel() {
     API.get('/api/content-blocks/page/hostel')
       .then((response) => {
         const blocks = response.data.data || response.data || [];
-        setContentBlocks(blocks.filter(block => block.isVisible));
+        const parsedBlocks = blocks.map(block => ({
+          ...block,
+          content: typeof block.content === 'string' ? JSON.parse(block.content) : block.content
+        }));
+        setContentBlocks(parsedBlocks.filter(block => block.isVisible));
       })
       .catch((error) => {
         console.error('Error fetching hostel data:', error);
@@ -231,187 +239,205 @@ export default function Hostel() {
 
   // Get blocks by type
   const heroBlock = contentBlocks.find(block => block.blockType === 'hero');
-  const paragraphBlocks = contentBlocks.filter(block => block.blockType === 'paragraph');
-  const listBlocks = contentBlocks.filter(block => block.blockType === 'list');
-  const imageBlocks = contentBlocks.filter(block => block.blockType === 'image');
-  const tableBlocks = contentBlocks.filter(block => block.blockType === 'table');
-  const statisticsBlocks = contentBlocks.filter(block => block.blockType === 'statistics');
-  const galleryBlocks = contentBlocks.filter(block => block.blockType === 'gallery');
-  
-  // Debug: Log image blocks
-  console.log('Image blocks:', imageBlocks);
-  console.log('All content blocks:', contentBlocks);
+  const orderedBlocks = [...contentBlocks]
+    .sort((a, b) => (a.blockOrder ?? 0) - (b.blockOrder ?? 0) || (a.id ?? 0) - (b.id ?? 0));
 
-  return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Hero Section */}
-      {heroBlock && (
-        <div className={`py-2 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+  const getParagraphHeader = (block) => {
+    if (block.blockId === 'about-hostel') {
+      return (
+        <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
+          {block.content.title || 'About Our Hostels'}
+        </h2>
+      );
+    }
+    if (block.blockId === 'boys-hostel-info') {
+      return (
+        <div className="flex items-center gap-3 mb-4">
+          <Users className="w-8 h-8" style={{ color: color1 }} />
+          <h2 className="text-2xl font-bold" style={{ color: color1 }}>
+            {block.content.title || 'Boys Hostel'}
+          </h2>
+        </div>
+      );
+    }
+    if (block.blockId === 'girls-hostel-info') {
+      return (
+        <div className="flex items-center gap-3 mb-4">
+          <Users className="w-8 h-8" style={{ color: color1 }} />
+          <h2 className="text-2xl font-bold" style={{ color: color1 }}>
+            {block.content.title || 'Girls Hostel'}
+          </h2>
+        </div>
+      );
+    }
+    if (block.blockId === 'hostel-rules') {
+      return (
+        <div className="flex items-center gap-3 mb-4">
+          <FileText className="w-8 h-8" style={{ color: color1 }} />
+          <h2 className="text-2xl font-bold" style={{ color: color1 }}>
+            {block.content.title || 'Hostel Rules & Guidelines'}
+          </h2>
+        </div>
+      );
+    }
+    
+    if (block.content.title) {
+      return (
+        <h2 className="text-2xl font-bold mb-4" style={{ color: color1 }}>
+          {block.content.title}
+        </h2>
+      );
+    }
+    return null;
+  };
+
+  const renderSingleBlock = (block, index) => {
+    if (block.blockType === 'hero') {
+      return (
+        <div key={block.id || index} className={`py-2 px-6 mb-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
           <div className="max-w-7xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
               <Home className="w-4 h-4" style={{ color: color1 }} />
               Campus Living
             </div>
             <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-              {heroBlock.content.title}
+              {block.content.title}
             </h1>
-            {heroBlock.content.subtitle && (
-              <p className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                {heroBlock.content.subtitle}
+            {block.content.subtitle && (
+              <p className={`text-sm md:text-base font-semibold mb-2 max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                {block.content.subtitle}
               </p>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <div className="mx-auto py-8 px-6 max-w-full">
-        {/* About Hostel Section */}
-        {paragraphBlocks.find(block => block.blockId === 'about-hostel') && (
-          <div className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`} style={{ borderColor: `${color1}20` }} onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}>
-            <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
-              About Our Hostels
-            </h2>
-            <div className={`text-lg leading-relaxed mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-              dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(paragraphBlocks.find(block => block.blockId === 'about-hostel').content.text) }}
-            />
-
-            {/* Facilities List */}
-            {listBlocks.find(block => block.blockId === 'hostel-facilities') && (
-              <div className="mt-8">
-                <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                  Hostel Facilities
-                </h3>
-                <div className="grid md:grid-cols-2 gap-3">
-                  {listBlocks.find(block => block.blockId === 'hostel-facilities').content.items.map((item, index) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: color1 }} />
-                      <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        {item}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            {block.content.description && (
+              <div 
+                className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}
+                dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.description) }}
+              />
             )}
           </div>
-        )}
+        </div>
+      );
+    }
 
-        {/* Boys Hostel Info */}
-        {paragraphBlocks.find(block => block.blockId === 'boys-hostel-info') && (
-          <div className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`} style={{ borderColor: `${color1}20` }} onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}>
-            <div className="flex items-center gap-3 mb-4">
-              <Users className="w-8 h-8" style={{ color: color1 }} />
-              <h2 className="text-2xl font-bold" style={{ color: color1 }}>
-                Boys Hostel
-              </h2>
-            </div>
-            <div className={`text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(paragraphBlocks.find(block => block.blockId === 'boys-hostel-info').content.text) }} />
+    if (block.blockType === 'paragraph') {
+      return (
+        <div 
+          key={block.id || index}
+          className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`} 
+          style={{ borderColor: `${color1}20` }} 
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}
+        >
+          {getParagraphHeader(block)}
+          <div className={`content-html text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.text) }} />
+        </div>
+      );
+    }
+
+    if (block.blockType === 'list') {
+      return (
+        <div 
+          key={block.id || index}
+          className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`} 
+          style={{ borderColor: `${color1}20` }} 
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}
+        >
+          <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+            {block.content.title || 'Hostel Facilities'}
+          </h3>
+          <div className="grid md:grid-cols-2 gap-3">
+            {block.content.items && block.content.items.map((item, idx) => (
+              <div key={idx} className="flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: color1 }} />
+                <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  {item}
+                </span>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
+      );
+    }
 
-        {/* Girls Hostel Info */}
-        {paragraphBlocks.find(block => block.blockId === 'girls-hostel-info') && (
-          <div className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`} style={{ borderColor: `${color1}20` }} onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}>
-            <div className="flex items-center gap-3 mb-4">
-              <Users className="w-8 h-8" style={{ color: color1 }} />
-              <h2 className="text-2xl font-bold" style={{ color: color1 }}>
-                Girls Hostel
-              </h2>
-            </div>
-            <div className={`text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(paragraphBlocks.find(block => block.blockId === 'girls-hostel-info').content.text) }} />
-          </div>
-        )}
+    // Default for other types: table, statistics, gallery, heading, button, card
+    return (
+      <div key={block.id || index} className="mb-12">
+        {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+      </div>
+    );
+  };
 
-        {/* Hostel Rules */}
-        {paragraphBlocks.find(block => block.blockId === 'hostel-rules') && (
-          <div className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`} style={{ borderColor: `${color1}20` }} onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}>
-            <div className="flex items-center gap-3 mb-4">
-              <FileText className="w-8 h-8" style={{ color: color1 }} />
-              <h2 className="text-2xl font-bold" style={{ color: color1 }}>
-                Hostel Rules & Guidelines
-              </h2>
-            </div>
-            <div className={`text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(paragraphBlocks.find(block => block.blockId === 'hostel-rules').content.text) }} />
-          </div>
-        )}
-
-        {/* Display all other paragraph blocks that don't have specific IDs */}
-        {paragraphBlocks
-          .filter(block => !['about-hostel', 'boys-hostel-info', 'girls-hostel-info', 'hostel-rules'].includes(block.blockId))
-          .map((block, index) => (
-            <div 
-              key={block.blockId || index}
-              className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`} 
-              style={{ borderColor: `${color1}20` }} 
-              onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
-              onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}
+  const renderImageGroup = (blocks, index) => {
+    return (
+      <div key={`image-group-${index}`} className="mb-12">
+        <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
+          {blocks[0]?.content?.title || 'Hostel Facilities'}
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {blocks.map((block, idx) => (
+            <div
+              key={block.id || idx}
+              className={`rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
             >
               {block.content.title && (
-                <h2 className="text-2xl font-bold mb-4" style={{ color: color1 }}>
-                  {block.content.title}
-                </h2>
-              )}
-              <div className={`text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.text) }} />
-            </div>
-          ))}
-
-        {/* Hostel Images Gallery */}
-        {imageBlocks.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
-              {imageBlocks[0]?.content?.title || 'Hostel Facilities'}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {imageBlocks.map((block, index) => (
-                <div
-                  key={index}
-                  className={`rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
-                >
-                  {block.content.title && (
-                    <div className="p-4 border-b" style={{ borderColor: `${color1}20` }}>
-                      <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                        {block.content.title}
-                      </h3>
-                    </div>
-                  )}
-                  <img
-                    src={API.getImageUrl(block.content.src || block.content.url)}
-                    alt={block.content.alt || `Hostel facility ${index + 1}`}
-                    className="w-full h-64 object-cover"
-                    onError={(e) => e.currentTarget.src = `https://placehold.co/600x400/${color1.replace('#', '')}/ffffff?text=Hostel+Facility`}
-                  />
-                  {block.content.caption && (
-                    <div className="p-4">
-                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        {block.content.caption}
-                      </p>
-                    </div>
-                  )}
+                <div className="p-4 border-b" style={{ borderColor: `${color1}20` }}>
+                  <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {block.content.title}
+                  </h3>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-12">
-          {tableBlocks.map((block, index) => (
-            <div key={block.blockId || index}>
-              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
-            </div>
-          ))}
-          {statisticsBlocks.map((block, index) => (
-            <div key={block.blockId || index}>
-              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
-            </div>
-          ))}
-          {galleryBlocks.map((block, index) => (
-            <div key={block.blockId || index}>
-              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+              )}
+              <img
+                src={API.getImageUrl(block.content.src || block.content.url)}
+                alt={block.content.alt || `Hostel facility ${idx + 1}`}
+                className="w-full h-64 object-cover"
+                onError={(e) => e.currentTarget.src = `https://placehold.co/600x400/${color1.replace('#', '')}/ffffff?text=Hostel+Facility`}
+              />
+              {block.content.caption && (
+                <div className="p-4">
+                  <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {block.content.caption}
+                  </p>
+                </div>
+              )}
             </div>
           ))}
         </div>
+      </div>
+    );
+  };
 
+  // Group contiguous image blocks
+  const renderOrderedBlocks = () => {
+    const rendered = [];
+    let currentImageGroup = [];
+
+    for (let i = 0; i < orderedBlocks.length; i++) {
+      const block = orderedBlocks[i];
+
+      if (block.blockType === 'image') {
+        currentImageGroup.push(block);
+      } else {
+        if (currentImageGroup.length > 0) {
+          rendered.push(renderImageGroup(currentImageGroup, rendered.length));
+          currentImageGroup = [];
+        }
+        rendered.push(renderSingleBlock(block, rendered.length));
+      }
+    }
+
+    if (currentImageGroup.length > 0) {
+      rendered.push(renderImageGroup(currentImageGroup, rendered.length));
+    }
+
+    return rendered;
+  };
+
+  return (
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
+      {/* Main Content */}
+      <div className="mx-auto py-8 px-6 max-w-full">
+        {renderOrderedBlocks()}
       </div>
     </div>
   );

@@ -21,7 +21,11 @@ export default function Internet() {
         setError(null);
         const response = await API.get('/api/content-blocks/page/internet');
         const blocks = response.data.data || response.data || [];
-        setContentBlocks(blocks.filter(block => block.isVisible));
+        const parsedBlocks = blocks.map(block => ({
+          ...block,
+          content: typeof block.content === 'string' ? JSON.parse(block.content) : block.content
+        }));
+        setContentBlocks(parsedBlocks.filter(block => block.isVisible));
       } catch (error) {
         console.error('Error fetching internet data:', error);
         setError('Failed to load internet facilities information. Please try again later.');
@@ -39,7 +43,11 @@ export default function Internet() {
     API.get('/api/content-blocks/page/internet')
       .then((response) => {
         const blocks = response.data.data || response.data || [];
-        setContentBlocks(blocks.filter(block => block.isVisible));
+        const parsedBlocks = blocks.map(block => ({
+          ...block,
+          content: typeof block.content === 'string' ? JSON.parse(block.content) : block.content
+        }));
+        setContentBlocks(parsedBlocks.filter(block => block.isVisible));
       })
       .catch((error) => {
         console.error('Error fetching internet data:', error);
@@ -147,7 +155,7 @@ export default function Internet() {
                   </div>
                 )}
                 <div 
-                  className={`text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                  className={`content-html text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
                   dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.text?.replace(/\n/g, '<br/>') || '') }}
                   style={{ wordBreak: 'break-word' }}
                 />

@@ -43,7 +43,7 @@ const AVAILABLE_PAGES = [
   // Facilities
   { pageName: 'hostel', pageTitle: 'Hostel', category: 'Facilities' },
   { pageName: 'gym', pageTitle: 'Gymnasium', category: 'Facilities' },
-  { pageName: 'internet', pageTitle: 'Internet', category: 'Facilities' },
+  { pageName: 'internet', pageTitle: 'Campus Network', category: 'Facilities' },
   { pageName: 'medical-centre', pageTitle: 'Medical Centre', category: 'Facilities' },
   { pageName: 'student-mess', pageTitle: 'Student Mess', category: 'Facilities' },
   { pageName: 'security', pageTitle: 'Security', category: 'Facilities' },
@@ -117,7 +117,13 @@ export default function UnifiedContentManager() {
   const [pages, setPages] = useState([]);
   const [selectedPage, setSelectedPage] = useState(null);
   const [blocks, setBlocks] = useState([]);
-  const [editingBlock, setEditingBlock] = useState(null);
+  const [editingBlock, _setEditingBlock] = useState(null);
+  const editingBlockRef = useRef(null); // always holds latest editingBlock to avoid stale closures
+  // Wrapper: always keeps ref in sync so handleSaveBlock reads fresh data (fixes stale closure bug)
+  const setEditingBlock = (val) => {
+    editingBlockRef.current = val;
+    _setEditingBlock(val);
+  };
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -143,12 +149,40 @@ export default function UnifiedContentManager() {
 
   const appendPendingListItem = () => {
     if (!pendingListType) return;
+    const existingHtml = editingBlock?.content?.text || '';
+    const nextItemNumber = pendingListItemCount + 1;
+    const itemLabel = `List item ${nextItemNumber}`;
     const tag = pendingListType;
-    const liContent = tag === 'ol' ? `${pendingListItemCount + 1}.&nbsp;` : '&nbsp;';
-    const liHtml = `<li>${liContent}</li>`;
-    
-    paragraphEditorRef.current?.insertHtml(liHtml);
-    setPendingListItemCount(pendingListItemCount + 1);
+    const listRegex = new RegExp(`(<${tag}[^>]*>)([\\s\\S]*?)(</${tag}>)`, 'gi');
+    let updatedHtml = '';
+    let lastIndex = -1;
+    let lastMatch = null;
+    let match;
+    while ((match = listRegex.exec(existingHtml)) !== null) {
+      lastIndex = match.index;
+      lastMatch = match;
+    }
+
+    if (lastMatch) {
+      const [fullMatch, openTag, body, closeTag] = lastMatch;
+      // Ensure the list element has explicit inline styles so markers are not removed by global CSS
+      const styleAttr = `style="margin:12px 0;padding-left:28px;list-style-position:outside;${tag === 'ol' ? 'list-style-type:none;' : 'list-style-type:disc;' }"`;
+      const hasStyle = /style=/.test(openTag);
+      const finalOpenTag = hasStyle ? openTag : openTag.replace(new RegExp(`^<${tag}`), `<${tag} ${styleAttr}`);
+      const liContent = tag === 'ol' ? `${nextItemNumber}.&nbsp;` : '&nbsp;';
+      const replacement = `${finalOpenTag}${body}<li>${liContent}</li>${closeTag}`;
+      updatedHtml = `${existingHtml.slice(0, lastIndex)}${replacement}${existingHtml.slice(lastIndex + fullMatch.length)}`;
+    } else {
+      const styleAttr = `style="margin:12px 0;padding-left:28px;list-style-position:outside;${tag === 'ol' ? 'list-style-type:none;' : 'list-style-type:disc;' }"`;
+      const liContent = tag === 'ol' ? `${nextItemNumber}.&nbsp;` : '&nbsp;';
+      updatedHtml = `${existingHtml}${existingHtml ? '' : ''}<${tag} ${styleAttr}><li>${liContent}</li></${tag}>`;
+    }
+
+    setEditingBlock({
+      ...editingBlock,
+      content: { ...editingBlock.content, text: sanitizeParagraphHtml(updatedHtml) }
+    });
+    setPendingListItemCount(nextItemNumber);
   };
 
   useEffect(() => {
@@ -242,13 +276,16 @@ export default function UnifiedContentManager() {
         parsedContent = {};
       }
     }
-    setEditingBlock({
-      ...block,
-      content: parsedContent
-    });
+    setPendingListType(null);
+    setPendingListItemCount(0);
+    setEditingBlock({ ...block, content: parsedContent });
   };
 
   const handleSaveBlock = async () => {
+    // Always read from ref to get the absolute latest editingBlock value,
+    // avoiding the stale closure problem where the state captured at render time
+    // may not reflect the user's latest edits.
+    const editingBlock = editingBlockRef.current;
     try {
       // Validate required fields
       if (!editingBlock?.blockId) {
@@ -290,6 +327,8 @@ export default function UnifiedContentManager() {
       }
 
       alert('Block saved successfully!');
+      setPendingListType(null);
+      setPendingListItemCount(0);
       fetchBlocks();
       fetchPagesAndBlocks();
     } catch (error) {
@@ -371,12 +410,16 @@ export default function UnifiedContentManager() {
   };
 
   const handleSelectPage = (page) => {
+    setPendingListType(null);
+    setPendingListItemCount(0);
     setSelectedPage(page);
     setView('editor');
     setEditingBlock(null);
   };
 
   const handleBackToPages = () => {
+    setPendingListType(null);
+    setPendingListItemCount(0);
     setView('pages');
     setSelectedPage(null);
     setBlocks([]);
@@ -512,31 +555,10 @@ export default function UnifiedContentManager() {
                 <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.applyInlineFormat('em'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">I</button>
                 <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.applyInlineFormat('u'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">U</button>
                 <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.insertLink(); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">Link</button>
-                <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType('ul'); setPendingListItemCount(0); paragraphEditorRef.current?.insertHtml('<ul style="margin:12px 0;padding-left:28px;list-style-position:outside;list-style-type:disc;"><li>&nbsp;</li></ul>'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">UL</button>
-                <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType('ol'); setPendingListItemCount(0); paragraphEditorRef.current?.insertHtml('<ol style="margin:12px 0;padding-left:28px;list-style-position:outside;list-style-type:none;"><li>1.&nbsp;</li></ol>'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">OL</button>
+                <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType('ul'); setPendingListItemCount(0); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">UL</button>
+                <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType('ol'); setPendingListItemCount(0); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">OL</button>
               </div>
             </div>
-            {pendingListType && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-xs text-blue-700 font-medium mb-2">
-                  {pendingListType === 'ul' ? 'Unordered List' : 'Ordered List'} mode active ({pendingListItemCount} items)
-                </p>
-                <button
-                  type="button"
-                  onMouseDown={(e) => { e.preventDefault(); appendPendingListItem(); }}
-                  className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700"
-                >
-                  Add Item
-                </button>
-                <button
-                  type="button"
-                  onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); setPendingListItemCount(0); }}
-                  className="px-3 py-1 ml-2 bg-gray-300 text-gray-700 rounded text-xs font-medium hover:bg-gray-400"
-                >
-                  Done
-                </button>
-              </div>
-            )}
             <div>
               <label className="block text-sm font-medium mb-2">Content</label>
               <div className="border rounded-lg overflow-hidden">
@@ -551,6 +573,27 @@ export default function UnifiedContentManager() {
                 />
               </div>
             </div>
+            {pendingListType && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-xs text-blue-700 font-medium mb-2">
+                  {pendingListType === 'ul' ? 'Unordered List' : 'Ordered List'} mode active ({pendingListItemCount} items)
+                </p>
+                <button
+                  type="button"
+                  onClick={() => appendPendingListItem()}
+                  className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700"
+                >
+                  Add Item
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setPendingListType(null); setPendingListItemCount(0); }}
+                  className="px-3 py-1 ml-2 bg-gray-300 text-gray-700 rounded text-xs font-medium hover:bg-gray-400"
+                >
+                  Done
+                </button>
+              </div>
+            )}
           </div>
         );
 
@@ -1156,6 +1199,8 @@ export default function UnifiedContentManager() {
                 onChange={(e) => {
                   const newType = e.target.value;
                   
+                  setPendingListType(null);
+                  setPendingListItemCount(0);
                   // Initialize proper default content for each block type
                   let newContent = {};
                   switch(newType) {
@@ -1290,6 +1335,8 @@ export default function UnifiedContentManager() {
           <div className="p-4 border-t bg-white">
             <button
               onClick={() => {
+                setPendingListType(null);
+                setPendingListItemCount(0);
                 const newBlock = {
                   blockId: `block-${Date.now()}`,
                   pageName: selectedPage.pageName,
@@ -1324,6 +1371,8 @@ export default function UnifiedContentManager() {
                 <p className="text-gray-500 mb-4">Select a block to edit or create a new one</p>
                 <button
                   onClick={() => {
+                    setPendingListType(null);
+                    setPendingListItemCount(0);
                     const newBlock = {
                       blockId: `block-${Date.now()}`,
                       pageName: selectedPage.pageName,
@@ -1357,7 +1406,11 @@ export default function UnifiedContentManager() {
               {/* Action Buttons */}
               <div className="flex gap-3 pt-4 border-t">
                 <button
-                  onClick={() => setEditingBlock(null)}
+                  onClick={() => {
+                    setPendingListType(null);
+                    setPendingListItemCount(0);
+                    setEditingBlock(null);
+                  }}
                   className="flex-1 px-4 py-2 rounded-lg border hover:bg-gray-50 font-medium transition-colors"
                 >
                   Cancel
@@ -1366,6 +1419,8 @@ export default function UnifiedContentManager() {
                   <button
                     onClick={() => {
                       handleDeleteBlock(editingBlock.id);
+                      setPendingListType(null);
+                      setPendingListItemCount(0);
                       setEditingBlock(null);
                     }}
                     className="flex-1 px-4 py-2 rounded-lg text-red-600 border border-red-200 hover:bg-red-50 font-medium transition-colors"
@@ -1374,8 +1429,10 @@ export default function UnifiedContentManager() {
                   </button>
                 )}
                 <button
-                  onClick={() => {
-                    handleSaveBlock();
+                  onClick={async () => {
+                    await handleSaveBlock();
+                    setPendingListType(null);
+                    setPendingListItemCount(0);
                     setEditingBlock(null);
                   }}
                   className="flex-1 px-4 py-2 rounded-lg text-white font-medium flex items-center justify-center gap-2 transition-all"

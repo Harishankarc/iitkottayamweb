@@ -1,24 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
+import { renderContentBlock } from '../../hooks/usePageContent.jsx';
 import { CreditCard, Clock, Shield, Building2, Banknote, CheckCircle } from 'lucide-react';
-
-
 
 // Feature Card Component
 const FeatureCard = ({ feature, color1, darkMode }) => {
   const [isHovered, setIsHovered] = useState(false);
   
-  const icons = {
-    'clock': Clock,
-    'shield': Shield,
-    'building': Building2,
-    'banknote': Banknote,
-    'check': CheckCircle,
-    'card': CreditCard
-  };
-
-  // Extract icon type from feature text or use default
   const getIcon = () => {
     if (feature.toLowerCase().includes('24/7') || feature.toLowerCase().includes('round')) return Clock;
     if (feature.toLowerCase().includes('secure') || feature.toLowerCase().includes('safe')) return Shield;
@@ -62,8 +51,9 @@ const FeatureCard = ({ feature, color1, darkMode }) => {
 
 export default function BankATM() {
   const { darkMode } = useTheme();
-    const color1 = API.color1;
+  const color1 = API.color1;
   const [content, setContent] = useState(null);
+  const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -75,21 +65,24 @@ export default function BankATM() {
         
         if (data.success && data.data) {
           const blocks = data.data;
+          const parsedBlocks = blocks.map(block => ({
+            ...block,
+            content: typeof block.content === 'string' ? JSON.parse(block.content) : block.content
+          }));
+          const visibleBlocks = parsedBlocks.filter(b => b.isVisible !== false);
+          setContentBlocks(visibleBlocks);
           
           // Parse content blocks
-          const heroBlock = blocks.find(b => b.blockType === 'hero');
-          const imageBlocks = blocks.filter(b => b.blockType === 'image');
-          const paragraphBlock = blocks.find(b => b.blockType === 'paragraph');
-          const listBlock = blocks.find(b => b.blockType === 'list');
+          const heroBlock = visibleBlocks.find(b => b.blockType === 'hero');
+          const imageBlocks = visibleBlocks.filter(b => b.blockType === 'image');
+          const paragraphBlock = visibleBlocks.find(b => b.blockType === 'paragraph');
+          const listBlock = visibleBlocks.find(b => b.blockType === 'list');
 
           const parsedContent = {
-            hero: heroBlock ? (typeof heroBlock.content === 'string' ? JSON.parse(heroBlock.content) : heroBlock.content) : null,
-            images: imageBlocks.map(block => {
-              const imgContent = typeof block.content === 'string' ? JSON.parse(block.content) : block.content;
-              return imgContent;
-            }),
-            paragraph: paragraphBlock ? (typeof paragraphBlock.content === 'string' ? JSON.parse(paragraphBlock.content) : paragraphBlock.content) : null,
-            features: listBlock ? (typeof listBlock.content === 'string' ? JSON.parse(listBlock.content) : listBlock.content) : null
+            hero: heroBlock ? heroBlock.content : null,
+            images: imageBlocks.map(block => block.content),
+            paragraph: paragraphBlock ? paragraphBlock.content : null,
+            features: listBlock ? listBlock.content : null
           };
 
           setContent(parsedContent);
@@ -104,6 +97,7 @@ export default function BankATM() {
 
     fetchContent();
   }, []);
+
   if (loading) {
     return (
       <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -127,6 +121,14 @@ export default function BankATM() {
       </div>
     );
   }
+
+  // Get blocks by type from state
+  const headingBlocks = contentBlocks.filter(block => block.blockType === 'heading');
+  const tableBlocks = contentBlocks.filter(block => block.blockType === 'table');
+  const statisticsBlocks = contentBlocks.filter(block => block.blockType === 'statistics');
+  const galleryBlocks = contentBlocks.filter(block => block.blockType === 'gallery');
+  const buttonBlocks = contentBlocks.filter(block => block.blockType === 'button');
+  const cardBlocks = contentBlocks.filter(block => block.blockType === 'card');
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
@@ -190,9 +192,10 @@ export default function BankATM() {
             onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
             onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}
           >
-            <p className={`text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {content.paragraph.text}
-            </p>
+            <div 
+              className={`content-html text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+              dangerouslySetInnerHTML={{ __html: content.paragraph.text }}
+            />
           </div>
         )}
 
@@ -226,8 +229,40 @@ export default function BankATM() {
             </div>
           </div>
         )}
+
+        <div className="space-y-12">
+          {headingBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+          {tableBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+          {statisticsBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+          {galleryBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+          {buttonBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+          {cardBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
-

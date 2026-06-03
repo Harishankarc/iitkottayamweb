@@ -24,7 +24,11 @@ export default function Sports() {
     API.get('/api/content-blocks/page/sports')
       .then((response) => {
         const blocks = response.data.data || response.data || [];
-        setContentBlocks(blocks.filter(block => block.isVisible));
+        const parsedBlocks = blocks.map(block => ({
+          ...block,
+          content: typeof block.content === 'string' ? JSON.parse(block.content) : block.content
+        }));
+        setContentBlocks(parsedBlocks.filter(block => block.isVisible));
       })
       .catch((error) => {
         console.error('Error fetching sports content:', error);
@@ -61,151 +65,170 @@ export default function Sports() {
 
   // Get blocks by type
   const heroBlock = contentBlocks.find(block => block.blockType === 'hero');
-  const paragraphBlocks = contentBlocks.filter(block => block.blockType === 'paragraph');
-  const listBlocks = contentBlocks.filter(block => block.blockType === 'list');
-  const imageBlocks = contentBlocks.filter(block => block.blockType === 'image');
-  const tableBlocks = contentBlocks.filter(block => block.blockType === 'table');
-  const statisticsBlocks = contentBlocks.filter(block => block.blockType === 'statistics');
-  const galleryBlocks = contentBlocks.filter(block => block.blockType === 'gallery');
+  const orderedBlocks = [...contentBlocks]
+    .sort((a, b) => (a.blockOrder ?? 0) - (b.blockOrder ?? 0) || (a.id ?? 0) - (b.id ?? 0));
 
-  return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Hero Section */}
-      {heroBlock && (
-        <div className={`py-2 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+  const renderSingleBlock = (block, index) => {
+    if (block.blockType === 'hero') {
+      return (
+        <div key={block.id || index} className={`py-2 px-6 mb-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
           <div className="max-w-7xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" 
                  style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
               <Trophy className="w-4 h-4" style={{ color: color1 }} />
-              {heroBlock.content.badge || 'Athletics & Recreation'}
+              {block.content.badge || 'Athletics & Recreation'}
             </div>
             <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-              {heroBlock.content.title}
+              {block.content.title}
             </h1>
-            {heroBlock.content.description && (
-              <p className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                {heroBlock.content.description}
+            {block.content.subtitle && (
+              <p className={`text-sm md:text-base font-semibold mb-2 max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                {block.content.subtitle}
               </p>
             )}
+            {block.content.description && (
+              <div 
+                className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}
+                dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.description) }}
+              />
+            )}
           </div>
         </div>
-      )}
+      );
+    }
 
-      {/* Main Content */}
-      <div className="mx-auto py-8 px-6 max-w-full">
-        {/* Paragraph Blocks */}
-        {paragraphBlocks.map((block, index) => (
-          <div 
-            key={block.blockId || index}
-            className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`} 
-            style={{ borderColor: `${color1}20` }} 
-            onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
-            onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}
-          >
-            {block.content.title && (
-              <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
-                {block.content.title}
-              </h2>
-            )}
-            <div 
-              className={`text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-              dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.text) }}
-              style={{ wordBreak: 'break-word' }}
-            />
-          </div>
-        ))}
+    if (block.blockType === 'paragraph') {
+      return (
+        <div 
+          key={block.id || index}
+          className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`} 
+          style={{ borderColor: `${color1}20` }} 
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
+          onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}
+        >
+          {block.content.title && (
+            <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
+              {block.content.title}
+            </h2>
+          )}
+          <div className={`content-html text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.text) }} />
+        </div>
+      );
+    }
 
-        {/* List Blocks */}
-        {listBlocks.map((block, index) => (
-          <div key={block.blockId || index} className="mb-12">
-            {block.content.title && (
-              <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
-                {block.content.title}
-              </h2>
-            )}
-            <div className="space-y-3">
-              {block.content.items && block.content.items.map((item, itemIndex) => (
-                <div
-                  key={itemIndex}
-                  className={`p-4 border-l-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
-                    darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'
-                  }`}
-                  style={{ borderLeftColor: color1 }}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${color1}20` }}>
-                      <Trophy className="w-4 h-4" style={{ color: color1 }} />
-                    </div>
-                    <div className="flex-1">
-                      <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        {item}
-                      </p>
-                    </div>
+    if (block.blockType === 'list') {
+      return (
+        <div key={block.id || index} className="mb-12">
+          {block.content.title && (
+            <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
+              {block.content.title}
+            </h2>
+          )}
+          <div className="space-y-3">
+            {block.content.items && block.content.items.map((item, itemIndex) => (
+              <div
+                key={itemIndex}
+                className={`p-4 border-l-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
+                  darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'
+                }`}
+                style={{ borderLeftColor: color1 }}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${color1}20` }}>
+                    <Trophy className="w-4 h-4" style={{ color: color1 }} />
+                  </div>
+                  <div className="flex-1">
+                    <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {item}
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+      );
+    }
 
-        {/* Image Gallery */}
-        {imageBlocks.length > 0 && (
-          <div className={`p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`}
-               style={{ borderColor: `${color1}20` }} 
-               onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
-               onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}>
-            <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
-              {imageBlocks[0]?.content?.title || 'Sports Facilities Gallery'}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {imageBlocks.map((block, index) => (
-                <div
-                  key={index}
-                  className={`rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
-                >
-                  {block.content.title && (
-                    <div className="p-4 border-b" style={{ borderColor: `${color1}20` }}>
-                      <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                        {block.content.title}
-                      </h3>
-                    </div>
-                  )}
-                  <img
-                    src={API.getImageUrl(block.content.src || block.content.url)}
-                    alt={block.content.alt || `Sports facility ${index + 1}`}
-                    className="w-full h-64 object-cover"
-                    onError={(e) => e.currentTarget.src = `https://placehold.co/600x400/${color1.replace('#', '')}/ffffff?text=Sports+Facility`}
-                  />
-                  {block.content.caption && (
-                    <div className="p-4">
-                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        {block.content.caption}
-                      </p>
-                    </div>
-                  )}
+    return (
+      <div key={block.id || index} className="mb-12">
+        {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+      </div>
+    );
+  };
+
+  const renderImageGroup = (blocks, index) => {
+    return (
+      <div key={`image-group-${index}`} className={`p-8 rounded-2xl mb-12 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`}
+           style={{ borderColor: `${color1}20` }} 
+           onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
+           onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}>
+        <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
+          {blocks[0]?.content?.title || 'Sports Facilities Gallery'}
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {blocks.map((block, idx) => (
+            <div
+              key={block.id || idx}
+              className={`rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+            >
+              {block.content.title && (
+                <div className="p-4 border-b" style={{ borderColor: `${color1}20` }}>
+                  <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {block.content.title}
+                  </h3>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-12">
-          {tableBlocks.map((block, index) => (
-            <div key={block.blockId || index}>
-              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
-            </div>
-          ))}
-          {statisticsBlocks.map((block, index) => (
-            <div key={block.blockId || index}>
-              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
-            </div>
-          ))}
-          {galleryBlocks.map((block, index) => (
-            <div key={block.blockId || index}>
-              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+              )}
+              <img
+                src={API.getImageUrl(block.content.src || block.content.url)}
+                alt={block.content.alt || `Sports facility ${idx + 1}`}
+                className="w-full h-64 object-cover"
+                onError={(e) => e.currentTarget.src = `https://placehold.co/600x400/${color1.replace('#', '')}/ffffff?text=Sports+Facility`}
+              />
+              {block.content.caption && (
+                <div className="p-4">
+                  <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {block.content.caption}
+                  </p>
+                </div>
+              )}
             </div>
           ))}
         </div>
+      </div>
+    );
+  };
+
+  const renderOrderedBlocks = () => {
+    const rendered = [];
+    let currentImageGroup = [];
+
+    for (let i = 0; i < orderedBlocks.length; i++) {
+      const block = orderedBlocks[i];
+
+      if (block.blockType === 'image') {
+        currentImageGroup.push(block);
+      } else {
+        if (currentImageGroup.length > 0) {
+          rendered.push(renderImageGroup(currentImageGroup, rendered.length));
+          currentImageGroup = [];
+        }
+        rendered.push(renderSingleBlock(block, rendered.length));
+      }
+    }
+
+    if (currentImageGroup.length > 0) {
+      rendered.push(renderImageGroup(currentImageGroup, rendered.length));
+    }
+
+    return rendered;
+  };
+
+  return (
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
+      {/* Main Content */}
+      <div className="mx-auto py-8 px-6 max-w-full">
+        {renderOrderedBlocks()}
       </div>
     </div>
   );

@@ -9,8 +9,9 @@ import cleanHtmlFormatting from '../../utils/cleanHtmlFormatting';
 
 export default function Gym() {
   const { darkMode } = useTheme();
-    const color1 = API.color1;
+  const color1 = API.color1;
   const [content, setContent] = useState(null);
+  const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -23,18 +24,15 @@ export default function Gym() {
         if (data.success && data.data) {
           const rawBlocks = Array.isArray(data.data) ? data.data : (data.data.data || data.data || []);
           const blocks = Array.isArray(rawBlocks) ? rawBlocks : [];
-          const visibleBlocks = blocks.filter(block => block.isVisible !== false);
+          const parsedBlocks = blocks.map(block => ({
+            ...block,
+            content: typeof block.content === 'string' ? JSON.parse(block.content) : block.content
+          }));
+          const visibleBlocks = parsedBlocks.filter(block => block.isVisible !== false);
+          setContentBlocks(visibleBlocks);
           
           const parseContent = (block) => {
             if (!block) return null;
-            if (typeof block.content === 'string') {
-              try {
-                return JSON.parse(block.content);
-              } catch (error) {
-                console.warn('Failed to parse gym block content:', block.blockId, error);
-                return block.content;
-              }
-            }
             return block.content;
           };
 
@@ -42,9 +40,6 @@ export default function Gym() {
           const paragraphBlocks = visibleBlocks.filter(b => b.blockType === 'paragraph');
           const listBlocks = visibleBlocks.filter(b => b.blockType === 'list');
           const imageBlocks = visibleBlocks.filter(b => b.blockType === 'image');
-          const tableBlocks = visibleBlocks.filter(b => b.blockType === 'table');
-          const statisticsBlocks = visibleBlocks.filter(b => b.blockType === 'statistics');
-          const galleryBlocks = visibleBlocks.filter(b => b.blockType === 'gallery');
           
           const findSection = (section, fallbackIds = [], expectedTypes = []) => {
             // Prefer explicit sectionName or known fallback blockIds
@@ -95,12 +90,20 @@ export default function Gym() {
       <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <div className="text-center">
           <p className={`text-lg mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            {t(error || 'Content not available')}
+            {error || 'Content not available'}
           </p>
         </div>
       </div>
     );
   }
+
+  // Get blocks by type from state
+  const tableBlocks = contentBlocks.filter(block => block.blockType === 'table');
+  const statisticsBlocks = contentBlocks.filter(block => block.blockType === 'statistics');
+  const galleryBlocks = contentBlocks.filter(block => block.blockType === 'gallery');
+  const headingBlocks = contentBlocks.filter(block => block.blockType === 'heading');
+  const buttonBlocks = contentBlocks.filter(block => block.blockType === 'button');
+  const cardBlocks = contentBlocks.filter(block => block.blockType === 'card');
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
@@ -117,7 +120,7 @@ export default function Gym() {
               <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
                 {content.hero.title}
               </h1>
-              <div className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(content.hero.description || '') }} />
+              <div className={`content-html text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(content.hero.description || '') }} />
             </>
           )}
         </div>
@@ -134,7 +137,7 @@ export default function Gym() {
             <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
               {content.about.title}
             </h2>
-            <div className={`text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(content.about.text || '') }} />
+            <div className={`content-html text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(content.about.text || '') }} />
           </div>
         )}
 
@@ -217,7 +220,7 @@ export default function Gym() {
               <h2 className="text-3xl font-bold mb-4" style={{ color: color1 }}>
                 {content.guidance.title}
               </h2>
-              <p className={`text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <p className={`content-html text-lg leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {content.guidance.text}
               </p>
             </div>
@@ -273,6 +276,11 @@ export default function Gym() {
         )}
 
         <div className="space-y-12">
+          {headingBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
           {tableBlocks.map((block, index) => (
             <div key={block.blockId || index}>
               {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
@@ -284,6 +292,16 @@ export default function Gym() {
             </div>
           ))}
           {galleryBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+          {buttonBlocks.map((block, index) => (
+            <div key={block.blockId || index}>
+              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+            </div>
+          ))}
+          {cardBlocks.map((block, index) => (
             <div key={block.blockId || index}>
               {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
             </div>
