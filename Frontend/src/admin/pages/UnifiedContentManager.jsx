@@ -47,6 +47,7 @@ const AVAILABLE_PAGES = [
   { pageName: 'medical-centre', pageTitle: 'Medical Centre', category: 'Facilities' },
   { pageName: 'student-mess', pageTitle: 'Student Mess', category: 'Facilities' },
   { pageName: 'security', pageTitle: 'Security', category: 'Facilities' },
+  { pageName: 'sports', pageTitle: 'Sports', category: 'Facilities' },
   { pageName: 'bank-atm', pageTitle: 'Bank/ATM', category: 'Facilities' },
   // IIC & Clubs
   { pageName: 'innovation-cell', pageTitle: 'Innovation Cell', category: 'Clubs' },
@@ -166,14 +167,14 @@ export default function UnifiedContentManager() {
     if (lastMatch) {
       const [fullMatch, openTag, body, closeTag] = lastMatch;
       // Ensure the list element has explicit inline styles so markers are not removed by global CSS
-      const styleAttr = `style="margin:12px 0;padding-left:28px;list-style-position:outside;${tag === 'ol' ? 'list-style-type:none;' : 'list-style-type:disc;' }"`;
+      const styleAttr = `style="margin:12px 0;padding-left:28px;list-style-position:outside;list-style-type:${tag === 'ol' ? 'none' : 'disc'};"`;
       const hasStyle = /style=/.test(openTag);
       const finalOpenTag = hasStyle ? openTag : openTag.replace(new RegExp(`^<${tag}`), `<${tag} ${styleAttr}`);
       const liContent = tag === 'ol' ? `${nextItemNumber}.&nbsp;` : '&nbsp;';
       const replacement = `${finalOpenTag}${body}<li>${liContent}</li>${closeTag}`;
       updatedHtml = `${existingHtml.slice(0, lastIndex)}${replacement}${existingHtml.slice(lastIndex + fullMatch.length)}`;
     } else {
-      const styleAttr = `style="margin:12px 0;padding-left:28px;list-style-position:outside;${tag === 'ol' ? 'list-style-type:none;' : 'list-style-type:disc;' }"`;
+      const styleAttr = `style="margin:12px 0;padding-left:28px;list-style-position:outside;list-style-type:${tag === 'ol' ? 'none' : 'disc'};"`;
       const liContent = tag === 'ol' ? `${nextItemNumber}.&nbsp;` : '&nbsp;';
       updatedHtml = `${existingHtml}${existingHtml ? '' : ''}<${tag} ${styleAttr}><li>${liContent}</li></${tag}>`;
     }
@@ -665,6 +666,11 @@ export default function UnifiedContentManager() {
                 className="w-full px-4 py-2 border rounded-lg"
                 placeholder="Gallery title (optional)"
               />
+            </div>
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 space-y-1">
+              <span className="font-semibold text-slate-800">💡 Gallery Image Guidelines:</span>
+              <p>• Recommended Size: Square aspect ratio (1:1), e.g., <strong className="text-slate-800">800 &times; 800 px</strong> or higher.</p>
+              <p>• Display format: 4 columns per row, centered, with individual image dimensions rendering as <strong className="text-slate-800">187.5px &times; 187.5px</strong>.</p>
             </div>
             
             <div>

@@ -108,14 +108,14 @@ export default function UnifiedContentEditor() {
     if (lastMatch) {
       const [fullMatch, openTag, body, closeTag] = lastMatch;
       // Ensure the list element has explicit inline styles so markers are not removed by global CSS
-      const styleAttr = `style="margin:12px 0;padding-left:28px;list-style-position:outside;${tag === 'ol' ? 'list-style-type:none;' : 'list-style-type:disc;' }"`;
+      const styleAttr = `style="margin:12px 0;padding-left:28px;list-style-position:outside;list-style-type:${tag === 'ol' ? 'none' : 'disc'};"`;
       const hasStyle = /style=/.test(openTag);
       const finalOpenTag = hasStyle ? openTag : openTag.replace(new RegExp(`^<${tag}`), `<${tag} ${styleAttr}`);
       const liContent = tag === 'ol' ? `${nextItemNumber}.&nbsp;` : '&nbsp;';
       const replacement = `${finalOpenTag}${body}<li>${liContent}</li>${closeTag}`;
       updatedHtml = `${existingHtml.slice(0, lastIndex)}${replacement}${existingHtml.slice(lastIndex + fullMatch.length)}`;
     } else {
-      const styleAttr = `style="margin:12px 0;padding-left:28px;list-style-position:outside;${tag === 'ol' ? 'list-style-type:none;' : 'list-style-type:disc;' }"`;
+      const styleAttr = `style="margin:12px 0;padding-left:28px;list-style-position:outside;list-style-type:${tag === 'ol' ? 'none' : 'disc'};"`;
       const liContent = tag === 'ol' ? `${nextItemNumber}.&nbsp;` : '&nbsp;';
       updatedHtml = `${existingHtml}${existingHtml ? '' : ''}<${tag} ${styleAttr}><li>${liContent}</li></${tag}>`;
     }
@@ -657,6 +657,11 @@ export default function UnifiedContentEditor() {
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="Gallery title (optional)"
               />
+            </div>
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 space-y-1">
+              <span className="font-semibold text-slate-800">💡 Gallery Image Guidelines:</span>
+              <p>• Recommended Size: Square aspect ratio (1:1), e.g., <strong className="text-slate-800">800 &times; 800 px</strong> or higher.</p>
+              <p>• Display format: 4 columns per row, centered, with individual image dimensions rendering as <strong className="text-slate-800">187.5px &times; 187.5px</strong>.</p>
             </div>
 
             <div>
@@ -1453,7 +1458,7 @@ export default function UnifiedContentEditor() {
 
       {/* Block Editor Modal */}
       {showBlockEditor && editingBlock && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
             {/* Modal Header */}
             <div className="px-6 py-4 border-b-2 border-gray-200 bg-gradient-to-r from-green-50 to-blue-50">

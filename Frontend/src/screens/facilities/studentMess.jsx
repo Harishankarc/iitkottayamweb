@@ -164,6 +164,39 @@ export default function StudentMess() {
   };
 
   const renderImageGroup = (blocks, index) => {
+    if (blocks.length === 1) {
+      const block = blocks[0];
+      return (
+        <div key={`image-group-${index}`} className="mb-12 flex justify-center">
+          <div
+            className={`w-full max-w-2xl rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+            style={{ border: `1px solid ${color1}20` }}
+          >
+            {block.content.title && (
+              <div className="p-4 border-b" style={{ borderColor: `${color1}20` }}>
+                <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {block.content.title}
+                </h3>
+              </div>
+            )}
+            <img
+              src={API.getImageUrl(block.content.url || block.content.src)}
+              alt={block.content.alt || 'Mess facility'}
+              className="w-full h-64 object-cover"
+              onError={(e) => e.currentTarget.src = `https://placehold.co/600x400/${color1.replace('#', '')}/ffffff?text=Mess+Facility`}
+            />
+            {block.content.caption && (
+              <div className="p-4">
+                <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  {block.content.caption}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div 
         key={`image-group-${index}`}
@@ -175,7 +208,7 @@ export default function StudentMess() {
         <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
           {blocks[0]?.content?.title || 'Mess Facilities Gallery'}
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
           {blocks.map((block, idx) => (
             <div
               key={block.id || idx}

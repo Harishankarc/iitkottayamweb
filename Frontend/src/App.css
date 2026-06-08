@@ -195,9 +195,27 @@ img {
 .content-html ol {
   margin: 12px 0 !important;
   padding-left: 24px !important;
-  list-style-type: decimal !important;
+  list-style-type: decimal;
 }
 .content-html li {
   margin: 6px 0 !important;
   display: list-item !important;
-}
+}
+
+/* Responsive Image Gallery grid (4 columns on desktop, 2 columns on mobile) */
+.content-html .gallery-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 8px !important;
+  max-width: 750px !important;
+  margin: 12px auto !important;
+}
+
+@media (min-width: 640px) {
+  .content-html .gallery-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+
+

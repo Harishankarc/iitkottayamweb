@@ -19,85 +19,82 @@ const ProfileCard = ({ person, color1, darkMode }) => {
         border: `2px solid ${darkMode ? '#374151' : '#E5E7EB'}`
       }}
     >
-      {/* Header Section with Gradient Background */}
+      {/* Top cover image/gradient */}
       <div 
-        className="relative p-3 pb-12"
+        className="h-28 relative overflow-hidden"
         style={{
-          background: `linear-gradient(135deg, ${color1}, ${color1}ee)`
+          background: `linear-gradient(135deg, ${color1}, ${color1}dd)`
         }}
       >
-        {/* Decorative Background Elements */}
         <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white opacity-10 transform translate-x-12 -translate-y-12" />
         <div className="absolute bottom-0 left-0 w-16 h-16 rounded-full bg-white opacity-10 transform -translate-x-8 translate-y-8" />
-        
-        {/* Name on Green Background */}
-        <h3 className="text-base font-bold text-white relative z-10 mb-1">
-          {person.name}
-        </h3>
       </div>
-      
-      {/* Profile Image - Circular, centered, overlapping */}
-      <div className="flex justify-center" style={{ marginTop: '-45px' }}>
+
+      {/* Large Profile Image */}
+      <div className="flex justify-center" style={{ marginTop: '-64px' }}>
         <div className="relative">
           <div 
             className={`rounded-full p-1 transition-all duration-300 ${
               darkMode ? 'bg-gray-800' : 'bg-white'
             }`}
             style={{
-              boxShadow: isHovered ? '0 8px 24px rgba(0,0,0,0.25)' : '0 4px 12px rgba(0,0,0,0.15)'
+              boxShadow: isHovered ? '0 10px 30px rgba(0,0,0,0.25)' : '0 4px 15px rgba(0,0,0,0.15)'
             }}
           >
             <img
               src={person.image}
               alt={person.name}
-              className={`w-20 h-20 rounded-full object-cover transition-transform duration-300 ${
+              className={`w-32 h-32 rounded-full object-cover transition-transform duration-300 ${
                 isHovered ? 'scale-105' : 'scale-100'
               }`}
-              onError={(e) => e.currentTarget.src = `https://placehold.co/112x112/22a05e/ffffff?text=${person.name.charAt(0)}`}
+              onError={(e) => e.currentTarget.src = `https://placehold.co/128x128/22a05e/ffffff?text=${person.name.charAt(0)}`}
             />
           </div>
         </div>
       </div>
-      
+
       {/* Card Body */}
-      <div className="px-3 pb-3 pt-2">
-        {/* Title and Department */}
-        <div className="text-center mb-2">
-          <h4 className={`text-sm font-bold mb-1 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+      <div className="px-6 pb-6 pt-4">
+        {/* Name and Designation */}
+        <div className="text-center mb-4">
+          <h3 className={`text-xl font-bold mb-1 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+            {person.name}
+          </h3>
+          <h4 className={`text-sm font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
             {person.title}
           </h4>
-          {/*
-          person.roles.map((role, index) => (
-            <p 
-              key={index} 
-              className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'} leading-tight`}
-            >
-              {role}
-            </p>
-          ))
-          */}
         </div>
         
         {/* Divider */}
-        <div className={`h-px w-full mb-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} />
+        <div className={`h-px w-full mb-4 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} />
         
         {/* Contact Information */}
-        <div className="mt-4 space-y-3 text-sm leading-relaxed text-gray-700">
+        <div className="space-y-3 text-sm leading-relaxed text-gray-700">
           <div>
-            <p className="font-semibold text-green-600">Email</p>
-            <p className="break-all">{person.email || 'N/A'}</p>
+            <p className="font-semibold text-green-600 text-xs uppercase tracking-wider">Email</p>
+            {person.email ? (
+              person.email.split(',').map((email, eIdx) => (
+                <p key={eIdx} className={`break-all ${darkMode ? 'text-gray-300' : 'text-gray-750'}`}>
+                  {email.trim()}
+                </p>
+              ))
+            ) : (
+              <p className={darkMode ? 'text-gray-300' : 'text-gray-750'}>N/A</p>
+            )}
           </div>
           <div>
-            <p className="font-semibold text-green-600">Phone</p>
-            <p>{person.phone || 'N/A'}</p>
+            <p className="font-semibold text-green-600 text-xs uppercase tracking-wider">Phone</p>
+            <p className={darkMode ? 'text-gray-300' : 'text-gray-750'}>{person.phone || 'N/A'}</p>
           </div>
+          {person.phone2 && person.phone2 !== 'N/A' && person.phone2.trim() !== '' && (
+            <div>
+              <p className="font-semibold text-green-600 text-xs uppercase tracking-wider">Phone 2</p>
+              <p className={darkMode ? 'text-gray-300' : 'text-gray-750'}>{person.phone2}</p>
+            </div>
+          )}
           <div>
-            <p className="font-semibold text-green-600">Phone 2</p>
-            <p>{person.phone2 || 'N/A'}</p>
-          </div>
-          <div>
-            <p className="font-semibold text-green-600">Room No</p>
-            <p>{person.room || 'N/A'}</p>
+            <p className="font-semibold text-green-600 text-xs uppercase tracking-wider">Room No</p>
+            <p className={darkMode ? 'text-gray-300' : 'text-gray-750'}>{person.room || 'N/A'}</p>
           </div>
         </div>
       </div>
@@ -201,8 +198,7 @@ export default function Administration() {
     return (
       person.name.toLowerCase().includes(term) ||
       person.title.toLowerCase().includes(term) ||
-      person.email.toLowerCase().includes(term) ||
-      person.roles.some(role => role.toLowerCase().includes(term))
+      person.email.toLowerCase().includes(term)
     );
   });
 
@@ -230,12 +226,12 @@ export default function Administration() {
                 className={`px-6 py-3 font-semibold rounded-md transition-all duration-300
                   ${activeTab === tab.key
                     ? `text-white shadow-md`
-                    : `${darkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-200'}`
+                    : `${darkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`
                   }
                 `}
                 style={{
-                  color: activeTab === tab.key ? '#FFFFFF' : darkMode ? '#9CA3AF' : '#4B5563',
-                  backgroundColor: activeTab === tab.key ? color1 : 'transparent',
+                  color: activeTab === tab.key ? '#FFFFFF' : color1,
+                  backgroundColor: activeTab === tab.key ? color1 : `${color1}1A`,
                 }}
               >
                 {tab.name}

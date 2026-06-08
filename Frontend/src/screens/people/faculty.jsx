@@ -33,18 +33,29 @@ const parseMainSectionPages = (value) => {
   return [];
 };
 
-// Role hierarchy for sorting
+// Role hierarchy for designation filter tabs
 const ROLE_HIERARCHY = {
   'Professor': 1,
   'Associate Professor': 2,
   'Assistant Professor': 3,
   'Lecturer': 4,
-  'Faculty': 5
+  'Adjunct Faculty': 5,
+  'Former Faculty': 6,
+  'Faculty': 7
 };
 
 const getRoleOrder = (role) => {
   return ROLE_HIERARCHY[role] || 999;
 };
+
+// Faculty type grouping order for the public page
+const TYPE_PRIORITY = {
+  'Internal Faculty': 1,
+  'Adjunct Faculty': 2,
+  'Former Faculty': 3
+};
+
+const getTypeOrder = (type) => TYPE_PRIORITY[type] || 99;
 
 // Normalize role: trim, lowercase for comparison, then find canonical form
 const normalizeRoleForComparison = (role) => {
@@ -67,6 +78,8 @@ const getCanonicalRole = (role) => {
     'asst professor': 'Assistant Professor',
     'assistant professor': 'Assistant Professor',
     'lecturer': 'Lecturer',
+    'adjunct faculty': 'Adjunct Faculty',
+    'former faculty': 'Former Faculty',
     'faculty': 'Faculty'
   };
   
@@ -141,9 +154,9 @@ const FacultyCard = ({ faculty, color1, darkMode }) => {
 
   return (
     <div
-      className={`overflow-hidden rounded-xl ${
+      className={`group overflow-hidden rounded-xl ${
         darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-      } border flex flex-col sm:flex-row min-h-[360px]`}
+      } border flex flex-col sm:flex-row min-h-[360px] shadow-md hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300`}
     >
       {/* Left: Image Section with details below */}
       <div className="w-full sm:w-48 flex-shrink-0 flex flex-col bg-gradient-to-br from-gray-100 to-gray-200 h-full">
@@ -152,7 +165,7 @@ const FacultyCard = ({ faculty, color1, darkMode }) => {
           <img
             src={faculty.image}
             alt={faculty.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             onError={(e) => {
               e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(faculty.name)}&size=500&background=239244&color=ffffff&bold=true`;
             }}
@@ -253,22 +266,33 @@ const FacultyCard = ({ faculty, color1, darkMode }) => {
 
 export default function Faculty() {
   const { darkMode } = useTheme();
-    const color1 = API.color1;
+  const color1 = API.color1;
   const color2 = API.color2;
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('All');
+  const [sortOrders, setSortOrders] = useState({
+    'Internal Faculty': 'newest',
+    'Adjunct Faculty': 'newest',
+    'Former Faculty': 'newest'
+  });
   const [facultyData, setFacultyData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch Faculty Data from API
+  // Fetch Faculty Data and Settings from API
   useEffect(() => {
-    const fetchFaculty = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`${API.baseURL}/api/faculty?t=${Date.now()}`);
-        const data = await response.json();
-        
-        if (data.success) {
-          const formattedFaculty = data.data
+        const [facultyRes, settingsRes] = await Promise.all([
+          fetch(`${API.baseURL}/api/faculty?t=${Date.now()}`),
+          fetch(`${API.baseURL}/api/site-settings?category=faculty&t=${Date.now()}`).catch(err => {
+            console.error('Error fetching settings:', err);
+            return null;
+          })
+        ]);
+
+        const facultyDataJson = await facultyRes.json();
+        if (facultyDataJson.success) {
+          const formattedFaculty = facultyDataJson.data
             .filter(item => item.isActive)
             .map(item => ({
               id: item.id,
@@ -276,6 +300,7 @@ export default function Faculty() {
               name: item.name,
               designation: item.designation,
               role: getCanonicalRole(item.designation || 'Faculty'),
+              facultyType: item.facultyType || 'Internal Faculty',
               department: item.department || '',
               email: item.email || '',
               phone: item.phone || '',
@@ -287,14 +312,25 @@ export default function Faculty() {
             }));
           setFacultyData(formattedFaculty);
         }
+
+        if (settingsRes && settingsRes.ok) {
+          const settingsData = await settingsRes.json();
+          if (settingsData.success && settingsData.settings) {
+            setSortOrders({
+              'Internal Faculty': settingsData.settings['faculty_sort_internal']?.value || 'newest',
+              'Adjunct Faculty': settingsData.settings['faculty_sort_adjunct']?.value || 'newest',
+              'Former Faculty': settingsData.settings['faculty_sort_former']?.value || 'newest'
+            });
+          }
+        }
       } catch (error) {
-        console.error('Error fetching faculty:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFaculty();
+    fetchData();
   }, []);
 
   const roles = ['All', ...Array.from(
@@ -316,22 +352,23 @@ export default function Faculty() {
     const fullDetailsText = (faculty.fullDetails || []).join(' ').toLowerCase();
     const mainSectionRaw = Array.isArray(faculty.mainSection) ? faculty.mainSection.join(' ') : (faculty.mainSection || '');
     const mainSectionText = String(mainSectionRaw).toLowerCase();
-    const matchesSearch = 
+    const matchesSearch =
       faculty.name.toLowerCase().includes(term) ||
       faculty.designation.toLowerCase().includes(term) ||
       mainSectionText.includes(term) ||
       fullDetailsText.includes(term);
-    
+
     const matchesRole = filterRole === 'All' || faculty.role === filterRole;
-    
+
     return matchesSearch && matchesRole;
   }).sort((a, b) => {
-    // Sort by role hierarchy first
-    const roleComparison = getRoleOrder(a.role) - getRoleOrder(b.role);
-    if (roleComparison !== 0) return roleComparison;
-    
-    // Then sort by name alphabetically
-    return a.name.localeCompare(b.name);
+    // Primary: group by faculty type (Internal → Adjunct → Former)
+    const typeComparison = getTypeOrder(a.facultyType) - getTypeOrder(b.facultyType);
+    if (typeComparison !== 0) return typeComparison;
+
+    // Secondary: within same type, sort by id based on its type-specific sortOrder setting from admin
+    const typeSortOrder = sortOrders[a.facultyType] || 'newest';
+    return typeSortOrder === 'newest' ? b.id - a.id : a.id - b.id;
   });
 
   return (
@@ -368,6 +405,8 @@ export default function Faculty() {
                 );
               })}
             </div>
+
+
 
             {/* Search Bar */}
             <div className="relative">

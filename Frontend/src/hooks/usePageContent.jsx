@@ -7,7 +7,7 @@ import API from '../api/api';
  */
 function cleanHtmlFormatting(html) {
   if (!html) return '';
-  
+
   return html
     // Remove dir="ltr" attributes
     .replace(/\s+dir="ltr"/g, '')
@@ -34,7 +34,7 @@ export function usePageContent(pageName) {
 
   const fetchPageContent = async () => {
     if (!pageName) return;
-    
+
     setLoading(true);
     setError(null);
 
@@ -51,8 +51,8 @@ export function usePageContent(pageName) {
       const blocksResponse = await API.get(`/api/content-blocks/page/${pageName}`);
       if (blocksResponse.success && blocksResponse.data) {
         // Handle both nested and direct array responses
-        const blocks = Array.isArray(blocksResponse.data) 
-          ? blocksResponse.data 
+        const blocks = Array.isArray(blocksResponse.data)
+          ? blocksResponse.data
           : (blocksResponse.data.data || blocksResponse.data);
         setContentBlocks(Array.isArray(blocks) ? blocks : []);
       } else {
@@ -139,7 +139,7 @@ export function renderContentBlock(block, options = {}) {
     }
     // If it's an uploaded file, prepend backend URL
     if (imgUrl.startsWith('/uploads/')) {
-      return `http://localhost:5000${imgUrl}`;
+      return `${API.baseURL}${imgUrl}`;
     }
     // If it's a static image from /images, use as is
     if (imgUrl.startsWith('/images/')) {
@@ -157,9 +157,9 @@ export function renderContentBlock(block, options = {}) {
   switch (blockType) {
     case 'hero':
       return (
-        <div 
+        <div
           className={`relative overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} border-b`}
-          style={{ 
+          style={{
             backgroundImage: content.backgroundImage ? `url(${API.getImageUrl(content.backgroundImage)})` : 'none',
             borderColor: darkMode ? '#374151' : color1 + '30'
           }}
@@ -167,11 +167,11 @@ export function renderContentBlock(block, options = {}) {
           <div className="mx-auto py-2">
             <div className="max-w-5xl mx-auto text-center px-6">
               {content.badge && (
-                <div className="inline-flex items-center gap-2 px-4 py-2 backdrop-blur-md rounded-full text-xs font-bold mb-3 border hover:scale-105 transition-all duration-500 shadow-lg cursor-pointer" 
-                  style={{ 
-                    backgroundColor: `${color1}1A`, 
-                    color: color1, 
-                    borderColor: `${color1}66` 
+                <div className="inline-flex items-center gap-2 px-4 py-2 backdrop-blur-md rounded-full text-xs font-bold mb-3 border hover:scale-105 transition-all duration-500 shadow-lg cursor-pointer"
+                  style={{
+                    backgroundColor: `${color1}1A`,
+                    color: color1,
+                    borderColor: `${color1}66`
                   }}>
                   <span className="text-base">✨</span>
                   {t(content.badge)}
@@ -193,7 +193,7 @@ export function renderContentBlock(block, options = {}) {
                 </p>
               )}
               {content.buttonText && content.buttonLink && (
-                <a 
+                <a
                   href={content.buttonLink}
                   className="inline-block mt-6 px-8 py-3 rounded-lg text-white font-semibold hover:scale-105 transition-transform duration-300"
                   style={{ backgroundColor: color1 }}
@@ -216,7 +216,7 @@ export function renderContentBlock(block, options = {}) {
         h3: 'text-2xl md:text-3xl',
         h4: 'text-xl md:text-2xl'
       };
-      
+
       return (
         <div className={`py-6 ${alignmentClass} ${darkMode ? 'text-white' : 'text-gray-900'}`}>
           <HeadingTag className={`${sizeClasses[HeadingTag] || sizeClasses.h2} font-bold tracking-tight`}>
@@ -227,7 +227,7 @@ export function renderContentBlock(block, options = {}) {
 
     case 'paragraph':
       return (
-        <div 
+        <div
           className={`content-html w-full rounded-lg shadow-xl overflow-hidden border-2 transition-all duration-300 hover:shadow-2xl p-10 md:p-16 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
           onMouseEnter={(e) => e.currentTarget.style.borderColor = color1}
           onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb'}
@@ -242,7 +242,7 @@ export function renderContentBlock(block, options = {}) {
             <h3 className="text-xl font-semibold mb-4" style={{ color: color1 }}>{t(content.title)}</h3>
           )}
           {content.text && (
-            <div 
+            <div
               className={`leading-relaxed text-sm md:text-base mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
               dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(content.text) }}
               style={{
@@ -254,10 +254,10 @@ export function renderContentBlock(block, options = {}) {
           {content.tags && Array.isArray(content.tags) && (
             <div className="flex flex-wrap gap-3 mt-5">
               {content.tags.map((tag, i) => (
-                <span 
+                <span
                   key={i}
                   className="px-4 py-2 rounded-xl text-xs font-semibold border-2 hover:shadow-lg hover:scale-105 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-                  style={{ 
+                  style={{
                     backgroundColor: darkMode ? '#1f2937' : color2,
                     color: color1,
                     borderColor: `${color1}66`
@@ -283,7 +283,7 @@ export function renderContentBlock(block, options = {}) {
 
     case 'text': // For HTML content
       return (
-        <div 
+        <div
           className={`py-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
           dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(content.text || '') }}
           style={{ wordBreak: 'break-word' }}
@@ -324,12 +324,12 @@ export function renderContentBlock(block, options = {}) {
             <div className="grid grid-cols-3 gap-4 max-w-7xl mx-auto">
               {validImages.map((img, idx) => {
                 const imgSrc = getImageUrl(img.url || img.src);
-                
+
                 return (
                   <div key={idx} className="relative rounded-lg overflow-hidden shadow-lg h-64">
-                    <img 
-                      src={imgSrc} 
-                      alt={img.alt || `Image ${idx + 1}`} 
+                    <img
+                      src={imgSrc}
+                      alt={img.alt || `Image ${idx + 1}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         console.error('Failed to load image:', imgSrc);
@@ -348,7 +348,7 @@ export function renderContentBlock(block, options = {}) {
           </div>
         );
       }
-      
+
       // Single image fallback
       const singleImgSrc = getImageUrl(content.url || content.src);
       return (
@@ -358,9 +358,9 @@ export function renderContentBlock(block, options = {}) {
               {content.title}
             </h3>
           )}
-          <img 
-            src={singleImgSrc} 
-            alt={content.alt || 'Image'} 
+          <img
+            src={singleImgSrc}
+            alt={content.alt || 'Image'}
             className="w-full rounded-lg max-h-96 object-cover"
             onError={(e) => {
               console.error('Failed to load image:', singleImgSrc);
@@ -377,14 +377,14 @@ export function renderContentBlock(block, options = {}) {
 
     case 'list':
       const listItems = Array.isArray(content) ? content : (Array.isArray(content.items) ? content.items : (typeof content.items === 'string' ? content.items.split(' ') : []));
-      
+
       // Detect document style: check for SCALES/BOOK/DOC keywords OR if blockId contains 'documents'
       const hasDocumentStyle = listItems.some(item => typeof item === 'string' && /^(SCALES|BOOK|DOC|ARCHIVE)/.test(item)) || block.blockId?.includes('documents');
-      
+
       if (hasDocumentStyle && listItems.length <= 5) {
         // Document card style for governance documents
         return (
-          <div 
+          <div
             className={`w-full rounded-lg shadow-xl overflow-hidden border-2 transition-all duration-300 hover:shadow-2xl p-10 md:p-16 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
             onMouseEnter={(e) => e.currentTarget.style.borderColor = color1}
             onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb'}
@@ -409,16 +409,16 @@ export function renderContentBlock(block, options = {}) {
                   'DOC': '📄',
                   'ARCHIVE': '🗄️'
                 };
-                
+
                 // Parse for link: "ICON Text|URL" format
-                const [contentPart, url] = typeof item === 'string' && item.includes('|') 
-                  ? item.split('|') 
+                const [contentPart, url] = typeof item === 'string' && item.includes('|')
+                  ? item.split('|')
                   : [item, '#'];
-                
+
                 const [firstWord, ...textParts] = contentPart.split(' ');
                 const icon = iconMap[firstWord] || firstWord;
                 const text = iconMap[firstWord] ? textParts.join(' ') : contentPart;
-                
+
                 return (
                   <a
                     key={idx}
@@ -447,11 +447,11 @@ export function renderContentBlock(block, options = {}) {
           </div>
         );
       }
-      
+
       // Special styling for annual reports (many items in grid)
       if (content.badge || listItems.length > 6) {
         return (
-          <div 
+          <div
             className={`w-full rounded-lg p-10 md:p-16 shadow-xl overflow-hidden relative border-2 transition-all duration-500 ${darkMode ? 'bg-gray-800' : ''}`}
             style={{ borderColor: darkMode ? '#374151' : `${color1}33`, backgroundColor: darkMode ? '' : color2 }}
             onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`}
@@ -461,7 +461,7 @@ export function renderContentBlock(block, options = {}) {
               <div className="absolute top-10 right-10 w-60 h-60 rounded-full blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
               <div className="absolute bottom-10 left-10 w-60 h-60 rounded-full blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
             </div>
-            
+
             <div className="relative text-center">
               {content.badge && (
                 <div className="inline-flex items-center gap-2 px-4 py-2 backdrop-blur-md rounded-full text-xs font-bold mb-4 border-2 shadow-md" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
@@ -477,10 +477,10 @@ export function renderContentBlock(block, options = {}) {
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {listItems.map((item, idx) => {
                   // Parse item for link: "Text|URL" format
-                  const [itemText, itemUrl] = typeof item === 'string' && item.includes('|') 
-                    ? item.split('|') 
+                  const [itemText, itemUrl] = typeof item === 'string' && item.includes('|')
+                    ? item.split('|')
                     : [item, '#'];
-                  
+
                   return (
                     <a
                       key={idx}
@@ -504,7 +504,7 @@ export function renderContentBlock(block, options = {}) {
       }
       // Default tag/badge style
       return (
-        <div 
+        <div
           className={`w-full rounded-lg shadow-xl overflow-hidden border-2 transition-all duration-300 hover:shadow-2xl p-10 md:p-16 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
           onMouseEnter={(e) => e.currentTarget.style.borderColor = color1}
           onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb'}
@@ -517,10 +517,10 @@ export function renderContentBlock(block, options = {}) {
           <div className="flex flex-wrap gap-3">
             {listItems.map((item, idx) => {
               // Parse item for link: "Text|URL" format
-              const [itemText, itemUrl] = typeof item === 'string' && item.includes('|') 
-                ? item.split('|') 
+              const [itemText, itemUrl] = typeof item === 'string' && item.includes('|')
+                ? item.split('|')
                 : [item, null];
-              
+
               if (itemUrl) {
                 return (
                   <a
@@ -535,7 +535,7 @@ export function renderContentBlock(block, options = {}) {
                   </a>
                 );
               }
-              
+
               return (
                 <span
                   key={idx}
@@ -557,7 +557,7 @@ export function renderContentBlock(block, options = {}) {
             href={content.link || '#'}
             className="block"
           >
-            <div 
+            <div
               className="rounded-lg p-8 md:p-10 shadow-xl border relative overflow-hidden transition-all duration-300"
               style={{ backgroundColor: color1, borderColor: color1 }}
             >
@@ -594,9 +594,8 @@ export function renderContentBlock(block, options = {}) {
             href={content.link || '#'}
             target="_blank"
             rel="noopener noreferrer"
-            className={`block rounded-lg overflow-hidden border transition-all duration-300 hover:scale-105 hover:shadow-xl ${
-              darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}
+            className={`block rounded-lg overflow-hidden border transition-all duration-300 hover:scale-105 hover:shadow-xl ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+              }`}
             style={{
               transition: 'all 0.3s ease'
             }}
@@ -612,9 +611,8 @@ export function renderContentBlock(block, options = {}) {
             {/* Header with Title/Source */}
             {content.title && (
               <div
-                className={`px-4 py-3 border-b ${
-                  darkMode ? 'bg-blue-900/30 border-gray-700' : 'bg-blue-50 border-gray-200'
-                }`}
+                className={`px-4 py-3 border-b ${darkMode ? 'bg-blue-900/30 border-gray-700' : 'bg-blue-50 border-gray-200'
+                  }`}
               >
                 <h3 className={`font-bold text-sm flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                   {content.icon && <span>{content.icon}</span>}
@@ -645,9 +643,8 @@ export function renderContentBlock(block, options = {}) {
                 </p>
               )}
               <div
-                className={`flex items-center gap-2 text-sm font-medium transition-colors ${
-                  darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
-                }`}
+                className={`flex items-center gap-2 text-sm font-medium transition-colors ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
+                  }`}
               >
                 <span>{content.buttonText || 'Learn More'}</span>
                 <svg className="w-3 h-3 ml-auto flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -674,7 +671,7 @@ export function renderContentBlock(block, options = {}) {
             <div className="absolute top-10 right-10 w-72 h-72 rounded-full blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
             <div className="absolute bottom-10 left-10 w-72 h-72 rounded-full blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
           </div>
-          
+
           <div className="relative">
             {content.title && (
               <h3 className={`text-xl md:text-2xl font-bold mb-6 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -813,34 +810,33 @@ export function renderContentBlock(block, options = {}) {
                     : stat;
 
                   return (
-                  <div
-                    key={idx}
-                    className={`relative p-6 rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden group ${
-                      darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gradient-to-br from-white to-blue-50 border-gray-200'
-                    }`}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = color1;
-                      e.currentTarget.style.boxShadow = `0 0 20px ${color1}30`;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = darkMode ? '#4b5563' : '#e5e7eb';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
-                  >
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300" style={{ backgroundColor: color1 }}></div>
-                    
-                    <div className="relative text-center">
-                      <div
-                        className="text-4xl md:text-5xl font-bold mb-3 transition-all duration-300"
-                        style={{ color: color1 }}
-                      >
-                        {normalizedStat.value}
-                      </div>
-                      <div className={`text-sm md:text-base font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        {normalizedStat.label}
+                    <div
+                      key={idx}
+                      className={`relative p-6 rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden group ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gradient-to-br from-white to-blue-50 border-gray-200'
+                        }`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = color1;
+                        e.currentTarget.style.boxShadow = `0 0 20px ${color1}30`;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = darkMode ? '#4b5563' : '#e5e7eb';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300" style={{ backgroundColor: color1 }}></div>
+
+                      <div className="relative text-center">
+                        <div
+                          className="text-4xl md:text-5xl font-bold mb-3 transition-all duration-300"
+                          style={{ color: color1 }}
+                        >
+                          {normalizedStat.value}
+                        </div>
+                        <div className={`text-sm md:text-base font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {normalizedStat.label}
+                        </div>
                       </div>
                     </div>
-                  </div>
                   );
                 })}
               </div>

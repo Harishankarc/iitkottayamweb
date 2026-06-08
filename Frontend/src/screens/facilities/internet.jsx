@@ -191,6 +191,51 @@ export default function Internet() {
               ? block.content.images.map((image) => (typeof image === 'string' ? { url: image } : image))
               : (block.content.url || block.content.src ? [block.content] : []);
 
+            if (images.length === 1) {
+              const image = images[0];
+              return (
+                <div key={block.id} className="mb-12 flex justify-center">
+                  <div
+                    className={`w-full max-w-2xl rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+                    style={{ border: `1px solid ${color1}20` }}
+                  >
+                    {image.title && (
+                      <div className="p-4 border-b" style={{ borderColor: `${color1}20` }}>
+                        <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {image.title}
+                        </h3>
+                      </div>
+                    )}
+                    <img
+                      src={API.getImageUrl(image.url || image.src)}
+                      alt={image.alt || 'Internet facility image'}
+                      className="w-full h-64 object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = `
+                          <div class="w-full h-64 flex items-center justify-center ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}">
+                            <div class="text-center">
+                              <svg class="w-12 h-12 mx-auto mb-2 opacity-30" style="color: ${color1}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              <p class="text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}">Image 1</p>
+                            </div>
+                          </div>
+                        `;
+                      }}
+                    />
+                    {image.caption && (
+                      <div className="p-4">
+                        <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {image.caption}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div 
                 key={block.id}
@@ -204,13 +249,14 @@ export default function Internet() {
                 <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
                   {block.content.title || 'Internet Facilities Gallery'}
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                   {images.map((image, imageIndex) => (
                     <div
                       key={`${block.id}-${imageIndex}`}
-                      className={`aspect-video rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
-                        darkMode ? 'bg-gray-700' : 'bg-gray-100'
-                      }`}
+                      className={`rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+                        darkMode ? 'bg-gray-800' : 'bg-white'
+                      } shadow-lg`}
+                      style={{ border: `1px solid ${color1}20` }}
                     >
                       {image.title && (
                         <div className="p-4 border-b" style={{ borderColor: `${color1}20` }}>
@@ -222,11 +268,11 @@ export default function Internet() {
                       <img
                         src={API.getImageUrl(image.url || image.src)}
                         alt={image.alt || `Internet facility image ${imageIndex + 1}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-64 object-cover"
                         onError={(e) => {
                           e.target.style.display = 'none';
                           e.target.parentElement.innerHTML = `
-                            <div class="w-full h-full flex items-center justify-center ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}">
+                            <div class="w-full h-64 flex items-center justify-center ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}">
                               <div class="text-center">
                                 <svg class="w-12 h-12 mx-auto mb-2 opacity-30" style="color: ${color1}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -237,6 +283,13 @@ export default function Internet() {
                           `;
                         }}
                       />
+                      {image.caption && (
+                        <div className="p-4">
+                          <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {image.caption}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

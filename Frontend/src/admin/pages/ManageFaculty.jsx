@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Plus, Edit, Trash2, Search, Zap, Heading2, Type, Image, ImagePlus, List, Layers, Table, BarChart3, Pointer, Eye, EyeOff, Eraser } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Zap, Heading2, Type, Image, ImagePlus, List, ListOrdered, Layers, Table, BarChart3, Pointer, Eye, EyeOff, Eraser, Bold, Italic, Underline, Link as LinkIcon } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import API from '../../api/api';
 import ImageUploader from '../components/ImageUploader';
@@ -136,12 +136,26 @@ const parseDetailBlocksFromHtml = (htmlString) => {
       block = { blockType: 'table', content: { title: titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '').trim() : '', subtitle: '', headers: headers.length > 0 ? headers : [''], rows: rows.length > 0 ? rows : [['']] }, rawHtml: match[0] };
     } else if (content.includes('<img') && content.includes('max-width:100%')) {
       const titleMatch = content.match(/<h3[^>]*>(.+?)<\/h3>/i);
-      const imgMatch = content.match(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/i);
+      const srcMatch = content.match(/<img[^>]*\bsrc=(['"])(.*?)\1/i);
+      const altMatch = content.match(/<img[^>]*\balt=(['"])(.*?)\1/i);
       const captionMatch = content.match(/<p[^>]*color:#6b7280[^>]*>(.+?)<\/p>/i);
-      block = { blockType: 'image', content: { title: titleMatch ? titleMatch[1] : '', url: imgMatch ? imgMatch[1] : '', alt: imgMatch ? imgMatch[2] : '', caption: captionMatch ? captionMatch[1] : '' }, rawHtml: match[0] };
-    } else if (content.includes('grid-template-columns:repeat(auto-fit,minmax(160px,1fr))') && content.includes('<img')) {
+      block = {
+        blockType: 'image',
+        content: {
+          title: titleMatch ? titleMatch[1] : '',
+          url: srcMatch ? srcMatch[2] : '',
+          alt: altMatch ? altMatch[2] : '',
+          caption: captionMatch ? captionMatch[1] : ''
+        },
+        rawHtml: match[0]
+      };
+    } else if ((content.includes('grid-template-columns:repeat(auto-fit,minmax(160px,1fr))') || content.includes('gallery-grid')) && content.includes('<img')) {
       const titleMatch = content.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
-      const images = [...content.matchAll(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/gi)].map((m) => m[1]);
+      const imgTags = content.match(/<img[^>]*>/gi) || [];
+      const images = imgTags.map(tag => {
+        const srcMatch = tag.match(/\bsrc=(['"])(.*?)\1/i);
+        return srcMatch ? srcMatch[2] : '';
+      }).filter(Boolean);
       block = { blockType: 'gallery', content: { title: titleMatch ? titleMatch[1] : '', images: images.length > 0 ? images : [''] }, rawHtml: match[0] };
     } else if (content.includes('grid-template-columns:repeat(auto-fit,minmax(160px,1fr))') || content.includes('background:#f8fffb')) {
       const titleMatch = content.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i);
@@ -149,7 +163,11 @@ const parseDetailBlocksFromHtml = (htmlString) => {
         .map((m) => ({ value: m[1], label: m[2] }));
       block = { blockType: 'statistics', content: { title: titleMatch ? titleMatch[1] : '', stats: stats.length > 0 ? stats : [{ value: '', label: '' }] }, rawHtml: match[0] };
     }
-    if (block) blocks.push({ ...block, hidden: false });
+    if (block) {
+      const startTag = match[0].match(/<section[^>]*>/i)?.[0] || '';
+      const isHidden = /display\s*:\s*none/i.test(startTag);
+      blocks.push({ ...block, hidden: isHidden });
+    }
   }
   return blocks.length > 0 ? blocks : [];
 };
@@ -162,8 +180,8 @@ const createBlockBuilderState = (blockType = 'heading') => ({
 const sanitizeParagraphHtml = (html) => {
   if (!html) return '';
   
-  // Remove empty tags
-  let cleaned = html.replace(/<(\w+)>[<\s]*<\/\1>/g, '');
+  // Remove empty tags (even with attributes like dir/style)
+  let cleaned = html.replace(/<(strong|em|u|a|span|b|i)(?:\s+[^>]*)?>[\s]*(?:<br\s*\/?>)?[\s]*<\/\1>/gi, '');
   
   // Fix unclosed tags by removing orphaned closing tags
   cleaned = cleaned.replace(/<\/b>(?![\s\S]*<b>)/g, '');
@@ -287,9 +305,9 @@ const buildDetailBlockHtml = (blockType, content) => {
     case 'paragraph':
       return `<section style="margin:18px 0;"><div style="line-height:1.75;">${formatParagraphText(content.text)}</div></section>`;
     case 'image':
-      return `<section style="margin:18px 0;text-align:center;">${content.title ? `<h3 style="margin:0 0 10px 0;font-size:20px;font-weight:700;color:#111827;">${escapeHtml(content.title)}</h3>` : ''}${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(content.alt || content.title || 'Faculty image')}" style="max-width:100%;width:100%;max-height:500px;aspect-ratio:1/1;object-fit:cover;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.08);display:inline-block;" />` : ''}${content.caption ? `<p style="margin:10px 0 0;color:#6b7280;font-size:13px;">${escapeHtml(content.caption)}</p>` : ''}</section>`;
+      return `<section style="margin:18px 0;text-align:center;">${content.title ? `<h3 style="margin:0 0 10px 0;font-size:20px;font-weight:700;color:#111827;">${escapeHtml(content.title)}</h3>` : ''}${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(content.alt || content.title || 'Faculty image')}" style="max-width:100%;width:100%;max-height:300px;aspect-ratio:1/1;object-fit:cover;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.08);display:inline-block;" />` : ''}${content.caption ? `<p style="margin:10px 0 0;color:#6b7280;font-size:13px;">${escapeHtml(content.caption)}</p>` : ''}</section>`;
     case 'gallery':
-      return `<section style="margin:18px 0;"><h3 style="margin:0 0 12px 0;font-size:20px;font-weight:700;color:#111827;">${richText(content.title || '')}</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">${(content.images || []).filter(Boolean).map((itemUrl) => `<img src="${escapeHtml(resolveMediaUrl(itemUrl))}" alt="Gallery image" style="width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;border-radius:12px;display:block;" />`).join('')}</div></section>`;
+      return `<section style="margin:18px 0;"><h3 style="margin:0 0 12px 0;font-size:20px;font-weight:700;color:#111827;">${richText(content.title || '')}</h3><div class="gallery-grid" style="max-width:750px;margin:12px auto;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">${(content.images || []).filter(Boolean).map((itemUrl) => `<img src="${escapeHtml(resolveMediaUrl(itemUrl))}" alt="Gallery image" style="width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;border-radius:12px;display:block;" />`).join('')}</div></section>`;
     case 'table':
       return `<section style="margin:18px 0;overflow:auto;">${content.title ? `<h3 style="margin:0 0 8px 0;font-size:20px;font-weight:700;color:#111827;">${escapeHtml(content.title)}</h3>` : ''}${content.subtitle ? `<p style="margin:0 0 12px 0;color:#6b7280;">${escapeHtml(content.subtitle)}</p>` : ''}<table style="width:100%;border-collapse:collapse;border:1px solid #d1d5db;border-radius:12px;overflow:hidden;"><thead><tr>${(content.headers || []).map((header) => `<th style="background:#ecfdf5;border:1px solid #d1d5db;padding:10px 12px;text-align:left;color:#111827;">${escapeHtml(header)}</th>`).join('')}</tr></thead><tbody>${(content.rows || []).map((row) => `<tr>${Array.from({ length: Math.max((content.headers || []).length, 1) }, (_, cellIndex) => `<td style="border:1px solid #d1d5db;padding:10px 12px;color:#374151;">${escapeHtml((row || [])[cellIndex] || '')}</td>`).join('')}</tr>`).join('')}</tbody></table></section>`;
     case 'statistics': {
@@ -414,7 +432,7 @@ export default function ManageFaculty() {
   const [detailBlocks, setDetailBlocks] = useState([]);
   const [editingBlockIndex, setEditingBlockIndex] = useState(null);
   const [activeEditorStep, setActiveEditorStep] = useState(1);
-  const [formData, setFormData] = useState({ name: '', designation: '', department: 'General', email: '', phone: '', photo: '', qualification: '', specialization: '', experience: '', researchInterests: '', publications: '', googleScholar: '', linkedIn: '', researchGate: '', mainSectionPages: [''], fullDetails: '', fullDetailsHtml: '', useHtmlEditor: false, isActive: true });
+  const [formData, setFormData] = useState({ name: '', designation: '', facultyType: 'Internal Faculty', department: 'General', email: '', phone: '', photo: '', qualification: '', specialization: '', experience: '', researchInterests: '', publications: '', googleScholar: '', linkedIn: '', researchGate: '', mainSectionPages: [''], fullDetails: '', fullDetailsHtml: '', useHtmlEditor: false, isActive: true });
   const [pendingListType, setPendingListType] = useState(null);
   const [pendingListItemCount, setPendingListItemCount] = useState(0);
   const paragraphEditorRef = React.useRef(null);
@@ -425,7 +443,16 @@ export default function ManageFaculty() {
     { step: 3, label: 'Full Details', description: 'Block-based content' }
   ];
 
-  useEffect(() => { fetchFaculty(); }, []);
+  const [sortOrders, setSortOrders] = useState({
+    'Internal Faculty': 'newest',
+    'Adjunct Faculty': 'newest',
+    'Former Faculty': 'newest'
+  });
+
+  useEffect(() => {
+    fetchFaculty();
+    fetchSettings();
+  }, []);
 
   useEffect(() => {
     if (editFacultyIdFromState && faculty.length > 0) {
@@ -433,6 +460,54 @@ export default function ManageFaculty() {
       if (facultyToEdit) openEditModal(facultyToEdit);
     }
   }, [editFacultyIdFromState, faculty]);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch(`${API.baseURL}/api/site-settings?category=faculty`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.settings) {
+          setSortOrders({
+            'Internal Faculty': data.settings['faculty_sort_internal']?.value || 'newest',
+            'Adjunct Faculty': data.settings['faculty_sort_adjunct']?.value || 'newest',
+            'Former Faculty': data.settings['faculty_sort_former']?.value || 'newest'
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+  };
+
+  const handleSortOrderChange = async (type, value) => {
+    const keyMap = {
+      'Internal Faculty': 'faculty_sort_internal',
+      'Adjunct Faculty': 'faculty_sort_adjunct',
+      'Former Faculty': 'faculty_sort_former'
+    };
+    const key = keyMap[type];
+    setSortOrders(prev => ({ ...prev, [type]: value }));
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`${API.baseURL}/api/site-settings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          settingKey: key,
+          settingValue: value,
+          settingType: 'text',
+          category: 'faculty',
+          description: `Sort order for ${type}`
+        })
+      });
+    } catch (err) {
+      console.error('Error saving setting:', err);
+    }
+  };
+
 
   const fetchFaculty = async () => {
     try {
@@ -454,7 +529,7 @@ export default function ManageFaculty() {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', designation: '', department: 'General', email: '', phone: '', photo: '', qualification: '', specialization: '', experience: '', researchInterests: '', publications: '', googleScholar: '', linkedIn: '', researchGate: '', mainSectionPages: [''], fullDetails: '', fullDetailsHtml: '', useHtmlEditor: false, isActive: true });
+    setFormData({ name: '', designation: '', facultyType: 'Internal Faculty', department: 'General', email: '', phone: '', photo: '', qualification: '', specialization: '', experience: '', researchInterests: '', publications: '', googleScholar: '', linkedIn: '', researchGate: '', mainSectionPages: [''], fullDetails: '', fullDetailsHtml: '', useHtmlEditor: true, isActive: true });
     setDetailBuilder(createBlockBuilderState('heading'));
     setDetailBlocks([]);
     setEditingBlockIndex(null);
@@ -483,14 +558,14 @@ export default function ManageFaculty() {
     if (lastMatch) {
       const [fullMatch, openTag, body, closeTag] = lastMatch;
       // Ensure the list element has explicit inline styles so markers are not removed by global CSS
-      const styleAttr = `style=\"margin:12px 0;padding-left:28px;list-style-position:outside;${tag === 'ol' ? 'list-style-type:none;' : 'list-style-type:disc;' }\"`;
+      const styleAttr = `style="margin:12px 0;padding-left:28px;list-style-position:outside;list-style-type:${tag === 'ol' ? 'none' : 'disc'};"`;
       const hasStyle = /style=/.test(openTag);
       const finalOpenTag = hasStyle ? openTag : openTag.replace(new RegExp(`^<${tag}`), `<${tag} ${styleAttr}`);
       const liContent = tag === 'ol' ? `${nextItemNumber}.&nbsp;` : '&nbsp;';
       const replacement = `${finalOpenTag}${body}<li>${liContent}</li>${closeTag}`;
       updatedHtml = `${existingHtml.slice(0, lastIndex)}${replacement}${existingHtml.slice(lastIndex + fullMatch.length)}`;
     } else {
-      const styleAttr = `style=\"margin:12px 0;padding-left:28px;list-style-position:outside;${tag === 'ol' ? 'list-style-type:none;' : 'list-style-type:disc;' }\"`;
+      const styleAttr = `style="margin:12px 0;padding-left:28px;list-style-position:outside;list-style-type:${tag === 'ol' ? 'none' : 'disc'};"`;
       const liContent = tag === 'ol' ? `${nextItemNumber}.&nbsp;` : '&nbsp;';
       updatedHtml = `${existingHtml}${existingHtml ? '' : ''}<${tag} ${styleAttr}><li>${liContent}</li></${tag}>`;
     }
@@ -502,11 +577,20 @@ export default function ManageFaculty() {
   const openEditModal = (item) => {
     const resolvedFullDetails = Array.isArray(item.fullDetails) ? item.fullDetails : toDetailArray(item.fullDetails || '');
     const fallbackFullDetails = Array.isArray(item.rightSideDetails) ? item.rightSideDetails : toDetailArray(item.rightSideDetails || '');
-    const parsedBlocks = item.fullDetailsHtml ? parseDetailBlocksFromHtml(item.fullDetailsHtml) : [];
+    let parsedBlocks = item.fullDetailsHtml ? parseDetailBlocksFromHtml(item.fullDetailsHtml) : [];
+    if (item.fullDetailsHtml && parsedBlocks.length === 0) {
+      parsedBlocks = [{
+        blockType: 'paragraph',
+        content: { text: item.fullDetailsHtml },
+        rawHtml: `<section style="margin:18px 0;"><div style="line-height:1.75;">${item.fullDetailsHtml}</div></section>`,
+        hidden: false
+      }];
+    }
     setEditingItem(item);
     setFormData({
       name: item.name || '',
       designation: item.designation || '',
+      facultyType: item.facultyType || 'Internal Faculty',
       department: item.department || 'General',
       email: item.email || '',
       phone: item.phone || '',
@@ -522,10 +606,10 @@ export default function ManageFaculty() {
       mainSectionPages: parseMainSectionPages(item.mainSection || ''),
       fullDetails: (resolvedFullDetails.length > 0 ? resolvedFullDetails : fallbackFullDetails).join('\n'),
       fullDetailsHtml: item.fullDetailsHtml || '',
-      useHtmlEditor: parsedBlocks.length > 0,
+      useHtmlEditor: true,
       isActive: item.isActive !== false
     });
-    setDetailBlocks(parsedBlocks.length > 0 ? parsedBlocks : []);
+    setDetailBlocks(parsedBlocks);
     setDetailBuilder(createBlockBuilderState('heading'));
     setEditingBlockIndex(null);
     setActiveEditorStep(1);
@@ -537,14 +621,48 @@ export default function ManageFaculty() {
     try {
       const token = localStorage.getItem('token');
       const url = editingItem ? `${API.baseURL}/api/faculty/${editingItem.id}` : `${API.baseURL}/api/faculty`;
-      const visibleBlocks = detailBlocks.filter((block) => !block.hidden);
       const fullDetailsHtmlToSave = formData.useHtmlEditor
-        ? (visibleBlocks.length > 0 ? visibleBlocks.map((block) => block.rawHtml || buildDetailBlockHtml(block.blockType, block.content)).join('') : (formData.fullDetailsHtml || ''))
+        ? (detailBlocks.length > 0
+            ? detailBlocks.map((block) => {
+                let html = block.rawHtml || buildDetailBlockHtml(block.blockType, block.content);
+                if (block.hidden) {
+                  // Ensure style has display:none;
+                  if (html.includes('<section')) {
+                    const matchStyle = html.match(/<section[^>]*style=(['"])(.*?)\1/i);
+                    if (matchStyle) {
+                      const quote = matchStyle[1];
+                      const styleVal = matchStyle[2];
+                      if (!styleVal.includes('display:none')) {
+                        const newStyle = `display:none;${styleVal}`;
+                        html = html.replace(/(<section[^>]*style=)(['"])(.*?)\2/i, `$1$2${newStyle}$2`);
+                      }
+                    } else {
+                      html = html.replace(/(<section)/i, '$1 style="display:none;"');
+                    }
+                  }
+                } else {
+                  // Ensure display:none; is removed from style
+                  if (html.includes('<section')) {
+                    const matchStyle = html.match(/<section[^>]*style=(['"])(.*?)\1/i);
+                    if (matchStyle) {
+                      const quote = matchStyle[1];
+                      const styleVal = matchStyle[2];
+                      if (styleVal.includes('display:none')) {
+                        const cleanStyle = styleVal.replace(/display\s*:\s*none\s*;?/gi, '');
+                        html = html.replace(/(<section[^>]*style=)(['"])(.*?)\2/i, `$1$2${cleanStyle}$2`);
+                      }
+                    }
+                  }
+                }
+                return html;
+              }).join('')
+            : (formData.fullDetailsHtml || ''))
         : (formData.fullDetailsHtml || '');
       // Merge with existing item values when editing to avoid accidental data loss
       const payload = {
         name: (formData.name || (editingItem && editingItem.name)) || '',
         designation: (formData.designation || (editingItem && editingItem.designation)) || '',
+        facultyType: (formData.facultyType || (editingItem && editingItem.facultyType) || 'Internal Faculty'),
         department: (formData.department?.trim() || (editingItem && editingItem.department) || 'General'),
         email: (() => {
           const normalizedEmail = normalizeEmail((formData.email || (editingItem && editingItem.email)) || '');
@@ -655,7 +773,8 @@ export default function ManageFaculty() {
             </div>
             <div className="space-y-4">
               <div><label htmlFor="faculty-name" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Name *</label><input id="faculty-name" type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" /></div>
-              <div><label htmlFor="faculty-designation" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Designation *</label><select id="faculty-designation" required value={formData.designation} onChange={(e) => setFormData({ ...formData, designation: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"><option value="">-- Select Designation --</option><option value="Professor">Professor</option><option value="Associate Professor">Associate Professor</option><option value="Assistant Professor">Assistant Professor</option></select></div>
+              <div><label htmlFor="faculty-designation" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Designation *</label><select id="faculty-designation" required value={formData.designation} onChange={(e) => setFormData({ ...formData, designation: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"><option value="">-- Select Designation --</option><option value="Professor">Professor</option><option value="Associate Professor">Associate Professor</option><option value="Assistant Professor">Assistant Professor</option><option value="Adjunct Faculty">Adjunct Faculty</option><option value="Former Faculty">Former Faculty</option></select></div>
+              <div><label htmlFor="faculty-type" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Faculty Type</label><select id="faculty-type" value={formData.facultyType || 'Internal Faculty'} onChange={(e) => setFormData({ ...formData, facultyType: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"><option value="Internal Faculty">Internal Faculty</option><option value="Adjunct Faculty">Adjunct Faculty</option><option value="Former Faculty">Former Faculty</option></select><p className="text-xs text-slate-400 mt-1">Controls the group this member appears in on the faculty page.</p></div>
               <div><label htmlFor="faculty-department" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Department *</label><input id="faculty-department" type="text" required value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" /></div>
               <div className="grid grid-cols-1 gap-4"><div><label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Email</label><input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="faculty@example.com" /></div><div><label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Phone Number</label><input type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" placeholder="+91 9876543210" /></div></div>
             </div>
@@ -797,249 +916,266 @@ export default function ManageFaculty() {
             <h3 className="text-xl font-bold text-slate-900">Full Details</h3>
             <p className="text-sm text-slate-500 mt-1">Add a detailed profile description that will appear on the public faculty page</p>
           </div>
-
-          {/* Toggle Advanced Mode */}
-          <div className="bg-slate-50 rounded-xl border border-slate-200 p-4">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input 
-                type="checkbox" 
-                checked={formData.useHtmlEditor} 
-                onChange={(e) => setFormData({ ...formData, useHtmlEditor: e.target.checked })}
-                className="h-5 w-5 rounded"
-              />
-              <span className="text-sm font-semibold text-slate-700">Use Advanced Block Editor</span>
-              <span className="text-xs text-slate-500 ml-auto">For complex layouts with multiple sections</span>
-            </label>
-          </div>
         </div>
 
-        {/* Simple Rich Text Editor (Default) */}
-        {!formData.useHtmlEditor ? (
-          <div className="space-y-4">
-            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-              <div className="mb-4">
-                <label className="block text-sm font-bold text-slate-900 mb-2">Profile Description</label>
-                <p className="text-xs text-slate-500">Write about achievements, research, expertise, and other relevant information.</p>
-              </div>
-              <RichEditor
-                value={formData.fullDetailsHtml || ''}
-                onChange={(html) => setFormData({ ...formData, fullDetailsHtml: html })}
-              />
-              <p className="text-xs text-slate-400 mt-3">
-                💡 Tip: Use bold, italics, headings, and links to structure your content
-              </p>
+        {/* Advanced Block Editor - Two Column Layout FULL WIDTH */}
+        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 h-[calc(100vh-480px)] min-h-96">
+          {/* LEFT SIDEBAR: Block Type, Options & Block List */}
+          <div className="flex flex-col gap-4 min-h-0 overflow-y-auto">
+            {/* Block Type Selector */}
+            <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+              <label htmlFor="detail-block-type" className="block text-sm font-bold text-slate-900 mb-3">Block Type</label>
+              <select 
+                id="detail-block-type" 
+                value={detailBuilder.blockType} 
+                onChange={(e) => updateDetailBuilderType(e.target.value)} 
+                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                {FACULTY_DETAIL_BLOCK_TYPES.map((type) => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
+                ))}
+              </select>
             </div>
-          </div>
-        ) : (
-          /* Advanced Block Editor - Two Column Layout FULL WIDTH */
-          <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 h-[calc(100vh-480px)] min-h-96">
-            {/* LEFT SIDEBAR: Block Type, Options & Block List */}
-            <div className="flex flex-col gap-4 min-h-0 overflow-y-auto">
-              {/* Block Type Selector */}
-              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-                <label htmlFor="detail-block-type" className="block text-sm font-bold text-slate-900 mb-3">Block Type</label>
-                <select 
-                  id="detail-block-type" 
-                  value={detailBuilder.blockType} 
-                  onChange={(e) => updateDetailBuilderType(e.target.value)} 
-                  className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                >
-                  {FACULTY_DETAIL_BLOCK_TYPES.map((type) => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
-                  ))}
-                </select>
-              </div>
 
-              {/* Heading Size Selector (Only for Heading block type) */}
-              {detailBuilder.blockType === 'heading' && (
-                <>
-                  <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-                    <label htmlFor="heading-level" className="block text-sm font-bold text-slate-900 mb-3">Heading Size</label>
-                    <select 
-                      id="heading-level"
-                      value={detailBuilder.content.level || 2} 
-                      onChange={(e) => updateDetailBuilderContent('level', Number(e.target.value))} 
-                      className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    >
-                      <option value={1}>H1 - Extra Large</option>
-                      <option value={2}>H2 - Large</option>
-                      <option value={3}>H3 - Medium</option>
-                      <option value={4}>H4 - Small</option>
-                    </select>
-                  </div>
-
-                  <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-                    <label htmlFor="heading-position" className="block text-sm font-bold text-slate-900 mb-3">Position</label>
-                    <select 
-                      id="heading-position"
-                      value={detailBuilder.content.position || 'left'} 
-                      onChange={(e) => updateDetailBuilderContent('position', e.target.value)} 
-                      className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    >
-                      <option value="left">Left</option>
-                      <option value="center">Center</option>
-                      <option value="right">Right</option>
-                    </select>
-                  </div>
-                </>
-              )}
-
-              {/* Paragraph Formatting Toolbar (Left column only) */}
-              {detailBuilder.blockType === 'paragraph' && (
+            {/* Heading Size Selector (Only for Heading block type) */}
+            {detailBuilder.blockType === 'heading' && (
+              <>
                 <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-                  <p className="text-xs font-bold text-slate-900 mb-3">Text Formatting</p>
-                  <div className="grid grid-cols-6 gap-2">
-                    <button
-                      type="button"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => { setPendingListType(null); paragraphEditorRef.current?.exec('bold'); }}
-                      className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700 font-bold"
+                  <label htmlFor="heading-level" className="block text-sm font-bold text-slate-900 mb-3">Heading Size</label>
+                  <select 
+                    id="heading-level"
+                    value={detailBuilder.content.level || 2} 
+                    onChange={(e) => updateDetailBuilderContent('level', Number(e.target.value))} 
+                    className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value={1}>H1 - Extra Large</option>
+                    <option value={2}>H2 - Large</option>
+                    <option value={3}>H3 - Medium</option>
+                    <option value={4}>H4 - Small</option>
+                  </select>
+                </div>
+
+                <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                  <label htmlFor="heading-position" className="block text-sm font-bold text-slate-900 mb-3">Position</label>
+                  <select 
+                    id="heading-position"
+                    value={detailBuilder.content.position || 'left'} 
+                    onChange={(e) => updateDetailBuilderContent('position', e.target.value)} 
+                    className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
+                </div>
+              </>
+            )}
+
+            {/* Paragraph Formatting Toolbar (Left column only) */}
+            {detailBuilder.blockType === 'paragraph' && (
+              <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
+                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Text Formatting</p>
+                <div className="flex flex-wrap gap-2 items-center">
+                  {/* Inline Formats */}
+                  <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+                    <button 
+                      type="button" 
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        if (paragraphEditorRef.current) {
+                          paragraphEditorRef.current.applyInlineFormat('strong');
+                        }
+                      }} 
+                      className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 hover:text-slate-900 text-slate-600 transition-all duration-200 hover:scale-105 active:scale-95" 
                       title="Bold"
                     >
-                      B
+                      <Bold className="h-4.5 w-4.5 font-bold" />
                     </button>
-                    <button
-                      type="button"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => { setPendingListType(null); paragraphEditorRef.current?.exec('italic'); }}
-                      className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700 italic"
+                    <button 
+                      type="button" 
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        if (paragraphEditorRef.current) {
+                          paragraphEditorRef.current.applyInlineFormat('em');
+                        }
+                      }} 
+                      className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 hover:text-slate-900 text-slate-600 transition-all duration-200 hover:scale-105 active:scale-95" 
                       title="Italic"
                     >
-                      I
+                      <Italic className="h-4.5 w-4.5" />
                     </button>
-                    <button
-                      type="button"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => { setPendingListType(null); paragraphEditorRef.current?.exec('underline'); }}
-                      className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
+                    <button 
+                      type="button" 
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        if (paragraphEditorRef.current) {
+                          paragraphEditorRef.current.applyInlineFormat('u');
+                        }
+                      }} 
+                      className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 hover:text-slate-900 text-slate-600 transition-all duration-200 hover:scale-105 active:scale-95" 
                       title="Underline"
                     >
-                      U
+                      <Underline className="h-4.5 w-4.5" />
+                    </button>
+                  </div>
+
+                  {/* Insert Actions */}
+                  <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+                    <button 
+                      type="button" 
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        if (paragraphEditorRef.current) {
+                          paragraphEditorRef.current.insertLink();
+                        }
+                      }} 
+                      className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 hover:text-slate-900 text-slate-600 transition-all duration-200 hover:scale-105 active:scale-95" 
+                      title="Insert Link"
+                    >
+                      <LinkIcon className="h-4.5 w-4.5" />
                     </button>
                     <button
                       type="button"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => { setPendingListType(null); paragraphEditorRef.current?.insertLink(); }}
-                      className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
-                      title="Link"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setPendingListType('ul');
+                        setPendingListItemCount(0);
+                        setTimeout(() => {
+                          appendPendingListItem();
+                        }, 50);
+                      }}
+                      className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 hover:text-slate-900 text-slate-600 transition-all duration-200 hover:scale-105 active:scale-95"
+                      title="Bullet List"
                     >
-                      Link
+                      <List className="h-4.5 w-4.5" />
                     </button>
                     <button
                       type="button"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => { setPendingListType('ul'); setPendingListItemCount(0); }}
-                      className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
-                      title="Unordered List"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setPendingListType('ol');
+                        setPendingListItemCount(0);
+                        setTimeout(() => {
+                          appendPendingListItem();
+                        }, 50);
+                      }}
+                      className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 hover:text-slate-900 text-slate-600 transition-all duration-200 hover:scale-105 active:scale-95"
+                      title="Numbered List"
                     >
-                      UL
-                    </button>
-                    <button
-                      type="button"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => { setPendingListType('ol'); setPendingListItemCount(0); }}
-                      className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700"
-                      title="Ordered List"
-                    >
-                      OL
+                      <ListOrdered className="h-4.5 w-4.5" />
                     </button>
                   </div>
-                </div>
-              )}
 
-              {/* Added Blocks List */}
-              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-                <h4 className="text-sm font-bold text-slate-900 mb-3">Blocks ({detailBlocks.length})</h4>
-                
-                {detailBlocks.length === 0 ? (
-                  <div className="text-center py-6 px-2">
-                    <p className="text-xs text-slate-500">No blocks yet</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {detailBlocks.map((block, index) => {
-                      const blockLabel = FACULTY_DETAIL_BLOCK_TYPES.find((t) => t.value === block.blockType)?.label || block.blockType;
-                      const isEditing = editingBlockIndex === index;
-                      const isHidden = block.hidden === true;
-                      return (
-                        <div 
-                          key={index} 
-                          className={`flex items-center gap-2 p-4 rounded-lg border cursor-pointer transition ${isEditing ? 'bg-blue-100 border-blue-300' : isHidden ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'}`}
-                          onClick={() => editBlock(index)}
-                        >
-                          <div className="flex-shrink-0 h-6 w-6 rounded bg-slate-300 flex items-center justify-center font-bold text-xs text-slate-700">
-                            {index + 1}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-semibold text-slate-900 truncate">{blockLabel}</p>
-                          </div>
-                          <button 
-                            type="button" 
-                            onClick={(e) => { e.stopPropagation(); toggleBlockVisibility(index); }} 
-                            className="p-1 hover:bg-slate-200 rounded text-slate-600 flex-shrink-0"
-                            title={isHidden ? 'Show' : 'Hide'}
-                          >
-                            {isHidden ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                          </button>
-                          <button 
-                            type="button" 
-                            onClick={(e) => { e.stopPropagation(); deleteBlock(index); }} 
-                            className="p-1 hover:bg-red-100 rounded text-red-600 flex-shrink-0"
-                            title="Delete"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* RIGHT AREA: Input Area & Block-Specific Options */}
-            <div className="flex flex-col gap-4 min-h-0">
-              {/* Main Input/Editing Area */}
-              <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-6 flex-1 overflow-y-auto">
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900 mb-2">Block Content</h4>
-                  <div className="text-xs text-slate-500 bg-slate-50 p-2 rounded mb-4">
-                    <strong>Current:</strong> {FACULTY_DETAIL_BLOCK_TYPES.find(t => t.value === detailBuilder.blockType)?.label}
-                  </div>
-                </div>
-                {renderDetailBuilderFields()}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                <button 
-                  type="button" 
-                  onClick={clearCurrentBlockContent} 
-                  className="flex-1 px-4 py-2.5 bg-amber-50 text-amber-700 rounded-lg font-semibold hover:bg-amber-100 border border-amber-200"
-                >
-                  Clear
-                </button>
-                <button 
-                  type="button" 
-                  onClick={insertDetailBuilderBlock} 
-                  className="flex-1 px-4 py-2.5 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700"
-                >
-                  {editingBlockIndex !== null ? 'Update' : 'Add Block'}
-                </button>
-                {editingBlockIndex !== null && (
+                  {/* Clear Format */}
                   <button 
                     type="button" 
-                    onClick={() => { setEditingBlockIndex(null); setDetailBuilder(createBlockBuilderState('heading')); }} 
-                    className="flex-1 px-4 py-2.5 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      if (paragraphEditorRef.current) {
+                        paragraphEditorRef.current.exec('removeFormat');
+                      }
+                    }} 
+                    className="h-10 px-3 flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-200 text-xs font-semibold shadow-sm hover:scale-105 active:scale-95" 
+                    title="Clear formatting"
                   >
-                    Cancel
+                    <Eraser className="h-4 w-4" />
+                    <span>Clear</span>
                   </button>
-                )}
+                </div>
               </div>
+            )}
+
+            {/* Added Blocks List */}
+            <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+              <h4 className="text-sm font-bold text-slate-900 mb-3">Blocks ({detailBlocks.length})</h4>
+              
+              {detailBlocks.length === 0 ? (
+                <div className="text-center py-6 px-2">
+                  <p className="text-xs text-slate-500">No blocks yet</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {detailBlocks.map((block, index) => {
+                    const blockLabel = FACULTY_DETAIL_BLOCK_TYPES.find((t) => t.value === block.blockType)?.label || block.blockType;
+                    const isEditing = editingBlockIndex === index;
+                    const isHidden = block.hidden === true;
+                    return (
+                      <div 
+                        key={index} 
+                        className={`flex items-center gap-2 p-4 rounded-lg border cursor-pointer transition ${isEditing ? 'bg-blue-100 border-blue-300' : isHidden ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'}`}
+                        onClick={() => editBlock(index)}
+                      >
+                        <div className="flex-shrink-0 h-6 w-6 rounded bg-slate-300 flex items-center justify-center font-bold text-xs text-slate-700">
+                          {index + 1}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-slate-900 truncate">{blockLabel}</p>
+                        </div>
+                        <button 
+                          type="button" 
+                          onClick={(e) => { e.stopPropagation(); toggleBlockVisibility(index); }} 
+                          className="p-1 hover:bg-slate-200 rounded text-slate-600 flex-shrink-0"
+                          title={isHidden ? 'Show' : 'Hide'}
+                        >
+                          {isHidden ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={(e) => { e.stopPropagation(); deleteBlock(index); }} 
+                          className="p-1 hover:bg-red-100 rounded text-red-600 flex-shrink-0"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
-        )}
 
+          {/* RIGHT AREA: Input Area & Block-Specific Options */}
+          <div className="flex flex-col gap-4 min-h-0">
+            {/* Main Input/Editing Area */}
+            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-6 flex-1 overflow-y-auto">
+              <div>
+                <h4 className="text-sm font-bold text-slate-900 mb-2">Block Content</h4>
+                <div className="text-xs text-slate-500 bg-slate-50 p-2 rounded mb-4">
+                  <strong>Current:</strong> {FACULTY_DETAIL_BLOCK_TYPES.find(t => t.value === detailBuilder.blockType)?.label}
+                </div>
+              </div>
+              {renderDetailBuilderFields()}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button 
+                type="button" 
+                onClick={clearCurrentBlockContent} 
+                className="flex-1 px-4 py-2.5 bg-amber-50 text-amber-700 rounded-lg font-semibold hover:bg-amber-100 border border-amber-200"
+              >
+                Clear
+              </button>
+              <button 
+                type="button" 
+                onClick={insertDetailBuilderBlock} 
+                className="flex-1 px-4 py-2.5 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700"
+              >
+                {editingBlockIndex !== null ? 'Update' : 'Add Block'}
+              </button>
+              {editingBlockIndex !== null && (
+                <button 
+                  type="button" 
+                  onClick={() => { setEditingBlockIndex(null); setDetailBuilder(createBlockBuilderState('heading')); }} 
+                  className="flex-1 px-4 py-2.5 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     );
   };
@@ -1089,16 +1225,22 @@ export default function ManageFaculty() {
               <p className="text-xs text-slate-500 mb-2">
                 <strong>Tip:</strong> Use the formatting buttons in the left sidebar or the editor toolbar. Text will display with actual formatting below.
               </p>
+              <RichEditor 
+                ref={paragraphEditorRef}
+                value={content.text || ''} 
+                onChange={(html) => updateDetailBuilderContent('text', sanitizeParagraphHtml(html))} 
+                showToolbar={false}
+              />
               {pendingListType && (
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div className="flex flex-wrap gap-2 mt-3 animate-fadeIn">
                   <button
                     type="button"
                     onClick={() => {
                       appendPendingListItem();
                     }}
-                    className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg hover:scale-105 active:scale-95 transition-all duration-200"
                   >
-                    Add list item
+                    Add List Item
                   </button>
                   <button
                     type="button"
@@ -1106,25 +1248,19 @@ export default function ManageFaculty() {
                       setPendingListType(null);
                       setPendingListItemCount(0);
                     }}
-                    className="px-3 py-2 bg-slate-200 text-slate-900 rounded-lg hover:bg-slate-300"
+                    className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold rounded-lg hover:scale-105 active:scale-95 transition-all duration-200"
                   >
                     Cancel
                   </button>
                 </div>
               )}
-              <RichEditor 
-                ref={paragraphEditorRef}
-                value={content.text || ''} 
-                onChange={(html) => updateDetailBuilderContent('text', sanitizeParagraphHtml(html))} 
-                showToolbar={false}
-              />
             </div>
 
             {content.text && (
               <div className="border-t pt-4">
                 <label className="block text-sm font-bold text-slate-900 mb-3">Preview</label>
                 <div 
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-slate-50"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-slate-50 content-html"
                   dangerouslySetInnerHTML={{ __html: formatParagraphText(content.text) }}
                   style={{
                     lineHeight: '1.75',
@@ -1133,7 +1269,9 @@ export default function ManageFaculty() {
                   }}
                 />
                 <style>{`
+                  div[dangerouslySetInnerHTML] strong,
                   div[dangerouslySetInnerHTML] b { font-weight: 700; }
+                  div[dangerouslySetInnerHTML] em,
                   div[dangerouslySetInnerHTML] i { font-style: italic; }
                   div[dangerouslySetInnerHTML] u,
                   div[dangerouslySetInnerHTML] span[style*="text-decoration:underline"] { text-decoration: underline; }
@@ -1195,6 +1333,11 @@ export default function ManageFaculty() {
                 onChange={(e) => updateDetailBuilderContent('title', e.target.value)}
                 className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
               />
+            </div>
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 space-y-1">
+              <span className="font-semibold text-slate-800">💡 Gallery Image Guidelines:</span>
+              <p>• Recommended Size: Square aspect ratio (1:1), e.g., <strong className="text-slate-800">800 &times; 800 px</strong> or higher.</p>
+              <p>• Display format: 4 columns per row, centered, with individual image dimensions rendering as <strong className="text-slate-800">187.5px &times; 187.5px</strong>.</p>
             </div>
             {(content.images || []).map((image, index) => (
               <div key={index} className="space-y-2 rounded-lg border bg-white p-3">
@@ -1264,27 +1407,76 @@ export default function ManageFaculty() {
 
       {fetchError && <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-sm">{fetchError}</div>}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredFaculty.map((member) => (
-          <div key={member.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="h-16 w-16 rounded-full overflow-hidden border-2 bg-slate-100" style={{ borderColor: `${API.color1}33` }}>
-                  <img src={member.photo ? API.getImageUrl(member.photo) : `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&size=200&background=239244&color=ffffff&bold=true`} alt={member.name} className="h-full w-full object-cover" onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&size=200&background=239244&color=ffffff&bold=true`; }} />
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => openEditModal(member)} className="text-blue-600 hover:text-blue-900"><Edit className="h-5 w-5" /></button>
-                  <button onClick={() => handleDelete(member.id)} className="text-red-600 hover:text-red-900"><Trash2 className="h-5 w-5" /></button>
-                </div>
+      {[
+        { type: 'Internal Faculty', title: 'Internal Faculty' },
+        { type: 'Adjunct Faculty', title: 'Adjunct Faculty' },
+        { type: 'Former Faculty', title: 'Former Faculty' }
+      ].map(({ type, title }) => {
+        const sectionItems = filteredFaculty
+          .filter((member) => (member.facultyType || 'Internal Faculty') === type)
+          .sort((a, b) => {
+            const order = sortOrders[type] || 'newest';
+            return order === 'newest' ? b.id - a.id : a.id - b.id;
+          });
+
+        return (
+          <div key={type} className="bg-white rounded-2xl shadow-md border border-slate-100 p-6 space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+                <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-50 text-emerald-700">
+                  {sectionItems.length}
+                </span>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1">{member.name}</h3>
-              <p className="text-sm text-gray-600 mb-2">{member.designation}</p>
-              <p className="text-sm font-medium" style={{ color: API.color1 }}>{member.department}</p>
-              <div className="mt-4 border-t pt-3"><p className="text-xs text-gray-500">Full profile details are available in Edit.</p></div>
+              
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Default Sort:</label>
+                <select
+                  value={sortOrders[type] || 'newest'}
+                  onChange={(e) => handleSortOrderChange(type, e.target.value)}
+                  className="text-xs font-semibold px-3 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-slate-700 cursor-pointer shadow-sm"
+                >
+                  <option value="newest">Last Added</option>
+                  <option value="oldest">First Added</option>
+                </select>
+              </div>
             </div>
+
+            {sectionItems.length === 0 ? (
+              <div className="text-center py-8 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                <p className="text-sm text-slate-500">No {title.toLowerCase()} cards found.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sectionItems.map((member) => (
+                  <div key={member.id} className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow border ${!member.isActive ? 'border-amber-300 bg-amber-50/20 opacity-80' : 'border-slate-100'}`}>
+                    <div className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="h-16 w-16 rounded-full overflow-hidden border-2 bg-slate-100" style={{ borderColor: `${API.color1}33` }}>
+                          <img src={member.photo ? API.getImageUrl(member.photo) : `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&size=200&background=239244&color=ffffff&bold=true`} alt={member.name} className="h-full w-full object-cover" onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&size=200&background=239244&color=ffffff&bold=true`; }} />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {!member.isActive && (
+                            <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 rounded-full">
+                              Draft / Inactive
+                            </span>
+                          )}
+                          <button onClick={() => openEditModal(member)} className="text-blue-600 hover:text-blue-900"><Edit className="h-5 w-5" /></button>
+                          <button onClick={() => handleDelete(member.id)} className="text-red-600 hover:text-red-900"><Trash2 className="h-5 w-5" /></button>
+                        </div>
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-1">{member.name}</h3>
+                      <p className="text-sm text-gray-600 mb-2">{member.designation}</p>
+                      <p className="text-sm font-medium" style={{ color: API.color1 }}>{member.department}</p>
+                      <div className="mt-4 border-t pt-3"><p className="text-xs text-gray-500">Full profile details are available in Edit.</p></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        ))}
-      </div>
+        );
+      })}
 
       {showModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-3 md:p-6">

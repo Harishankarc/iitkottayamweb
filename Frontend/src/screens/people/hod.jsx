@@ -4,47 +4,69 @@ import API from '../../api/api.jsx';
 import { Mail, Phone, MapPin, Search, GraduationCap, Building2 } from 'lucide-react';
 import RotatingDetails from '../../components/RotatingDetails.jsx';
 
-// HOD Card Component - Vertical Layout Only
+// HOD Card Component - Side-by-side header layout
 const HODCard = ({ hod, color1, darkMode }) => {
   const [isHovered, setIsHovered] = React.useState(false);
   
   return (
     <div
       className={`group relative rounded-2xl overflow-hidden transition-all duration-300 ${
-        isHovered ? 'shadow-2xl' : 'shadow-lg'
+        isHovered ? 'shadow-2xl transform -translate-y-1' : 'shadow-lg'
       } ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      style={{
+        border: `2px solid ${darkMode ? '#374151' : '#E5E7EB'}`
+      }}
     >
-      {/* Colored Top Bar */}
+      {/* Header section - fixed height */}
       <div 
-        className="h-1 w-full"
+        className="p-4 relative overflow-hidden flex items-center justify-between gap-4 h-[180px]"
         style={{
-          background: `linear-gradient(90deg, ${color1}, ${color1}cc)`
+          background: `linear-gradient(135deg, ${color1}, ${color1}dd)`
         }}
-      />
+      >
+        <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-white opacity-10 transform translate-x-12 -translate-y-12" />
+        <div className="absolute bottom-0 left-0 w-16 h-16 rounded-full bg-white opacity-10 transform -translate-x-8 translate-y-8" />
+        
+        {/* Left side: HOD details */}
+        <div className="flex-1 min-w-0 z-10">
+          <div 
+            className="inline-block px-3 py-1 rounded-full text-xs font-bold mb-2 shadow-sm"
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              color: '#ffffff',
+              backdropFilter: 'blur(4px)'
+            }}
+          >
+            Head of Department
+          </div>
+          <h3 className="text-lg font-bold text-white mb-1 leading-tight drop-shadow-sm">
+            {hod.name}
+          </h3>
+          <p className="text-xs font-medium text-white/90 leading-snug">
+            {hod.department}
+          </p>
+        </div>
 
-      {/* Content Container */}
-      <div className="p-3">
-        {/* Profile Image with Border */}
-        <div className="flex justify-center mb-2">
+        {/* Right side: Larger Image (Square with rounded edges) */}
+        <div className="flex-shrink-0 z-10">
           <div className="relative">
             <div 
-              className="absolute inset-0 rounded-full blur-xl opacity-30 transition-opacity duration-300"
+              className="absolute inset-0 rounded-2xl blur-xl transition-opacity duration-300"
               style={{ 
-                backgroundColor: color1,
-                opacity: isHovered ? 0.4 : 0.2,
-                width: '96px',
-                height: '96px'
+                backgroundColor: '#ffffff',
+                opacity: isHovered ? 0.35 : 0.15,
+                width: '144px',
+                height: '144px'
               }}
             />
             <div 
-              className="relative rounded-full overflow-hidden border-4 transition-all duration-300 flex items-center justify-center"
+              className="relative rounded-2xl overflow-hidden border-4 transition-all duration-300 flex items-center justify-center bg-white/10 backdrop-blur-sm"
               style={{
-                borderColor: isHovered ? color1 : (darkMode ? '#374151' : '#E5E7EB'),
-                width: '96px',
-                height: '96px',
-                backgroundColor: color1
+                borderColor: isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
+                width: '144px',
+                height: '144px'
               }}
             >
               <img
@@ -57,7 +79,7 @@ const HODCard = ({ hod, color1, darkMode }) => {
                 }}
               />
               <span 
-                className="absolute text-white text-3xl font-bold"
+                className="absolute text-white text-5xl font-bold"
                 style={{
                   display: hod.image && !hod.image.includes('placehold') ? 'none' : 'block'
                 }}
@@ -67,44 +89,21 @@ const HODCard = ({ hod, color1, darkMode }) => {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Name and Title */}
-        <div className="text-center mb-2">
-          <h3 
-            className={`text-base font-bold mb-1 ${
-              darkMode ? 'text-gray-100' : 'text-gray-900'
-            }`}
-          >
-            {hod.name}
-          </h3>
-          <div 
-            className="inline-block px-3 py-1 rounded-full text-xs font-bold mb-2"
-            style={{
-              backgroundColor: `${color1}15`,
-              color: color1
-            }}
-          >
-            Head of Department
-          </div>
-          <p className={`text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            {hod.department}
-          </p>
-        </div>
-
-        {/* Divider */}
-        <div className={`h-px w-full mb-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} />
-
-        {/* Contact Information - Rotating */}
+      {/* Card Content - fixed height rotating info */}
+      <div className="px-6 py-4 h-[270px] overflow-hidden">
         <RotatingDetails 
           person={{
             email: hod.email,
-            phone: hod.phones?.[0] || 'N/A',
+            phone: hod.phone || 'N/A',
+            phone2: hod.phone2 || 'N/A',
             qualification: hod.qualification,
             experience: hod.experience,
             department: hod.department,
             specialization: hod.specialization,
             room: hod.room,
-            roles: hod.phones?.slice(1) || []
+            roles: []
           }}
           color1={color1}
           darkMode={darkMode}
@@ -125,7 +124,7 @@ export default function HeadofDepartment() {
   useEffect(() => {
     const fetchHODs = async () => {
       try {
-        const response = await fetch(`${API.baseURL}/api/people/type/hod`);
+        const response = await fetch(`${API.baseURL}/api/people/type/hod?t=${Date.now()}`);
         const data = await response.json();
         console.log('HOD API Response:', data);
         
@@ -142,12 +141,13 @@ export default function HeadofDepartment() {
                 id: person.id,
                 name: person.name || 'Unknown',
                 department: person.designation || person.department || 'Department',
-                phones: person.phone ? [person.phone] : [],
+                phone: person.phone || '',
+                phone2: person.phone2 || '',
                 email: person.email || '',
-                qualification: person.qualification || person.room || 'N/A',
-                specialization: person.specialization || 'N/A',
+                // qualification: person.qualification || person.room || 'N/A', // commented out
+                // specialization: person.specialization || 'N/A', // commented out
+                // room: person.qualification || person.room || 'N/A', // commented out (was leaking as Qualification label)
                 experience: person.experience || 'N/A',
-                room: person.qualification || person.room || 'N/A',
                 image: imageUrl || `https://placehold.co/128x128/22a05e/ffffff?text=${person.name?.charAt(0) || 'H'}`
               };
             });
@@ -175,10 +175,10 @@ export default function HeadofDepartment() {
   const filteredHODs = hodData.filter((hod) => {
     const term = searchTerm.toLowerCase();
     return (
-      hod.name.toLowerCase().includes(term) ||
-      hod.department.toLowerCase().includes(term) ||
-      hod.email.toLowerCase().includes(term) ||
-      hod.room.toLowerCase().includes(term)
+      (hod.name || '').toLowerCase().includes(term) ||
+      (hod.department || '').toLowerCase().includes(term) ||
+      (hod.email || '').toLowerCase().includes(term) ||
+      (hod.room || '').toLowerCase().includes(term)
     );
   });
 

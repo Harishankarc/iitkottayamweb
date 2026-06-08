@@ -9,29 +9,29 @@ class API {
   // Helper function to get full image URL
   static getImageUrl(imagePath) {
     if (!imagePath) return null;
-    
+
     // If imagePath is an object with url property, extract the url
     if (typeof imagePath === 'object' && imagePath.url) {
       imagePath = imagePath.url;
     }
-    
+
     // Convert to string if needed
     imagePath = String(imagePath).trim();
-    
+
     // If empty after trim, return null
     if (!imagePath) return null;
-    
+
     // If it's already a full URL with proper protocol (http/https), validate and return
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
     }
-    
+
     // Reject invalid domains without protocol (like "youtube.com", "google.com", etc.)
     if (!imagePath.includes('/uploads') && !imagePath.startsWith('/') && imagePath.includes('.')) {
       // This looks like a domain without protocol - it's invalid
       return null;
     }
-    
+
     // Support stored paths that already start with uploads/ but do not include a leading slash
     if (imagePath.startsWith('uploads/')) {
       return `${this.baseURL}/${imagePath}`;
@@ -41,7 +41,7 @@ class API {
     if (imagePath.startsWith('/')) {
       return `${this.baseURL}${imagePath}`;
     }
-    
+
     // Support bare folder/file paths by assuming they are under /uploads
     if (imagePath.includes('/')) {
       return `${this.baseURL}/uploads/${imagePath.replace(/^\/+/, '')}`;
@@ -69,9 +69,9 @@ class API {
         const response = await fetch(url, {
           ...options,
           headers: {
-             ...this.getAuthHeaders(isFormData),
+            ...this.getAuthHeaders(isFormData),
             ...options.headers,
-           
+
           }
         });
 
@@ -88,7 +88,7 @@ class API {
         return { success: true, data: parsed };
       } catch (error) {
         console.error(`Fetch attempt ${i + 1} failed:`, error);
-        
+
         // Don't retry on auth errors (401, 403)
         if (error.message.includes('401') || error.message.includes('403')) {
           return { success: false, error: 'Authentication failed' };

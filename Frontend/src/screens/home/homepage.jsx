@@ -29,14 +29,14 @@ const HomePage = () => {
   const [heroSliders, setHeroSliders] = useState([])
   const [pageContent, setPageContent] = useState(null);
   const [contentBlocks, setContentBlocks] = useState([]);
-    const [latestNewsSection, setLatestNewsSection] = useState(null);
+  const [latestNewsSection, setLatestNewsSection] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // --- Fetch Data from API ---
   useEffect(() => {
     const fetchData = async () => {
       const startTime = Date.now();
-      
+
       try {
         // Fetch News
         const newsRes = await API.get('/api/news');
@@ -44,8 +44,8 @@ const HomePage = () => {
         if (newsData.success) {
           console.log('Fetched News:', newsData.data);
           // Handle both nested data.data and direct data arrays
-          const newsArray = Array.isArray(newsData.data?.data) ? newsData.data.data : 
-                           Array.isArray(newsData.data) ? newsData.data : [];
+          const newsArray = Array.isArray(newsData.data?.data) ? newsData.data.data :
+            Array.isArray(newsData.data) ? newsData.data : [];
           const formattedNews = newsArray
             .slice(0, 5)
             .map(item => ({
@@ -55,7 +55,7 @@ const HomePage = () => {
               link: `/news/${item.id}`,
               pdfLink: item.pdfLink || ''
             }));
-            console.log('Fetched News:', formattedNews);
+          console.log('Fetched News:', formattedNews);
           setNewsList(formattedNews);
         }
 
@@ -94,6 +94,7 @@ const HomePage = () => {
         const facultyData = facultyRes;
         if (facultyData.success) {
           const facultyArray = Array.isArray(facultyData.data) ? facultyData.data : [];
+          console.log(facultyArray)
           const formattedFaculty = facultyArray
             .filter(item => item.isActive)
             .slice(0, 8)
@@ -127,7 +128,7 @@ const HomePage = () => {
             .filter(item => item.isActive)
             .map(item => {
               const imageUrl = API.getImageUrl(item.image);
-              console.log(`Slider "${item.title}" - Original: ${item.image}, Formatted: ${imageUrl}`);
+              console.log(`Slider "${item.title}" - Original: ${item.image}, Formatted: ${imageUrl} `);
               return {
                 image: imageUrl || img1,
                 title: item.title,
@@ -160,26 +161,22 @@ const HomePage = () => {
         console.log('Content Blocks Response:', blocksRes);
         if (blocksRes?.success && blocksRes?.data) {
           const blocks = Array.isArray(blocksRes.data) ? blocksRes.data : [];
-          const parsedBlocks = blocks.map(block => ({
-            ...block,
-            content: typeof block.content === 'string' ? JSON.parse(block.content) : block.content
-          }));
-          console.log('Content Blocks Loaded:', parsedBlocks);
-          console.log('Vision Block:', parsedBlocks.find(b => b.blockId === 'homepage-vision'));
-          console.log('Mission Block:', parsedBlocks.find(b => b.blockId === 'homepage-mission'));
-          setContentBlocks(parsedBlocks);
+          console.log('Content Blocks Loaded:', blocks);
+          console.log('Vision Block:', blocks.find(b => b.blockId === 'homepage-vision'));
+          console.log('Mission Block:', blocks.find(b => b.blockId === 'homepage-mission'));
+          setContentBlocks(blocks);
         }
 
-          // Fetch Latest News & Updates ContentSection
-          try {
-            const contentSectionRes = await API.get('/api/content-sections/latest-news-updates');
-            if (contentSectionRes?.success && contentSectionRes?.data) {
-              setLatestNewsSection(contentSectionRes.data);
-              console.log('Fetched Latest News Section:', contentSectionRes.data);
-            }
-          } catch (error) {
-            console.log('Latest News Section not found, using default news list');
+        // Fetch Latest News & Updates ContentSection
+        try {
+          const contentSectionRes = await API.get('/api/content-sections/latest-news-updates');
+          if (contentSectionRes?.success && contentSectionRes?.data) {
+            setLatestNewsSection(contentSectionRes.data);
+            console.log('Fetched Latest News Section:', contentSectionRes.data);
           }
+        } catch (error) {
+          console.log('Latest News Section not found, using default news list');
+        }
 
       } catch (error) {
         // Fallback to default data if API fails
@@ -219,7 +216,7 @@ const HomePage = () => {
         const elapsedTime = Date.now() - startTime;
         const minimumLoadingTime = 800;
         const remainingTime = Math.max(0, minimumLoadingTime - elapsedTime);
-        
+
         setTimeout(() => {
           setLoading(false);
         }, remainingTime);
@@ -237,9 +234,9 @@ const HomePage = () => {
           {/* Animated Logo/Spinner */}
           <div className="relative w-32 h-32 mx-auto mb-6">
             <div className="absolute inset-0 rounded-full border-4 border-gray-200 dark:border-gray-700"></div>
-            <div 
+            <div
               className="absolute inset-0 rounded-full border-4 border-transparent animate-spin"
-              style={{ 
+              style={{
                 borderTopColor: color1,
                 borderRightColor: color1,
                 animationDuration: '1s'
@@ -247,11 +244,11 @@ const HomePage = () => {
             ></div>
             <div className="absolute inset-0 flex items-center justify-center">
               <svg className="w-16 h-16" style={{ color: color1 }} fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
               </svg>
             </div>
           </div>
-          
+
           {/* Loading Text */}
           <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
             Loading IIIT Kottayam
@@ -259,7 +256,7 @@ const HomePage = () => {
           <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
             Please wait while we fetch the latest updates...
           </p>
-          
+
           {/* Animated Dots */}
           <div className="flex justify-center gap-2 mt-4">
             <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: color1, animationDelay: '0s' }}></div>
@@ -273,7 +270,7 @@ const HomePage = () => {
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'} animate-fade-in-up`}>
-      
+
       {/* CSS for custom animation */}
       <style>{`
         @keyframes fadeInUp {
@@ -347,9 +344,9 @@ const HomePage = () => {
       {/* MAIN CONTENT - FULL WIDTH SECTIONS                          */}
       {/* ------------------------------------------------------------- */}
       <main className="mx-auto py-4 px-4 sm:px-6 md:px-8 max-w-screen-2xl space-y-4">
-          
-            {/* NIRF Ranking Snapshot - FULL WIDTH */}
-            {/* <section>
+
+        {/* NIRF Ranking Snapshot - FULL WIDTH */}
+        {/* <section>
               <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>NIRF Rankings (2025)</h3>
               <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6 p-3 sm:p-4 md:p-5 lg:p-6 xl:p-8 rounded-lg shadow-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 {NIRF_Ranking.map((item, idx) => (
@@ -363,167 +360,167 @@ const HomePage = () => {
                 ))}
               </div>
             </section> */}
-            
-            {/* Vision & Mission - FULL WIDTH */}
-            <section>
-              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Our Core Values</h3>
-              <div className={`grid grid-cols-1 md:grid-cols-2 shadow-xl overflow-hidden rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                <div className={`p-6 md:p-8 border-r-0 md:border-r-2`} style={{ borderColor: color1 + '30' }}>
-                  <h4 className="text-2xl font-bold mb-3">🎯 Vision</h4>
-                  <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-relaxed text-base`}>
-                    {contentBlocks.find(b => b.blockId === 'homepage-vision')?.content?.description || 
-                       contentBlocks.find(b => b.blockId === 'homepage-vision')?.content?.text || 
-                       '"Generating knowledge for the future" — aspiring to be a top-tier, research-driven organization in IT and allied fields.'}
-                  </p>
-                </div>
-                <div className="p-6 md:p-8">
-                  <h4 className="text-2xl font-bold mb-3">🎯 Mission</h4>
-                  <ul className={`list-disc pl-5 ${darkMode ? 'text-gray-300' : 'text-gray-600'} space-y-2 text-base`}>
-                    {(() => {
-                      const missionItems = contentBlocks.find(b => b.blockId === 'homepage-mission')?.content?.items || 
-                                          pageContent?.sections?.find(s => s.id === 'mission')?.items || [
-                        'Produce competent and ethical graduates.',
-                        'Solve local & global problems through technology.',
-                        'Promote significance of ethics and integrity.'
-                      ];
-                      return missionItems.map((item, i) => (
-                        <li key={i}>{item}</li>
-                      ));
-                    })()}
-                  </ul>
-                </div>
-              </div>
-            </section>
-            
-            {/* Placement Highlights & Upcoming Events - 2 COLUMN GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Placement Highlights - LEFT 50% */}
-              <div className={`rounded-xl overflow-hidden shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                <div className="p-3 border-b" style={{ borderColor: `${color1}30` }}>
-                  <h3 className="text-lg font-bold" style={{ color: color1 }}>Placement Highlights</h3>
-                </div>
-                <div className="p-4">
-                  {/* Vertical Bar Chart Styled Like the Provided Image */}
-                  {/* Vertical Bar Chart - Full Height */}
-                  {/* Vertical Bar Chart - Full Height */}
-                  <div className="h-56 flex flex-col justify-end">
-                    {(() => {
-                      let stats = [];
-                      try {
-                        const statsBlock = contentBlocks.find(b => b.blockId === 'homepage-placement-stats');
-                        // Use stats array from content (correct field name)
-                        stats = statsBlock?.content?.stats || statsBlock?.content?.statistics || [];
-                      } catch (e) { stats = []; }
-                      if (!stats || stats.length === 0) {
-                        // Fallback data - will be translated in display layer
-                        stats = [
-                          { label: 'Highest Package', value: '44 LPA' },
-                          { label: 'Avg. Package', value: '14 LPA' },
-                          { label: 'Companies Visited', value: '100+' },
-                          { label: 'Placement Rate', value: '95%' }
-                        ];
-                      }
-                      const getBarValue = (val) => {
-                        if (typeof val === 'string') {
-                          const num = parseFloat(val.replace(/[^\d.]/g, ''));
-                          return isNaN(num) ? 0 : num;
-                        }
-                        return typeof val === 'number' ? val : 0;
-                      };
-                      const max = Math.max(...stats.map(s => getBarValue(s.value)));
-                      const barColors = [
-                        '#1e88e5', // blue
-                        '#fbc02d', // yellow (highlight)
-                        '#1e88e5', // blue
-                        '#1e88e5'  // blue
-                      ];
-                      const yTicks = [];
-                      const yMax = Math.max(100, Math.ceil(max / 10) * 10);
-                      for (let i = 0; i <= yMax; i += 10) yTicks.push(i);
-                      return (
-                        <div className="flex w-full items-end h-full relative">
-                          {/* Y-axis ticks */}
-                          <div className="flex flex-col justify-between h-full mr-2 text-xs text-gray-400 absolute left-0 top-0 z-10" style={{height:'100%',width:'2.5rem'}}>
-                            {yTicks.slice().reverse().map((tick, i) => (
-                              <div key={i} style={{height:`calc(100%/${yTicks.length})`}} className="flex items-center justify-end pr-1" >{tick}%</div>
-                            ))}
-                          </div>
-                          {/* Bars */}
-                          <div className="flex-1 flex justify-around items-end w-full ml-10 h-full">
-                            {stats.map((stat, i) => {
-                              const val = getBarValue(stat.value);
-                              const percent = stat.label.toLowerCase().includes('rate')
-                                ? parseFloat(val) || 0
-                                : yMax > 0 ? (val / yMax) * 100 : 0;
-                              return (
-                                <div key={i} className="flex flex-col items-center w-20 h-full justify-end">
-                                  {/* Value on top */}
-                                  <span className="mb-1 text-sm font-bold" style={{ color: barColors[i] }}>{stat.value}</span>
-                                  {/* Bar */}
-                                  <div className="w-10 rounded-t-md rounded-b-sm flex items-end justify-center transition-all duration-700" style={{ height: `calc(${percent}% - 2rem)`, background: barColors[i], minHeight: '10px', maxHeight: '100%' }}></div>
-                                  {/* Label below - translate here during render */}
-                                  <span className="mt-2 text-xs text-center font-medium" style={{ color: darkMode ? '#E5E7EB' : '#222' }}>{stat.label}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                </div>
-              </div>
 
-              {/* Upcoming Events - RIGHT 50% */}
-              <div className={`rounded-xl overflow-hidden shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                <div className="p-4 border-b" style={{ borderColor: `${color1}30` }}>
-                  <h3 className="text-xl font-bold" style={{ color: color1 }}>Upcoming Events</h3>
-                </div>
-                <EventSlider events={eventsList} darkMode={darkMode} color1={color1} />
+        {/* Vision & Mission - FULL WIDTH */}
+        <section>
+          <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Our Core Values</h3>
+          <div className={`grid grid-cols-1 md:grid-cols-2 shadow-xl overflow-hidden rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className={`p-6 md:p-8 border-r-0 md:border-r-2`} style={{ borderColor: color1 + '30' }}>
+              <h4 className="text-2xl font-bold mb-3">🎯 Vision</h4>
+              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-relaxed text-base`}>
+                {contentBlocks.find(b => b.blockId === 'homepage-vision')?.content?.description ||
+                  contentBlocks.find(b => b.blockId === 'homepage-vision')?.content?.text ||
+                  '"Generating knowledge for the future" — aspiring to be a top-tier, research-driven organization in IT and allied fields.'}
+              </p>
+            </div>
+            <div className="p-6 md:p-8">
+              <h4 className="text-2xl font-bold mb-3">🎯 Mission</h4>
+              <ul className={`list-disc pl-5 ${darkMode ? 'text-gray-300' : 'text-gray-600'} space-y-2 text-base`}>
+                {(() => {
+                  const missionItems = contentBlocks.find(b => b.blockId === 'homepage-mission')?.content?.items ||
+                    pageContent?.sections?.find(s => s.id === 'mission')?.items || [
+                      'Produce competent and ethical graduates.',
+                      'Solve local & global problems through technology.',
+                      'Promote significance of ethics and integrity.'
+                    ];
+                  return missionItems.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ));
+                })()}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* Placement Highlights & Upcoming Events - 2 COLUMN GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Placement Highlights - LEFT 50% */}
+          <div className={`rounded-xl overflow-hidden shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className="p-3 border-b" style={{ borderColor: `${color1}30` }}>
+              <h3 className="text-lg font-bold" style={{ color: color1 }}>Placement Highlights</h3>
+            </div>
+            <div className="p-4">
+              {/* Vertical Bar Chart Styled Like the Provided Image */}
+              {/* Vertical Bar Chart - Full Height */}
+              {/* Vertical Bar Chart - Full Height */}
+              <div className="h-56 flex flex-col justify-end">
+                {(() => {
+                  let stats = [];
+                  try {
+                    const statsBlock = contentBlocks.find(b => b.blockId === 'homepage-placement-stats');
+                    // Use stats array from content (correct field name)
+                    stats = statsBlock?.content?.stats || statsBlock?.content?.statistics || [];
+                  } catch (e) { stats = []; }
+                  if (!stats || stats.length === 0) {
+                    // Fallback data - will be translated in display layer
+                    stats = [
+                      { label: 'Highest Package', value: '44 LPA' },
+                      { label: 'Avg. Package', value: '14 LPA' },
+                      { label: 'Companies Visited', value: '100+' },
+                      { label: 'Placement Rate', value: '95%' }
+                    ];
+                  }
+                  const getBarValue = (val) => {
+                    if (typeof val === 'string') {
+                      const num = parseFloat(val.replace(/[^\d.]/g, ''));
+                      return isNaN(num) ? 0 : num;
+                    }
+                    return typeof val === 'number' ? val : 0;
+                  };
+                  const max = Math.max(...stats.map(s => getBarValue(s.value)));
+                  const barColors = [
+                    '#1e88e5', // blue
+                    '#fbc02d', // yellow (highlight)
+                    '#1e88e5', // blue
+                    '#1e88e5'  // blue
+                  ];
+                  const yTicks = [];
+                  const yMax = Math.max(100, Math.ceil(max / 10) * 10);
+                  for (let i = 0; i <= yMax; i += 10) yTicks.push(i);
+                  return (
+                    <div className="flex w-full items-end h-full relative">
+                      {/* Y-axis ticks */}
+                      <div className="flex flex-col justify-between h-full mr-2 text-xs text-gray-400 absolute left-0 top-0 z-10" style={{ height: '100%', width: '2.5rem' }}>
+                        {yTicks.slice().reverse().map((tick, i) => (
+                          <div key={i} style={{ height: `calc(100%/${yTicks.length})` }} className="flex items-center justify-end pr-1" >{tick}%</div>
+                        ))}
+                      </div>
+                      {/* Bars */}
+                      <div className="flex-1 flex justify-around items-end w-full ml-10 h-full">
+                        {stats.map((stat, i) => {
+                          const val = getBarValue(stat.value);
+                          const percent = stat.label.toLowerCase().includes('rate')
+                            ? parseFloat(val) || 0
+                            : yMax > 0 ? (val / yMax) * 100 : 0;
+                          return (
+                            <div key={i} className="flex flex-col items-center w-20 h-full justify-end">
+                              {/* Value on top */}
+                              <span className="mb-1 text-sm font-bold" style={{ color: barColors[i] }}>{stat.value}</span>
+                              {/* Bar */}
+                              <div className="w-10 rounded-t-md rounded-b-sm flex items-end justify-center transition-all duration-700" style={{ height: `calc(${percent}% - 2rem)`, background: barColors[i], minHeight: '10px', maxHeight: '100%' }}></div>
+                              {/* Label below - translate here during render */}
+                              <span className="mt-2 text-xs text-center font-medium" style={{ color: darkMode ? '#E5E7EB' : '#222' }}>{stat.label}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
+          </div>
 
-              {/* Distinguished Faculty - FULL WIDTH */}
-            <section>
-              <div className="flex items-center justify-between mb-4 px-1">
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-bold" style={{ color: color1 }}>Distinguished Faculty</h3>
-                <a href="/people/faculty" style={{ color: color1 }} className="text-sm font-semibold hover:underline">View all faculty →</a>
-              </div>
-              <div className={`rounded-xl overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl border`} style={{ borderColor: color1 + '30' }}>
-                <FacultyCarousel faculty={facultyList} darkMode={darkMode} color1={color1} color2={color2} />
-              </div>
-            </section>
+          {/* Upcoming Events - RIGHT 50% */}
+          <div className={`rounded-xl overflow-hidden shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className="p-4 border-b" style={{ borderColor: `${color1}30` }}>
+              <h3 className="text-xl font-bold" style={{ color: color1 }}>Upcoming Events</h3>
+            </div>
+            <EventSlider events={eventsList} darkMode={darkMode} color1={color1} />
+          </div>
+        </div>
 
-            {/* Recruitment Partners - FULL WIDTH */}
-            <section>
-              <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Recruitment Partners</h3>
-              <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 p-8 rounded-xl shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}> 
-                {companyList
-                  .filter(c => {
-                    const featuredCompanies = ['samsung', 'google', 'tcs', 'cognizant', 'amazon', 'lg', 'oracle', 'accenture', 'flipkart', 'uber', 'ibm', 'nvidia'];
-                    return c.category === 'recruitment' && featuredCompanies.includes(c.name.toLowerCase());
-                  })
-                  .map((c, idx) => (
-                  <a 
-                    key={idx} 
-                    href={c.link} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className={`p-5 rounded-lg flex flex-col items-center gap-3 text-center transition-all hover:scale-110 hover:shadow-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`} 
-                    style={{ border: `1px solid ${darkMode ? '#374151' : `${color1}22`}` }}
-                  >
-                    <div className="h-28 w-28 flex items-center justify-center p-3 rounded-lg" style={{ backgroundColor: `${color1}10` }}>
-                      <img 
-                        src={API.getImageUrl(c.logo)} 
-                        alt={c.name} 
-                        className="max-h-24 max-w-24 object-contain"
-                      />
-                    </div>
-                    <div className="text-sm font-semibold leading-tight line-clamp-2" style={{ color: darkMode ? '#E5E7EB' : '#111827' }}>{c.name}</div>
-                  </a>
-                ))}
-              </div>
-            </section>
+        {/* Distinguished Faculty - FULL WIDTH */}
+        <section>
+          <div className="flex items-center justify-between mb-4 px-1">
+            <h3 className="text-xl md:text-2xl lg:text-3xl font-bold" style={{ color: color1 }}>Distinguished Faculty</h3>
+            <a href="/people/faculty" style={{ color: color1 }} className="text-sm font-semibold hover:underline">View all faculty →</a>
+          </div>
+          <div className={`rounded-xl overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-xl border`} style={{ borderColor: color1 + '30' }}>
+            <FacultyCarousel faculty={facultyList} darkMode={darkMode} color1={color1} color2={color2} />
+          </div>
+        </section>
+
+        {/* Recruitment Partners - FULL WIDTH */}
+        <section>
+          <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Recruitment Partners</h3>
+          <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 p-8 rounded-xl shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            {companyList
+              .filter(c => {
+                const featuredCompanies = ['samsung', 'google', 'tcs', 'cognizant', 'amazon', 'lg', 'oracle', 'accenture', 'flipkart', 'uber', 'ibm', 'nvidia'];
+                return c.category === 'recruitment' && featuredCompanies.includes(c.name.toLowerCase());
+              })
+              .map((c, idx) => (
+                <a
+                  key={idx}
+                  href={c.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`p-5 rounded-lg flex flex-col items-center gap-3 text-center transition-all hover:scale-110 hover:shadow-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}
+                  style={{ border: `1px solid ${darkMode ? '#374151' : `${color1}22`}` }}
+                >
+                  <div className="h-28 w-28 flex items-center justify-center p-3 rounded-lg" style={{ backgroundColor: `${color1}10` }}>
+                    <img
+                      src={API.getImageUrl(c.logo)}
+                      alt={c.name}
+                      className="max-h-24 max-w-24 object-contain"
+                    />
+                  </div>
+                  <div className="text-sm font-semibold leading-tight line-clamp-2" style={{ color: darkMode ? '#E5E7EB' : '#111827' }}>{c.name}</div>
+                </a>
+              ))}
+          </div>
+        </section>
 
 
       </main>
@@ -564,13 +561,12 @@ const HeroSlider = ({ events, color1 }) => {
   return (
     // 1. TALLER HEIGHT: h-[600px] on mobile, h-[80vh] on desktop (approx 80% of screen height)
     <div className="relative w-full h-[280px] sm:h-[360px] md:h-[440px] lg:h-[55vh] xl:h-[65vh] overflow-hidden group">
-      
+
       {events.map((event, i) => (
         <div
           key={i}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-            i === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
-          }`}
+          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${i === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+            }`}
         >
           {/* Background Image */}
           <img
@@ -578,7 +574,7 @@ const HeroSlider = ({ events, color1 }) => {
             alt={event.title}
             className="w-full h-full object-cover"
           />
-          
+
           {/* 2. FULL HEIGHT OVERLAY: 
               Gradient covers entire height from Left (Black) to Right (Transparent). 
               This creates the "Full Height Notification Bar" effect. 
@@ -591,10 +587,10 @@ const HeroSlider = ({ events, color1 }) => {
       <div className="absolute inset-0 z-20 flex items-center">
         <div className="container mx-auto px-6 md:px-12">
           <div className="max-w-3xl space-y-4">
-            
+
             {/* Title with Animation */}
-            <h2 
-              key={currentIndex} 
+            <h2
+              key={currentIndex}
               className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight drop-shadow-lg animate-fade-in-up"
             >
               {events[currentIndex]?.title || 'Welcome to IIIT Kottayam'}
@@ -644,9 +640,8 @@ const HeroSlider = ({ events, color1 }) => {
           <button
             key={idx}
             onClick={() => goToSlide(idx)}
-            className={`h-1 transition-all duration-300 ${
-              idx === currentIndex ? 'w-12 bg-white' : 'w-6 bg-white/40'
-            }`}
+            className={`h-1 transition-all duration-300 ${idx === currentIndex ? 'w-12 bg-white' : 'w-6 bg-white/40'
+              }`}
           />
         ))}
       </div>
@@ -716,7 +711,7 @@ const EventSlider = ({ events, darkMode, color1 }) => {
       <div className="relative overflow-hidden" style={{ height: 280 }}>
         {events.map((ev, i) => (
           <div key={i} className={`absolute inset-0 transition-all duration-700 ease-in-out ${i === currentIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}>
-            <img src={ev.image} alt={ev.title} className="w-full h-full object-cover" style={{height: '100%', maxHeight: 280}} />
+            <img src={ev.image} alt={ev.title} className="w-full h-full object-cover" style={{ height: '100%', maxHeight: 280 }} />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
             <div className="absolute bottom-3 left-3 right-3 text-sm">
               <a href="/" className="text-white font-semibold block">{ev.title}</a>
@@ -735,12 +730,12 @@ const EventSlider = ({ events, darkMode, color1 }) => {
       <div className={`p-3 flex items-center justify-between ${darkMode ? 'bg-gray-700' : 'bg-white'}`}>
         <div className="flex gap-1.5">
           {events.map((_, idx) => (
-            <button 
-              key={idx} 
-              onClick={() => goToSlide(idx)} 
-              aria-label={`go-to-${idx}`} 
-              className={`h-1.5 transition-all duration-200 rounded ${idx === currentIndex ? 'w-6' : 'w-1.5'}`} 
-              style={{ backgroundColor: idx === currentIndex ? color1 : (darkMode ? '#374151' : '#E5E7EB') }} 
+            <button
+              key={idx}
+              onClick={() => goToSlide(idx)}
+              aria-label={`go-to-${idx}`}
+              className={`h-1.5 transition-all duration-200 rounded ${idx === currentIndex ? 'w-6' : 'w-1.5'}`}
+              style={{ backgroundColor: idx === currentIndex ? color1 : (darkMode ? '#374151' : '#E5E7EB') }}
             />
           ))}
         </div>

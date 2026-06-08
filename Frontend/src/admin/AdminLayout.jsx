@@ -1,10 +1,10 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Newspaper, 
-  Calendar, 
-  Users, 
+import {
+  LayoutDashboard,
+  Newspaper,
+  Calendar,
+  Users,
   GraduationCap,
   Briefcase,
   Megaphone,
@@ -77,10 +77,10 @@ export default function AdminLayout() {
   const latestNewsSubsections = latestNewsSection?.subsections?.length
     ? [...latestNewsSection.subsections].sort((a, b) => (a.order || 0) - (b.order || 0))
     : [
-        { id: 'announcement', title: 'Announcement' },
-        { id: 'campus-update', title: 'Campus Update' },
-        { id: 'quick-update', title: 'Quick Update' }
-      ];
+      { id: 'announcement', title: 'Announcement' },
+      { id: 'campus-update', title: 'Campus Update' },
+      { id: 'quick-update', title: 'Quick Update' }
+    ];
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -91,8 +91,8 @@ export default function AdminLayout() {
   const location = useLocation();
 
   const toggleSection = (sectionId) => {
-    setExpandedSections(prev => 
-      prev.includes(sectionId) 
+    setExpandedSections(prev =>
+      prev.includes(sectionId)
         ? prev.filter(id => id !== sectionId)
         : [...prev, sectionId]
     );
@@ -122,27 +122,27 @@ export default function AdminLayout() {
       path: '/admin/content',
       hasDropdown: false
     },
-    {
-      id: 'institute',
-      label: 'Institute',
-      icon: Building2,
-      hasDropdown: true,
-      submenu: [
-        { icon: Presentation, label: 'Hero Sliders', path: '/admin/hero-sliders' },
-        { icon: Megaphone, label: 'Announcements', path: '/admin/announcements' },
-        { icon: Layout, label: 'Footer', path: '/admin/footer' },
-        { icon: Link, label: 'Navbar Links', path: '/admin/navbar' },
-        { icon: Link, label: 'Navigation', path: '/admin/navigation' }
-      ]
-    },
+    // {
+    //   id: 'institute',
+    //   label: 'Institute',
+    //   icon: Building2,
+    //   hasDropdown: true,
+    //   submenu: [
+    //     { icon: Presentation, label: 'Hero Sliders', path: '/admin/hero-sliders' },
+    //     { icon: Megaphone, label: 'Announcements', path: '/admin/announcements' },
+    //     { icon: Layout, label: 'Footer', path: '/admin/footer' },
+    //     { icon: Link, label: 'Navbar Links', path: '/admin/navbar' },
+    //     { icon: Link, label: 'Navigation', path: '/admin/navigation' }
+    //   ]
+    // },
     // { id :' home ',
     //   label: 'Home Page',
     //   icon: Home,
     //   hasDropdown: true,
     //   submenu: [
-            //           { icon: Presentation, label: 'Hero Sliders', path: '/admin/hero-sliders' },
-            // { icon: Megaphone, label: 'Announcements', path: '/admin/announcements' },
-            // ]
+    //           { icon: Presentation, label: 'Hero Sliders', path: '/admin/hero-sliders' },
+    // { icon: Megaphone, label: 'Announcements', path: '/admin/announcements' },
+    // ]
     // },
 
     // {
@@ -152,16 +152,16 @@ export default function AdminLayout() {
     // hasDropdown: false,
     // path: '/admin/footer'
     //},
-    
-    {
-      id: 'course',
-      label: 'Course',
-      icon: School,
-      hasDropdown: true,
-      submenu: [
-        { icon: BookOpen, label: 'Courses', path: '/admin/courses' }
-      ]
-    },
+
+    // {
+    //   id: 'course',
+    //   label: 'Course',
+    //   icon: School,
+    //   hasDropdown: true,
+    //   submenu: [
+    //     { icon: BookOpen, label: 'Courses', path: '/admin/courses' }
+    //   ]
+    // },
     {
       id: 'people',
       label: 'People',
@@ -181,69 +181,69 @@ export default function AdminLayout() {
         { icon: Users, label: 'Gender Index', path: '/admin/gender-index' }
       ]
     },
-    {
-      id: 'facilities',
-      label: 'Facilities',
-      icon: Building2,
-      hasDropdown: true,
-      submenu: [
-        { icon: Building2, label: 'Manage Facilities', path: '/admin/facilities' },
-        { icon: ImageIcon, label: 'Gallery', path: '/admin/gallery' }
-      ]
-    },
-    {
-      id: 'iic-clubs',
-      label: 'IIC & Clubs',
-      icon: UsersRound,
-      hasDropdown: true,
-      submenu: [
-        { icon: UsersRound, label: 'Manage Clubs', path: '/admin/clubs' },
-        { icon: Calendar, label: 'Events', path: '/admin/events' },
-        { icon: Presentation, label: 'FDP Programs', path: '/admin/fdp-programs' }
-      ]
-    },
-    {
-      id: 'research',
-      label: 'Research',
-      icon: FileText,
-      hasDropdown: true,
-      submenu: [
-        { icon: FileText, label: 'Research Activities', path: '/admin/research-activities' },
-        { icon: FileText, label: 'Research Publications', path: '/admin/research-publications' }
-      ]
-    },
-    {
-      id: 'placement',
-      label: 'Placement',
-      icon: Briefcase,
-      hasDropdown: true,
-      submenu: [
-        { icon: Briefcase, label: 'Placement Records', path: '/admin/placements' },
-        { icon: Building2, label: 'Company Logos', path: '/admin/company-logos' }
-      ]
-    },
-    
-    {
-      id: 'latest-news-updates',
-      label: 'Latest News & Updates',
-      icon : Monitor,
-      hasDropdown: true,
-      submenu: [
-        { icon: Newspaper, label: 'Announcements', path: '/admin/latest-news-updates/announcement' },
-        { icon: Newspaper, label: 'Campus Updates', path: '/admin/latest-news-updates/campus-update' },
-        { icon: Newspaper, label: 'Quick Updates', path: '/admin/latest-news-updates/quick-update' }
-      ]
-    },
-    {
-      id: 'media',
-      label: '@Media',
-      icon: Monitor,
-      hasDropdown: true,
-      submenu: [
-        { icon: Newspaper, label: 'News', path: '/admin/news' },
-        { icon: Monitor, label: 'Media Coverage', path: '/admin/media' }
-      ]
-    },
+    // {
+    //   id: 'facilities',
+    //   label: 'Facilities',
+    //   icon: Building2,
+    //   hasDropdown: true,
+    //   submenu: [
+    //     { icon: Building2, label: 'Manage Facilities', path: '/admin/facilities' },
+    //     { icon: ImageIcon, label: 'Gallery', path: '/admin/gallery' }
+    //   ]
+    // },
+    // {
+    //   id: 'iic-clubs',
+    //   label: 'IIC & Clubs',
+    //   icon: UsersRound,
+    //   hasDropdown: true,
+    //   submenu: [
+    //     { icon: UsersRound, label: 'Manage Clubs', path: '/admin/clubs' },
+    //     { icon: Calendar, label: 'Events', path: '/admin/events' },
+    //     { icon: Presentation, label: 'FDP Programs', path: '/admin/fdp-programs' }
+    //   ]
+    // },
+    // {
+    //   id: 'research',
+    //   label: 'Research',
+    //   icon: FileText,
+    //   hasDropdown: true,
+    //   submenu: [
+    //     { icon: FileText, label: 'Research Activities', path: '/admin/research-activities' },
+    //     { icon: FileText, label: 'Research Publications', path: '/admin/research-publications' }
+    //   ]
+    // },
+    // {
+    //   id: 'placement',
+    //   label: 'Placement',
+    //   icon: Briefcase,
+    //   hasDropdown: true,
+    //   submenu: [
+    //     { icon: Briefcase, label: 'Placement Records', path: '/admin/placements' },
+    //     { icon: Building2, label: 'Company Logos', path: '/admin/company-logos' }
+    //   ]
+    // },
+
+    // {
+    //   id: 'latest-news-updates',
+    //   label: 'Latest News & Updates',
+    //   icon : Monitor,
+    //   hasDropdown: true,
+    //   submenu: [
+    //     { icon: Newspaper, label: 'Announcements', path: '/admin/latest-news-updates/announcement' },
+    //     { icon: Newspaper, label: 'Campus Updates', path: '/admin/latest-news-updates/campus-update' },
+    //     { icon: Newspaper, label: 'Quick Updates', path: '/admin/latest-news-updates/quick-update' }
+    //   ]
+    // },
+    // {
+    //   id: 'media',
+    //   label: '@Media',
+    //   icon: Monitor,
+    //   hasDropdown: true,
+    //   submenu: [
+    //     { icon: Newspaper, label: 'News', path: '/admin/news' },
+    //     { icon: Monitor, label: 'Media Coverage', path: '/admin/media' }
+    //   ]
+    // },
     {
       id: 'settings',
       label: 'Settings',
@@ -262,10 +262,10 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      
+
       {/* Mobile Sidebar Backdrop */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -277,7 +277,7 @@ export default function AdminLayout() {
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
       `}>
-        
+
         {/* Logo */}
         <div className="h-24 flex items-center justify-between px-6 border-b-2 bg-white" style={{ borderColor: API.color1 }}>
           <div>
@@ -286,7 +286,7 @@ export default function AdminLayout() {
             </h1>
             <p className="text-xs text-gray-600 font-medium">Admin Dashboard</p>
           </div>
-          <button 
+          <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
           >
@@ -298,7 +298,7 @@ export default function AdminLayout() {
         <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 border-b">
           <div className="flex items-center space-x-3 p-3 rounded-xl bg-white shadow-sm">
             <div className="h-12 w-12 rounded-full flex items-center justify-center text-white font-bold shadow-md"
-                 style={{ background: `linear-gradient(135deg, ${API.color1}, #059669)` }}>
+              style={{ background: `linear-gradient(135deg, ${API.color1}, #059669)` }}>
               {user?.name?.charAt(0) || 'A'}
             </div>
             <div className="flex-1 min-w-0">
@@ -325,13 +325,13 @@ export default function AdminLayout() {
                     end
                     className={({ isActive }) => `
                       group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 relative overflow-hidden
-                      ${isActive 
-                        ? 'text-white shadow-lg transform scale-[1.02]' 
+                      ${isActive
+                        ? 'text-white shadow-lg transform scale-[1.02]'
                         : 'text-gray-700 hover:bg-white hover:shadow-md'
                       }
                     `}
-                    style={({ isActive }) => isActive ? { 
-                      background: `linear-gradient(135deg, ${API.color1}, #059669)` 
+                    style={({ isActive }) => isActive ? {
+                      background: `linear-gradient(135deg, ${API.color1}, #059669)`
                     } : {}}
                   >
                     {({ isActive }) => (
@@ -339,9 +339,8 @@ export default function AdminLayout() {
                         {isActive && (
                           <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-white rounded-r-full"></div>
                         )}
-                        <section.icon className={`h-5 w-5 mr-3 transition-transform group-hover:scale-110 ${
-                          isActive ? '' : 'text-gray-600'
-                        }`} />
+                        <section.icon className={`h-5 w-5 mr-3 transition-transform group-hover:scale-110 ${isActive ? '' : 'text-gray-600'
+                          }`} />
                         <span className="flex-1">{section.label}</span>
                       </>
                     )}
@@ -361,7 +360,7 @@ export default function AdminLayout() {
                         <ChevronRight className="h-4 w-4 text-gray-500 transition-transform" />
                       )}
                     </button>
-                    
+
                     {/* Dropdown Items */}
                     {expandedSections.includes(section.id) && (
                       <div className="mt-1 ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
@@ -443,11 +442,11 @@ export default function AdminLayout() {
 
       {/* Main Content */}
       <div className="lg:ml-72 transition-all duration-300">
-        
+
         {/* Top Header */}
         <header className="h-20 bg-white shadow-md sticky top-0 z-30 border-b-2" style={{ borderColor: `${API.color1}20` }}>
           <div className="h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-            
+
             {/* Mobile Menu Button */}
             <button
               onClick={() => setSidebarOpen(true)}
@@ -466,7 +465,7 @@ export default function AdminLayout() {
 
             {/* Header Actions */}
             <div className="flex items-center space-x-3">
-              <button 
+              <button
                 onClick={() => navigate('/')}
                 className="px-5 py-2.5 text-sm font-semibold text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                 style={{ background: `linear-gradient(135deg, ${API.color1}, #059669)` }}

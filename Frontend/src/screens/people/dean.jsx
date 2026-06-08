@@ -54,17 +54,25 @@ export default function Deans() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
+  const [sortOrder, setSortOrder] = useState('newest');
+
   const getDeanImage = (person) => {
     const imageSource = person.photo || person.image || person.photoUrl || person.profileImage;
     return API.getImageUrl(imageSource) || `https://placehold.co/128x128/22a05e/ffffff?text=${person.name?.charAt(0) || 'D'}`;
   };
 
   useEffect(() => {
-    const fetchDeans = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`${API.baseURL}/api/people/type/deans`);
-        const data = await response.json();
+        const [deansRes, settingsRes] = await Promise.all([
+          fetch(`${API.baseURL}/api/people/type/deans?t=${Date.now()}`),
+          fetch(`${API.baseURL}/api/site-settings?category=deans&t=${Date.now()}`).catch(err => {
+            console.error('Error fetching settings:', err);
+            return null;
+          })
+        ]);
 
+        const data = await deansRes.json();
         if (data?.success && Array.isArray(data.data)) {
           const transformed = data.data
             .filter((person) => person.isActive !== false)
@@ -75,6 +83,7 @@ export default function Deans() {
               roles: [person.department, person.specialization].filter(Boolean),
               email: person.email || 'N/A',
               phone: person.phone || 'N/A',
+              phone2: person.phone2 || '',
               qualification: person.qualification || 'N/A',
               department: person.department || 'N/A',
               specialization: person.specialization || 'N/A',
@@ -87,6 +96,13 @@ export default function Deans() {
         } else {
           setDeans([]);
         }
+
+        if (settingsRes && settingsRes.ok) {
+          const settingsData = await settingsRes.json();
+          if (settingsData.success && settingsData.settings) {
+            setSortOrder(settingsData.settings['deans_sort']?.value || 'newest');
+          }
+        }
       } catch (error) {
         console.error('Error fetching deans:', error);
         setDeans([]);
@@ -95,17 +111,18 @@ export default function Deans() {
       }
     };
 
-    fetchDeans();
+    fetchData();
   }, []);
 
   const filteredResults = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return deans.filter((person) => {
+    const filtered = deans.filter((person) => {
       const searchableText = [
         person.name,
         person.title,
         person.email,
         person.phone,
+        person.phone2,
         person.room,
         ...(person.roles || [])
       ]
@@ -113,11 +130,13 @@ export default function Deans() {
         .join(' ')
         .toLowerCase();
 
-      return (
-        searchableText.includes(term)
-      );
+      return searchableText.includes(term);
     });
-  }, [deans, searchTerm]);
+
+    return filtered.sort((a, b) => {
+      return sortOrder === 'newest' ? b.id - a.id : a.id - b.id;
+    });
+  }, [deans, searchTerm, sortOrder]);
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>

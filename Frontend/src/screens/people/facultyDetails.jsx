@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, GraduationCap, Mail, MapPin, Phone, BookOpenText, Files } from 'lucide-react';
 import { useTheme } from '../../context/createContext.jsx';
@@ -202,14 +202,14 @@ export default function FacultyDetails() {
 	const fullDetailEntries = parseDetailEntries((faculty?.fullDetails && faculty.fullDetails.length > 0) ? faculty.fullDetails : (faculty?.rightSideDetails || []));
 	const normalizeHtmlImageSrc = (html) => {
 		if (!html || typeof html !== 'string') return '';
-		return html.replace(/<img\s+([^>]*?)src=\"([^\"]+)\"([^>]*?)>/gi, (m, pre, src, post) => {
+		return html.replace(/<img\s+([^>]*?)src=(['"])([^'"]+)\2([^>]*?)>/gi, (m, pre, quote, src, post) => {
 			const trimmed = String(src || '').trim();
 			if (!trimmed) return m;
 			if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
-				return `<img ${pre}src=\"${trimmed}\"${post}>`;
+				return `<img ${pre}src=${quote}${trimmed}${quote}${post}>`;
 			}
 			const resolved = API.getImageUrl(trimmed) || trimmed;
-			return `<img ${pre}src=\"${resolved}\"${post}>`;
+			return `<img ${pre}src=${quote}${resolved}${quote}${post}>`;
 		});
 	};
 
@@ -379,13 +379,13 @@ export default function FacultyDetails() {
 							{mainSection ? (
 								/<[^>]+>/.test(mainSection) ? (
 									<div
-										className={`text-sm leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'} transition-opacity duration-500`}
+										className={`text-sm leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'} transition-opacity duration-500 content-html`}
 										dangerouslySetInnerHTML={{ __html: mainSection }}
 										style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', opacity: fadeOut ? 0 : 1 }}
 									/>
 								) : (
 									<div
-										className={`text-sm leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'} transition-opacity duration-500`}
+										className={`text-sm leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'} transition-opacity duration-500 content-html`}
 										dangerouslySetInnerHTML={{ __html: formatMainSectionText(mainSection) }}
 										style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', opacity: fadeOut ? 0 : 1 }}
 									/>
@@ -415,7 +415,7 @@ export default function FacultyDetails() {
 									<BookOpenText className="w-5 h-5" style={{ color: color1 }} />
 									<h2 className={`text-lg font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Full Details</h2>
 								</div>
-								<div className="space-y-4" dangerouslySetInnerHTML={{ __html: fullDetailsHtml }} />
+								<div className="space-y-4 content-html" dangerouslySetInnerHTML={{ __html: fullDetailsHtml }} />
 							</section>
 						) : (
 							<DetailSection title="Full Details" icon={BookOpenText} items={fullDetailEntries} darkMode={darkMode} color1={color1} />

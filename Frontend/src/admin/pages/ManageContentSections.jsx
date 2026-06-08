@@ -355,7 +355,7 @@ export default function ManageContentSections() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-gray-800 rounded-lg max-w-2xl w-full my-8">
             <div className="sticky top-0 bg-gray-800 border-b border-gray-700 p-6 flex justify-between items-center">
               <h2 className="text-2xl font-bold text-white">

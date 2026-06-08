@@ -42,11 +42,11 @@ export default function ManageTechnicalStaff() {
         fetch(`${API.baseURL}/api/site-settings/technical_title`),
         fetch(`${API.baseURL}/api/site-settings/technical_description`)
       ]);
-      
+
       const [badgeRes, titleRes, descRes] = await Promise.all(
         responses.map(r => r.json())
       );
-      
+
       setSettingsData({
         badge: badgeRes.data?.settingValue || 'Technical Support Team',
         title: titleRes.data?.settingValue || 'Technical Staff',
@@ -91,13 +91,13 @@ export default function ManageTechnicalStaff() {
           })
         })
       ]);
-      
+
       for (const result of results) {
         if (!result.success) {
           throw new Error(result.error || 'Failed to save setting');
         }
       }
-      
+
       setShowSettingsModal(false);
       alert('Settings saved successfully!');
     } catch (error) {
@@ -150,7 +150,7 @@ export default function ManageTechnicalStaff() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this staff member?')) return;
-    
+
     try {
       await API.delete(`/api/people/${id}`);
       fetchPeople();
@@ -270,7 +270,7 @@ export default function ManageTechnicalStaff() {
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div className="h-16 w-16 rounded-full flex items-center justify-center text-white text-2xl font-bold"
-                     style={{ backgroundColor: API.color1 }}>
+                  style={{ backgroundColor: API.color1 }}>
                   {member.name.charAt(0)}
                 </div>
                 <div className="flex gap-2">
@@ -312,7 +312,7 @@ export default function ManageTechnicalStaff() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b">
               <h2 className="text-xl font-bold">{editingItem ? 'Edit Technical Staff' : 'Add Technical Staff'}</h2>
@@ -325,7 +325,7 @@ export default function ManageTechnicalStaff() {
                     type="text"
                     required
                     value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg"
                   />
                 </div>
@@ -335,7 +335,7 @@ export default function ManageTechnicalStaff() {
                     type="text"
                     required
                     value={formData.designation}
-                    onChange={(e) => setFormData({...formData, designation: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg"
                   />
                 </div>
@@ -345,7 +345,7 @@ export default function ManageTechnicalStaff() {
                 <input
                   type="text"
                   value={formData.department}
-                  onChange={(e) => setFormData({...formData, department: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
                 />
               </div>
@@ -355,7 +355,7 @@ export default function ManageTechnicalStaff() {
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg"
                   />
                 </div>
@@ -364,14 +364,14 @@ export default function ManageTechnicalStaff() {
                   <input
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg"
                   />
                 </div>
               </div>
               <ImageUploader
                 value={formData.photo || ''}
-                onChange={(url) => setFormData({...formData, photo: url})}
+                onChange={(url) => setFormData({ ...formData, photo: url })}
                 label="Photo"
                 folder="people"
                 aspectRatio="1/1"
@@ -382,7 +382,7 @@ export default function ManageTechnicalStaff() {
                   <input
                     type="text"
                     value={formData.qualification}
-                    onChange={(e) => setFormData({...formData, qualification: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, qualification: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg"
                   />
                 </div>
@@ -391,7 +391,7 @@ export default function ManageTechnicalStaff() {
                   <input
                     type="text"
                     value={formData.experience}
-                    onChange={(e) => setFormData({...formData, experience: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg"
                   />
                 </div>
@@ -401,7 +401,7 @@ export default function ManageTechnicalStaff() {
                 <input
                   type="text"
                   value={formData.specialization}
-                  onChange={(e) => setFormData({...formData, specialization: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
                 />
               </div>
@@ -410,7 +410,7 @@ export default function ManageTechnicalStaff() {
                   type="checkbox"
                   id="isActive"
                   checked={formData.isActive}
-                  onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                   className="h-4 w-4 rounded"
                   style={{ accentColor: API.color1 }}
                 />
@@ -440,7 +440,7 @@ export default function ManageTechnicalStaff() {
       )}
 
       {showSettingsModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full">
             <div className="p-6 border-b">
               <h2 className="text-xl font-bold">Settings</h2>
@@ -451,7 +451,7 @@ export default function ManageTechnicalStaff() {
                 <input
                   type="text"
                   value={settingsData.badge}
-                  onChange={(e) => setSettingsData({...settingsData, badge: e.target.value})}
+                  onChange={(e) => setSettingsData({ ...settingsData, badge: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
                 />
               </div>
@@ -460,7 +460,7 @@ export default function ManageTechnicalStaff() {
                 <input
                   type="text"
                   value={settingsData.title}
-                  onChange={(e) => setSettingsData({...settingsData, title: e.target.value})}
+                  onChange={(e) => setSettingsData({ ...settingsData, title: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
                 />
               </div>
@@ -468,7 +468,7 @@ export default function ManageTechnicalStaff() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                 <textarea
                   value={settingsData.description}
-                  onChange={(e) => setSettingsData({...settingsData, description: e.target.value})}
+                  onChange={(e) => setSettingsData({ ...settingsData, description: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
                   rows="4"
                 />

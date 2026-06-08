@@ -41,7 +41,7 @@ export default function Login() {
         // Store token and user info
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        
+
         // Redirect to admin dashboard
         navigate('/admin');
       } else {
@@ -56,14 +56,14 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" 
-         style={{ 
-           background: `linear-gradient(135deg, ${API.color1}15 0%, ${API.color2} 100%)` 
-         }}>
-      
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
+      style={{
+        background: `linear-gradient(135deg, ${API.color1}15 0%, ${API.color2} 100%)`
+      }}>
+
       {/* Login Card */}
       <div className="max-w-md w-full space-y-8 bg-white rounded-2xl shadow-2xl p-8 md:p-12 relative">
-        
+
         {/* Back to Home Button */}
         <button
           onClick={() => navigate('/')}
@@ -84,8 +84,8 @@ export default function Login() {
 
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 rounded-full flex items-center justify-center mb-4" 
-               style={{ backgroundColor: API.color1 }}>
+          <div className="mx-auto h-16 w-16 rounded-full flex items-center justify-center mb-4"
+            style={{ backgroundColor: API.color1 }}>
             <Lock className="h-8 w-8 text-white" />
           </div>
           <h2 className="text-3xl font-extrabold text-gray-900 mb-2">
@@ -106,7 +106,7 @@ export default function Login() {
         {/* Login Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-5">
-            
+
             {/* Email Input */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -194,7 +194,7 @@ export default function Login() {
               type="submit"
               disabled={loading}
               className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ 
+              style={{
                 backgroundColor: API.color1,
                 boxShadow: `0 4px 14px ${API.color1}40`
               }}

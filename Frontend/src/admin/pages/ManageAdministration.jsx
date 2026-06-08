@@ -11,6 +11,8 @@ export default function ManageAdministration() {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showEmail2, setShowEmail2] = useState(false);
+  const [showPhone2, setShowPhone2] = useState(false);
   const [settingsData, setSettingsData] = useState({
     badge: 'Administration Team',
     title: 'Administration',
@@ -20,6 +22,7 @@ export default function ManageAdministration() {
     name: '',
     designation: '',
     email: '',
+    email2: '',
     phone: '',
     phone2: '',
     photo: '',
@@ -44,11 +47,11 @@ export default function ManageAdministration() {
         fetch(`${API.baseURL}/api/site-settings/admin_title`),
         fetch(`${API.baseURL}/api/site-settings/admin_description`)
       ]);
-      
+
       const [badgeRes, titleRes, descRes] = await Promise.all(
         responses.map(r => r.json())
       );
-      
+
       setSettingsData({
         badge: badgeRes.data?.settingValue || 'Administration Team',
         title: titleRes.data?.settingValue || 'Administration',
@@ -93,13 +96,13 @@ export default function ManageAdministration() {
           })
         })
       ]);
-      
+
       for (const result of results) {
         if (!result.success) {
           throw new Error(result.error || 'Failed to save setting');
         }
       }
-      
+
       setShowSettingsModal(false);
       alert('Settings saved successfully!');
     } catch (error) {
@@ -117,7 +120,7 @@ export default function ManageAdministration() {
       const response = await fetch(`${API.baseURL}/api/people/type/administration`);
       const data = await response.json();
       console.log('Admin API Response:', data);
-      
+
       if (data.success && data.data && Array.isArray(data.data)) {
         setPeople(data.data);
       } else {
@@ -135,15 +138,25 @@ export default function ManageAdministration() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Combine email and email2
+      const finalEmail = (showEmail2 && formData.email2)
+        ? `${formData.email.trim()}, ${formData.email2.trim()}`
+        : formData.email.trim();
+
+      const finalPhone2 = showPhone2 ? formData.phone2 : '';
+
       // Prepare data to send - category is stored in specialization for this model
       const submitData = {
         ...formData,
+        email: finalEmail,
+        phone2: finalPhone2,
         specialization: formData.category // category is mapped to specialization in the backend
         // department: formData.department,
         // qualification: formData.qualification,
       };
       delete submitData.category;
-      
+      delete submitData.email2;
+
       if (editingItem) {
         await API.put(`/api/people/${editingItem.id}`, submitData);
       } else {
@@ -159,7 +172,7 @@ export default function ManageAdministration() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this member?')) return;
-    
+
     try {
       await API.delete(`/api/people/${id}`);
       fetchPeople();
@@ -173,6 +186,7 @@ export default function ManageAdministration() {
       name: '',
       designation: '',
       email: '',
+      email2: '',
       phone: '',
       phone2: '',
       photo: '',
@@ -185,6 +199,8 @@ export default function ManageAdministration() {
       // specialization: ''
     });
     setEditingItem(null);
+    setShowEmail2(false);
+    setShowPhone2(false);
   };
 
   // Helper function to get category
@@ -207,11 +223,17 @@ export default function ManageAdministration() {
     } else if (item.specialization === 'support' || item.specialization === 'Support' || item.specialization === 'SUPPORT') {
       category = 'support';
     }
-    
+
+    // Split email if it contains a comma
+    const emails = (item.email || '').split(',').map(e => e.trim());
+    const email1 = emails[0] || '';
+    const email2 = emails[1] || '';
+
     setFormData({
       name: item.name,
       designation: item.designation,
-      email: item.email || '',
+      email: email1,
+      email2: email2,
       phone: item.phone || '',
       phone2: item.phone2 || '',
       photo: item.photo || '',
@@ -223,15 +245,18 @@ export default function ManageAdministration() {
       // qualification: item.qualification || '',
       // specialization: item.specialization || ''
     });
+
+    setShowEmail2(!!email2);
+    setShowPhone2(!!item.phone2);
     setShowModal(true);
   };
 
   const filteredPeople = people.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (item.designation && item.designation.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+
     const matchesCategory = selectedCategory === 'all' || getCategory(item) === selectedCategory;
-    
+
     return matchesSearch && matchesCategory;
   });
 
@@ -322,19 +347,19 @@ export default function ManageAdministration() {
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div className="h-16 w-16 rounded-full flex items-center justify-center text-white text-2xl font-bold"
-                     style={{ backgroundColor: API.color1 }}>
+                  style={{ backgroundColor: API.color1 }}>
                   {member.name.charAt(0)}
                 </div>
                 <div className="flex gap-2">
-                  <button 
-                    onClick={() => openEditModal(member)} 
+                  <button
+                    onClick={() => openEditModal(member)}
                     className={`${member.isHardcoded ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:text-blue-900'}`}
                     title={member.isHardcoded ? 'Cannot edit system data' : 'Edit'}
                   >
                     <Edit className="h-5 w-5" />
                   </button>
-                  <button 
-                    onClick={() => handleDelete(member.id)} 
+                  <button
+                    onClick={() => handleDelete(member.id)}
                     className={`${member.isHardcoded ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:text-red-900'}`}
                     title={member.isHardcoded ? 'Cannot delete system data' : 'Delete'}
                   >
@@ -371,7 +396,7 @@ export default function ManageAdministration() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b">
               <h2 className="text-xl font-bold">{editingItem ? 'Edit Administration Member' : 'Add Administration Member'}</h2>
@@ -384,7 +409,7 @@ export default function ManageAdministration() {
                     type="text"
                     required
                     value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg"
                   />
                 </div>
@@ -394,7 +419,7 @@ export default function ManageAdministration() {
                     type="text"
                     required
                     value={formData.designation}
-                    onChange={(e) => setFormData({...formData, designation: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg"
                   />
                 </div>
@@ -416,34 +441,71 @@ export default function ManageAdministration() {
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg"
                   />
+                  {!showEmail2 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowEmail2(true)}
+                      className="mt-1 text-xs font-semibold text-blue-600 hover:text-blue-800"
+                    >
+                      + Add more email
+                    </button>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Phone 1</label>
                   <input
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg"
                   />
+                  {!showPhone2 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowPhone2(true)}
+                      className="mt-1 text-xs font-semibold text-blue-600 hover:text-blue-800"
+                    >
+                      + Add more phone
+                    </button>
+                  )}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone 2</label>
-                  <input
-                    type="tel"
-                    value={formData.phone2}
-                    onChange={(e) => setFormData({...formData, phone2: e.target.value})}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
+              {(showEmail2 || showPhone2) && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    {showEmail2 && (
+                      <>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email 2</label>
+                        <input
+                          type="email"
+                          value={formData.email2}
+                          onChange={(e) => setFormData({ ...formData, email2: e.target.value })}
+                          className="w-full px-3 py-2 border rounded-lg"
+                        />
+                      </>
+                    )}
+                  </div>
+                  <div>
+                    {showPhone2 && (
+                      <>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Phone 2</label>
+                        <input
+                          type="tel"
+                          value={formData.phone2}
+                          onChange={(e) => setFormData({ ...formData, phone2: e.target.value })}
+                          className="w-full px-3 py-2 border rounded-lg"
+                        />
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
               <ImageUploader
                 value={formData.photo || ''}
-                onChange={(url) => setFormData({...formData, photo: url})}
+                onChange={(url) => setFormData({ ...formData, photo: url })}
                 label="Photo"
                 folder="people"
                 aspectRatio="1/1"
@@ -467,7 +529,7 @@ export default function ManageAdministration() {
                   <input
                     type="text"
                     value={formData.experience}
-                    onChange={(e) => setFormData({...formData, experience: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg"
                   />
                 </div>
@@ -488,7 +550,7 @@ export default function ManageAdministration() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                 <select
                   value={formData.category}
-                  onChange={(e) => setFormData({...formData, category: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:outline-none"
                 >
                   <option value="">General Administration</option>
@@ -501,7 +563,7 @@ export default function ManageAdministration() {
                   type="checkbox"
                   id="isActive"
                   checked={formData.isActive}
-                  onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                   className="h-4 w-4 rounded"
                   style={{ accentColor: API.color1 }}
                 />
@@ -531,7 +593,7 @@ export default function ManageAdministration() {
       )}
 
       {showSettingsModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full">
             <div className="p-6 border-b">
               <h2 className="text-xl font-bold">Settings</h2>
@@ -542,7 +604,7 @@ export default function ManageAdministration() {
                 <input
                   type="text"
                   value={settingsData.badge}
-                  onChange={(e) => setSettingsData({...settingsData, badge: e.target.value})}
+                  onChange={(e) => setSettingsData({ ...settingsData, badge: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
                 />
               </div>
@@ -551,7 +613,7 @@ export default function ManageAdministration() {
                 <input
                   type="text"
                   value={settingsData.title}
-                  onChange={(e) => setSettingsData({...settingsData, title: e.target.value})}
+                  onChange={(e) => setSettingsData({ ...settingsData, title: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
                 />
               </div>
@@ -559,7 +621,7 @@ export default function ManageAdministration() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                 <textarea
                   value={settingsData.description}
-                  onChange={(e) => setSettingsData({...settingsData, description: e.target.value})}
+                  onChange={(e) => setSettingsData({ ...settingsData, description: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
                   rows="4"
                 />
