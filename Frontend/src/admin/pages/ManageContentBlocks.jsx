@@ -754,7 +754,7 @@ export default function ManageContentBlocks() {
           { blockId: 'fdp-about', sectionName: 'about', blockType: 'paragraph', blockLabel: 'About',
             content: { text: 'IIIT Kottayam regularly organizes Faculty Development Programs and webinars on emerging technologies and pedagogical innovations.' }, blockOrder: 1 },
           { blockId: 'fdp-cta', sectionName: 'cta', blockType: 'button', blockLabel: 'Access FDP Details',
-            content: { title: 'Access FDP Details', description: 'Open the FDP details page for programmes, workshops, and webinars.', buttonText: 'Access FDP Details', link: '/fdp' }, blockOrder: 2 }
+            content: { title: 'Access FDP Details', description: 'Open the FDP details page for programmes, workshops, and webinars.', buttonText: 'Access FDP Details', link: 'https://iiitkottayam.ac.in/#!/fdp' }, blockOrder: 2 }
         ],
         'trendles-club': [
           { blockId: 'trendles-hero', sectionName: 'hero', blockType: 'hero', blockLabel: 'Hero',
@@ -1366,6 +1366,17 @@ export default function ManageContentBlocks() {
                 className="w-full px-3 py-2 border rounded-lg"
                 placeholder="Fee Component, Amount"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Column Widths (comma separated percentages, optional)</label>
+              <input
+                type="text"
+                value={(content.widths || []).join(', ')}
+                onChange={(e) => updateContent('widths', e.target.value.split(',').map(w => w.trim()))}
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="e.g., 30, 40, 30"
+              />
+              <p className="text-xs text-gray-500 mt-1">Specify column widths in percentages, matching the headers in order (e.g. 30, 70). Leave blank for auto-width.</p>
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Table Rows</label>

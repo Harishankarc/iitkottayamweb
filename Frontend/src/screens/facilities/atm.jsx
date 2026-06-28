@@ -75,7 +75,7 @@ export default function BankATM() {
           <div className="max-w-7xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-3 border" style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
               <CreditCard className="w-4 h-4" style={{ color: color1 }} />
-              {block.content.subtitle || 'Banking Services'}
+              {block.content.badge || 'Banking Services'}
             </div>
             <h1 className={`text-2xl md:text-3xl font-bold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
               {block.content.title}

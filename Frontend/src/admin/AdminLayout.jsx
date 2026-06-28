@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
+  Home,
   Newspaper,
   Calendar,
   Users,
@@ -38,7 +39,7 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const [user, setUser] = React.useState(null);
-  const [expandedSections, setExpandedSections] = React.useState(['content', 'institute', 'course', 'people', 'facilities', 'iic-clubs', 'research', 'placement', 'media']);
+  const [expandedSections, setExpandedSections] = React.useState(['home-page', 'main-pages', 'institute', 'course', 'people', 'facilities', 'iic-clubs', 'research', 'placement', 'media-others']);
   const [contentSections, setContentSections] = React.useState([]);
 
   React.useEffect(() => {
@@ -115,13 +116,13 @@ export default function AdminLayout() {
     //     { icon: Award, label: 'NIRF Rankings', path: '/admin/nirf' }
     //   ]
     // },
-    {
-      id: 'content',
-      label: 'Edit Page Content ',
-      icon: FileText,
-      path: '/admin/content',
-      hasDropdown: false
-    },
+    // {
+    //   id: 'content',
+    //   label: 'Edit Page Content ',
+    //   icon: FileText,
+    //   path: '/admin/content',
+    //   hasDropdown: false
+    // },
     // {
     //   id: 'institute',
     //   label: 'Institute',
@@ -162,25 +163,25 @@ export default function AdminLayout() {
     //     { icon: BookOpen, label: 'Courses', path: '/admin/courses' }
     //   ]
     // },
-    {
-      id: 'people',
-      label: 'People',
-      icon: Users,
-      hasDropdown: true,
-      submenu: [
-        { icon: UserCog, label: 'Administration', path: '/admin/administration' },
-        { icon: UserCog, label: 'Deans', path: '/admin/deans' },
-        { icon: UserCog, label: 'Associate Deans', path: '/admin/associate-deans' },
-        { icon: UserCog, label: 'Head of Department', path: '/admin/hod' },
-        { icon: UserCog, label: 'Faculty', path: '/admin/faculty' },
-        { icon: UserCog, label: 'Technical Staff', path: '/admin/technical-staff' },
-        { icon: UserCog, label: 'Support Staff', path: '/admin/support-staff' },
-        { icon: GraduationCap, label: 'Research Scholars', path: '/admin/research-scholars' },
-        { icon: GraduationCap, label: 'B.Tech Students', path: '/admin/btech-students' },
-        { icon: GraduationCap, label: 'M.Tech Students', path: '/admin/mtech-students' },
-        { icon: Users, label: 'Gender Index', path: '/admin/gender-index' }
-      ]
-    },
+    // {
+    //   id: 'people',
+    //   label: 'People',
+    //   icon: Users,
+    //   hasDropdown: true,
+    //   submenu: [
+    //     { icon: UserCog, label: 'Administration', path: '/admin/administration' },
+    //     { icon: UserCog, label: 'Deans', path: '/admin/deans' },
+    //     { icon: UserCog, label: 'Associate Deans', path: '/admin/associate-deans' },
+    //     { icon: UserCog, label: 'Head of Department', path: '/admin/hod' },
+    //     { icon: UserCog, label: 'Faculty', path: '/admin/faculty' },
+    //     { icon: UserCog, label: 'Technical Staff', path: '/admin/technical-staff' },
+    //     { icon: UserCog, label: 'Support Staff', path: '/admin/support-staff' },
+    //     { icon: GraduationCap, label: 'Research Scholars', path: '/admin/research-scholars' },
+    //     { icon: GraduationCap, label: 'B.Tech Students', path: '/admin/btech-students' },
+    //     { icon: GraduationCap, label: 'M.Tech Students', path: '/admin/mtech-students' },
+    //     { icon: Users, label: 'Gender Index', path: '/admin/gender-index' }
+    //   ]
+    // },
     // {
     //   id: 'facilities',
     //   label: 'Facilities',
@@ -198,8 +199,7 @@ export default function AdminLayout() {
     //   hasDropdown: true,
     //   submenu: [
     //     { icon: UsersRound, label: 'Manage Clubs', path: '/admin/clubs' },
-    //     { icon: Calendar, label: 'Events', path: '/admin/events' },
-    //     { icon: Presentation, label: 'FDP Programs', path: '/admin/fdp-programs' }
+    //     { icon: Calendar, label: 'Events', path: '/admin/events' }
     //   ]
     // },
     // {
@@ -244,6 +244,180 @@ export default function AdminLayout() {
     //     { icon: Monitor, label: 'Media Coverage', path: '/admin/media' }
     //   ]
     // },
+
+    // New Redesigned Split Menu Sections
+    {
+      id: 'home-page',
+      label: 'Home Page',
+      icon: Home,
+      hasDropdown: true,
+      submenu: [
+        { icon: FileText, label: 'Homepage Content', path: '/admin/content?page=homepage' },
+        { icon: Presentation, label: 'Hero Sliders', path: '/admin/hero-sliders' },
+        { icon: Megaphone, label: 'Announcements', path: '/admin/announcements' },
+        { icon: Newspaper, label: 'Announcements (News)', path: '/admin/latest-news-updates/announcement' },
+        { icon: Newspaper, label: 'Campus Updates', path: '/admin/latest-news-updates/campus-update' },
+        { icon: Newspaper, label: 'Quick Updates', path: '/admin/latest-news-updates/quick-update' }
+      ]
+    },
+    {
+      id: 'Why IIITK',
+      label: 'Why IIITK',
+      icon: Layout,
+      hasDropdown: true,
+      submenu: [
+        { icon: FileText, label: 'Why IIIT Kottayam', path: '/admin/content?page=why-iiitk' },
+        // { icon: FileText, label: 'About', path: '/admin/content?page=about' },
+        // { icon: FileText, label: 'NIRF', path: '/admin/content?page=nirf' },
+        // { icon: Award, label: 'NIRF Rankings', path: '/admin/nirf' }
+      ]
+    },
+    {
+      id: 'institute',
+      label: 'Institute',
+      icon: Building2,
+      hasDropdown: true,
+      submenu: [
+        { icon: FileText, label: 'Governance', path: '/admin/content?page=governance' },
+        { icon: FileText, label: 'Admission', path: '/admin/content?page=admission' },
+        { icon: FileText, label: 'Academics', path: '/admin/content?page=academics' },
+        { icon: FileText, label: 'Scholarships/Loans', path: '/admin/content?page=scholarships' },
+        // { icon: Link, label: 'Navigation Config', path: '/admin/navigation' }
+      ]
+    },
+    {
+      id: 'footer-page',
+      label: 'Footer',
+      icon: Layout,
+      hasDropdown: true,
+      submenu: [
+        { icon: Link, label: 'Footer Links Manager', path: '/admin/footer' },
+        { icon: FileText, label: 'IDY-2022', path: '/admin/content?page=idy-2022' },
+        { icon: Calendar, label: 'Events', path: '/admin/events' },
+        // { icon: ImageIcon, label: 'Gallery', path: '/admin/gallery' }
+      ]
+    },
+    {
+      id: 'sub-navbar',
+      label: 'Sub Navbar',
+      icon: Link,
+      path: '/admin/navbar',
+      hasDropdown: false
+    },
+    {
+      id: 'course',
+      label: 'Course',
+      icon: School,
+      hasDropdown: true,
+      submenu: [
+        { icon: FileText, label: 'B.Tech CSE', path: '/admin/content?page=btech-cse' },
+        { icon: FileText, label: 'B.Tech ECE', path: '/admin/content?page=btech-ece' },
+        { icon: FileText, label: 'B.Tech Cybersecurity', path: '/admin/content?page=btech-cybersecurity' },
+        { icon: FileText, label: 'B.Tech AI & DS', path: '/admin/content?page=btech-ai-ds' },
+        // { icon: BookOpen, label: 'Manage Courses', path: '/admin/courses' }
+      ]
+    },
+    {
+      id: 'people',
+      label: 'People',
+      icon: Users,
+      hasDropdown: true,
+      submenu: [
+        // { icon: FileText, label: 'Gender Index', path: '/admin/content?page=gender-index' },
+        { icon: UserCog, label: 'Administration', path: '/admin/administration' },
+        { icon: UserCog, label: 'Deans', path: '/admin/deans' },
+        { icon: UserCog, label: 'Associate Deans', path: '/admin/associate-deans' },
+        { icon: UserCog, label: 'Head of Department', path: '/admin/hod' },
+        { icon: UserCog, label: 'Faculty', path: '/admin/faculty' },
+        { icon: UserCog, label: 'Technical Staff', path: '/admin/technical-staff' },
+        { icon: UserCog, label: 'Support Staff', path: '/admin/support-staff' },
+        { icon: GraduationCap, label: 'Research Scholars', path: '/admin/research-scholars' },
+        { icon: GraduationCap, label: 'B.Tech Students', path: '/admin/btech-students' },
+        { icon: GraduationCap, label: 'M.Tech Students', path: '/admin/mtech-students' }
+      ]
+    },
+    {
+      id: 'facilities',
+      label: 'Facilities',
+      icon: Wrench,
+      hasDropdown: true,
+      submenu: [
+        { icon: FileText, label: 'Hostel', path: '/admin/content?page=hostel' },
+        { icon: FileText, label: 'Gymnasium', path: '/admin/content?page=gym' },
+        { icon: FileText, label: 'Campus Network', path: '/admin/content?page=internet' },
+        { icon: FileText, label: 'Medical Centre', path: '/admin/content?page=medical-centre' },
+        { icon: FileText, label: 'Student Mess', path: '/admin/content?page=student-mess' },
+        { icon: FileText, label: 'Security', path: '/admin/content?page=security' },
+        { icon: FileText, label: 'Sports', path: '/admin/content?page=sports' },
+        { icon: FileText, label: 'Bank/ATM', path: '/admin/content?page=bank-atm' }
+      ]
+    },
+    {
+      id: 'iic-clubs',
+      label: 'IIC & Clubs',
+      icon: UsersRound,
+      hasDropdown: true,
+      submenu: [
+        { icon: FileText, label: 'Innovation Cell', path: '/admin/content?page=innovation-cell' },
+        { icon: FileText, label: 'FDP & Webinars', path: '/admin/content?page=fdp-webinar' },
+        { icon: FileText, label: 'Gallery', path: '/admin/content?page=gallery' },
+        { icon: FileText, label: 'Cultural Club', path: '/admin/content?page=cultural-club' },
+        { icon: FileText, label: 'Technical Club', path: '/admin/content?page=technical-club' },
+        { icon: FileText, label: 'Sports Club', path: '/admin/content?page=sports-club' },
+        { icon: FileText, label: 'Mind Quest', path: '/admin/content?page=mind-quest' },
+        { icon: FileText, label: 'Trendles Club', path: '/admin/content?page=trendles-club' },
+        { icon: FileText, label: 'Cyber Security Club', path: '/admin/content?page=cyber-security-club' },
+        { icon: FileText, label: 'IEEE Student Branch', path: '/admin/content?page=ieee-student-branch' },
+        { icon: FileText, label: 'ACM Student Chapter', path: '/admin/content?page=acm' },
+        // { icon: UsersRound, label: 'Manage Clubs', path: '/admin/clubs' },
+        // { icon: Calendar, label: 'Events', path: '/admin/events' }
+      ]
+    },
+    {
+      id: 'research',
+      label: 'Research',
+      icon: FileText,
+      hasDropdown: true,
+      submenu: [
+        { icon: FileText, label: 'Research Groups', path: '/admin/content?page=research-groups' },
+        { icon: FileText, label: 'Faculty Research Papers', path: '/admin/content?page=faculty-research-papers' },
+        { icon: FileText, label: 'UG Student Research', path: '/admin/content?page=ug-research-students' },
+        { icon: FileText, label: 'Research Funding', path: '/admin/content?page=research-funding' },
+        { icon: FileText, label: 'Awards & Recognition', path: '/admin/content?page=awards-recognition' },
+        { icon: FileText, label: 'International Collaborations', path: '/admin/content?page=international-collaboration' },
+        { icon: FileText, label: 'Research Activities', path: '/admin/content?page=research-activities' },
+        // { icon: FileText, label: 'Research Publications', path: '/admin/research-publications' },
+        // { icon: FileText, label: 'Research Activities (Custom)', path: '/admin/research-activities' }
+      ]
+    },
+    {
+      id: 'placement',
+      label: 'Placement',
+      icon: Briefcase,
+      path: '/admin/content?page=placements',
+      hasDropdown: false
+    },
+    {
+      id: 'recruiters-corner',
+      label: 'Recruiters Corner',
+      icon: Briefcase,
+      path: '/admin/recruiters-corner',
+      hasDropdown: false
+    },
+    {
+      id: 'media-others',
+      label: 'More',
+      icon: Monitor,
+      hasDropdown: true,
+      submenu: [
+        { icon: FileText, label: 'Media', path: '/admin/content?page=media' },
+        // { icon: FileText, label: 'Campus Life', path: '/admin/content?page=campus-life' },
+        { icon: FileText, label: 'Contact', path: '/admin/content?page=contact' },
+        { icon: FileText, label: 'RTI', path: '/admin/content?page=rti' },
+        // { icon: Newspaper, label: 'News', path: '/admin/news' },
+        // { icon: Monitor, label: 'Media Coverage', path: '/admin/media' },
+      ]
+    },
     {
       id: 'settings',
       label: 'Settings',
@@ -397,28 +571,7 @@ export default function AdminLayout() {
                           );
                         })}
 
-                        {/* If this is the Media section, render dynamic content sections under Content Sections */}
-                        {section.id === 'media' && contentSections.length > 0 && (
-                          <div className="mt-2">
-                            <div className="text-xs font-semibold text-gray-500 px-3 py-2">Content Sections</div>
-                            <div className="space-y-1">
-                              {contentSections.map((cs) => (
-                                <NavLink
-                                  key={cs.id}
-                                  to={`/admin/content-sections/${cs.id}`}
-                                  className={({ isActive }) => `
-                                    group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ml-2 mr-2
-                                    ${isActive ? 'text-white shadow-md' : 'text-gray-600 hover:bg-white hover:shadow-sm'}
-                                  `}
-                                  style={({ isActive }) => isActive ? { background: `linear-gradient(135deg, ${API.color1}, #059669)` } : {}}
-                                >
-                                  <Layout className={`h-4 w-4 mr-2 text-gray-500`} />
-                                  <span className="text-xs truncate">{cs.sectionTitle || cs.sectionName}</span>
-                                </NavLink>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+
                       </div>
                     )}
                   </div>

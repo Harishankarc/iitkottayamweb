@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+
 import { 
   Plus, Edit2, Trash2, Eye, EyeOff, Save, FileText, Layout, 
   Type, Image, List, Settings, ChevronRight, ChevronDown, Search,
-  Palette, BarChart3, Copy, Move, AlertCircle, X, Check
+  Palette, BarChart3, Copy, Move, AlertCircle, X, Check, Briefcase, Building2
 } from 'lucide-react';
 import API from '../../api/api';
 import ImageUploader from '../components/ImageUploader';
@@ -16,7 +17,10 @@ const BLOCK_TYPES = [
   { value: 'image', label: '🖼️ Single Image', color: '#f59e0b' },
   { value: 'gallery', label: '🎨 Image Gallery', color: '#ec4899' },
   { value: 'table', label: '📊 Table', color: '#06b6d4' },
-  { value: 'statistics', label: '📈 Statistics', color: '#239244' }
+  { value: 'statistics', label: '📈 Statistics', color: '#239244' },
+  { value: 'logo', label: '🏢 Company Logo', color: '#64748b' },
+  { value: 'map', label: '🗺️ Map Embeds', color: '#f43f5e' },
+  { value: 'button', label: '🔘 Button Link', color: '#d97706' }
 ];
 
 // All available pages
@@ -56,7 +60,6 @@ const AVAILABLE_PAGES = [
   { pageName: 'sports-club', pageTitle: 'Sports Club', category: 'Clubs' },
   { pageName: 'mind-quest', pageTitle: 'Mind Quest', category: 'Clubs' },
   { pageName: 'fdp-webinar', pageTitle: 'FDP & Webinars', category: 'Clubs' },
-  { pageName: 'fdp', pageTitle: 'FDP Programs List', category: 'Clubs' },
   { pageName: 'trendles-club', pageTitle: 'Trendles Club', category: 'Clubs' },
   { pageName: 'cyber-security-club', pageTitle: 'Cyber Security Club', category: 'Clubs' },
   { pageName: 'ieee-student-branch', pageTitle: 'IEEE Student Branch', category: 'Clubs' },
@@ -64,10 +67,12 @@ const AVAILABLE_PAGES = [
   // People
   { pageName: 'gender-index', pageTitle: 'Gender Index', category: 'People' },
   // Others
+  { pageName: 'idy-2022', pageTitle: 'IDY-2022', category: 'Others' },
   { pageName: 'media', pageTitle: 'Media', category: 'Others' },
   { pageName: 'gallery', pageTitle: 'Gallery', category: 'Others' },
   { pageName: 'campus-life', pageTitle: 'Campus Life', category: 'Others' },
   { pageName: 'contact', pageTitle: 'Contact', category: 'Others' },
+  { pageName: 'rti', pageTitle: 'RTI', category: 'Others' },
   { pageName: 'governance', pageTitle: 'Governance', category: 'Others' },
   { pageName: 'scholarships', pageTitle: 'Scholarships', category: 'Others' }
 ];
@@ -114,6 +119,8 @@ const sanitizeParagraphHtml = (html) => {
 
 export default function UnifiedContentManager() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const pageQuery = searchParams.get('page');
   const [view, setView] = useState('pages'); // 'pages' or 'editor'
   const [pages, setPages] = useState([]);
   const [selectedPage, setSelectedPage] = useState(null);
@@ -191,6 +198,28 @@ export default function UnifiedContentManager() {
   }, []);
 
   useEffect(() => {
+    if (pages.length > 0) {
+      if (pageQuery) {
+        const matchedPage = pages.find(p => p.pageName === pageQuery);
+        if (matchedPage) {
+          if (!selectedPage || selectedPage.pageName !== matchedPage.pageName || view !== 'editor') {
+            setSelectedPage(matchedPage);
+            setView('editor');
+            setEditingBlock(null);
+          }
+        }
+      } else {
+        if (view !== 'pages') {
+          setView('pages');
+          setSelectedPage(null);
+          setBlocks([]);
+          setEditingBlock(null);
+        }
+      }
+    }
+  }, [pages, pageQuery]);
+
+  useEffect(() => {
     if (selectedPage && view === 'editor') {
       fetchBlocks();
       loadPageMetadata();
@@ -249,6 +278,17 @@ export default function UnifiedContentManager() {
 
   const handleSavePageMetadata = async () => {
     try {
+      setLoading(true);
+      
+      // Save editing block if any active edits are present
+      if (editingBlockRef.current) {
+        const blockSaved = await handleSaveBlock({ silent: true });
+        if (!blockSaved) {
+          // If block save failed, don't continue to save metadata
+          return;
+        }
+      }
+
       const url = selectedPage.id 
         ? `/api/pages/${selectedPage.id}`
         : `/api/pages`;
@@ -260,11 +300,14 @@ export default function UnifiedContentManager() {
         pageName: selectedPage.pageName
       });
       
-      alert('Page metadata saved successfully!');
+      alert('Page saved successfully!');
+      setEditingBlock(null);
       fetchPagesAndBlocks();
     } catch (error) {
       console.error('Error saving page metadata:', error);
       alert('Error saving page metadata');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -282,26 +325,74 @@ export default function UnifiedContentManager() {
     setEditingBlock({ ...block, content: parsedContent });
   };
 
-  const handleSaveBlock = async () => {
+  const handleSwapBlocks = async (index, direction) => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= blocks.length) return;
+    
+    const newBlocks = [...blocks];
+    const temp = newBlocks[index];
+    newBlocks[index] = newBlocks[targetIndex];
+    newBlocks[targetIndex] = temp;
+    
+    // Assign blockOrder to reflect their 1-based position in array
+    const orderedBlocks = newBlocks.map((b, idx) => ({
+      ...b,
+      blockOrder: idx + 1
+    }));
+    
+    setBlocks(orderedBlocks);
+    
+    if (editingBlockRef.current) {
+      const updatedEditingBlock = orderedBlocks.find(b => b.id === editingBlockRef.current.id);
+      if (updatedEditingBlock) {
+        setEditingBlock(updatedEditingBlock);
+      }
+    }
+    
+    try {
+      setLoading(true);
+      const response = await API.post('/api/content-blocks/reorder', {
+        blocks: orderedBlocks.map(b => ({
+          id: b.id,
+          blockOrder: b.blockOrder
+        }))
+      });
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to update block order');
+      }
+      console.log('✅ Block orders saved successfully on swap');
+    } catch (err) {
+      console.error('❌ Error saving block order:', err);
+      alert('❌ Failed to save block order to server. Reverting order.');
+      fetchBlocks();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveBlock = async (options = {}) => {
+    const silent = options.silent || false;
     // Always read from ref to get the absolute latest editingBlock value,
     // avoiding the stale closure problem where the state captured at render time
     // may not reflect the user's latest edits.
     const editingBlock = editingBlockRef.current;
-    try {
-      // Validate required fields
-      if (!editingBlock?.blockId) {
-        alert('❌ Block ID is required');
-        return;
-      }
-      if (!editingBlock?.pageName) {
-        alert('❌ Page name is required');
-        return;
-      }
-      if (!editingBlock?.blockType) {
-        alert('❌ Block type is required');
-        return;
-      }
+    
+    // Validate required fields
+    if (!editingBlock?.blockId) {
+      if (!silent) alert('❌ Block ID is required');
+      return false;
+    }
+    if (!editingBlock?.pageName) {
+      if (!silent) alert('❌ Page name is required');
+      return false;
+    }
+    if (!editingBlock?.blockType) {
+      if (!silent) alert('❌ Block type is required');
+      return false;
+    }
 
+    try {
+      if (!silent) setLoading(true);
       const blockData = {
         blockId: editingBlock.blockId,
         pageName: editingBlock.pageName,
@@ -320,26 +411,44 @@ export default function UnifiedContentManager() {
       console.log('📤 Sending block data:', blockData);
       console.log('📋 Complete block data:', { ...blockData, content: editingBlock.content });
 
+      let response;
       if (editingBlock.id) {
-        await API.put(`/api/content-blocks/${editingBlock.id}`, blockData);
+        response = await API.put(`/api/content-blocks/${editingBlock.id}`, blockData);
       } else {
-        const response = await API.post('/api/content-blocks', blockData);
+        response = await API.post('/api/content-blocks', blockData);
         console.log('✅ Backend response:', response);
       }
 
-      alert('Block saved successfully!');
+      if (response && response.success === false) {
+        if (!silent) {
+          alert(`❌ Failed to save block:\n\n${response.error || response.message || 'Unknown error'}`);
+        }
+        return false;
+      }
+
+      if (!silent) {
+        alert('Block saved successfully!');
+      }
       setPendingListType(null);
       setPendingListItemCount(0);
-      fetchBlocks();
-      fetchPagesAndBlocks();
+      
+      if (!silent) {
+        fetchBlocks();
+        fetchPagesAndBlocks();
+      }
+      return true;
     } catch (error) {
       console.error('❌ Error saving block:', error);
       console.error('Error response data:', error.response?.data);
       
-      const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
-      const errorDetail = error.response?.data?.error || '';
-      
-      alert(`❌ Error saving block:\n\n${errorMsg}${errorDetail ? '\nDetails: ' + errorDetail : ''}`);
+      if (!silent) {
+        const errorMsg = error.response?.data?.message || error.message || 'Unknown error';
+        const errorDetail = error.response?.data?.error || '';
+        alert(`❌ Error saving block:\n\n${errorMsg}${errorDetail ? '\nDetails: ' + errorDetail : ''}`);
+      }
+      return false;
+    } finally {
+      if (!silent) setLoading(false);
     }
   };
 
@@ -347,6 +456,7 @@ export default function UnifiedContentManager() {
     if (!confirm('Are you sure you want to delete this block?')) return;
 
     try {
+      setLoading(true);
       await API.delete(`/api/content-blocks/${blockId}`);
       alert('Block deleted successfully!');
       fetchBlocks();
@@ -354,18 +464,33 @@ export default function UnifiedContentManager() {
     } catch (error) {
       console.error('Error deleting block:', error);
       alert('Error deleting block');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleToggleVisibility = async (block) => {
     try {
+      setLoading(true);
+      const updatedVisible = block.isVisible !== false ? false : true;
       await API.put(`/api/content-blocks/${block.id}`, {
         ...block,
-        isVisible: !block.isVisible
+        content: typeof block.content === 'string' ? JSON.parse(block.content) : block.content,
+        isVisible: updatedVisible
       });
+      
+      if (editingBlockRef.current && editingBlockRef.current.id === block.id) {
+        setEditingBlock({
+          ...editingBlockRef.current,
+          isVisible: updatedVisible
+        });
+      }
+      
       fetchBlocks();
     } catch (error) {
       console.error('Error toggling visibility:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -416,6 +541,7 @@ export default function UnifiedContentManager() {
     setSelectedPage(page);
     setView('editor');
     setEditingBlock(null);
+    setSearchParams({ page: page.pageName });
   };
 
   const handleBackToPages = () => {
@@ -424,6 +550,7 @@ export default function UnifiedContentManager() {
     setView('pages');
     setSelectedPage(null);
     setBlocks([]);
+    setSearchParams({});
   };
 
   const filteredPages = pages.filter(page => {
@@ -535,6 +662,213 @@ export default function UnifiedContentManager() {
         );
 
       case 'paragraph':
+        if (block.blockId === 'contact-reach') {
+          return (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Section Title</label>
+                <input
+                  type="text"
+                  value={block.content.title || ''}
+                  onChange={(e) => setEditingBlock({
+                    ...block,
+                    content: { ...block.content, title: e.target.value }
+                  })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Kottayam Distance</label>
+                  <input
+                    type="text"
+                    value={block.content.distanceKottayam || ''}
+                    onChange={(e) => setEditingBlock({
+                      ...block,
+                      content: { ...block.content, distanceKottayam: e.target.value }
+                    })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                    placeholder="e.g. 30 km"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Valavoor/Valla Distance</label>
+                  <input
+                    type="text"
+                    value={block.content.distanceValavoor || ''}
+                    onChange={(e) => setEditingBlock({
+                      ...block,
+                      content: { ...block.content, distanceValavoor: e.target.value }
+                    })}
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                    placeholder="e.g. 18 km"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">From the Bus Station</label>
+                <textarea
+                  value={block.content.busRoute || ''}
+                  onChange={(e) => setEditingBlock({
+                    ...block,
+                    content: { ...block.content, busRoute: e.target.value }
+                  })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">From the Airport</label>
+                <textarea
+                  value={block.content.airportRoute || ''}
+                  onChange={(e) => setEditingBlock({
+                    ...block,
+                    content: { ...block.content, airportRoute: e.target.value }
+                  })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">From the Railway Station</label>
+                <textarea
+                  value={block.content.railwayRoute || ''}
+                  onChange={(e) => setEditingBlock({
+                    ...block,
+                    content: { ...block.content, railwayRoute: e.target.value }
+                  })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                  rows={3}
+                />
+              </div>
+            </div>
+          );
+        }
+
+        if (block.blockId === 'contact-address') {
+          return (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Section Title</label>
+                <input
+                  type="text"
+                  value={block.content.title || ''}
+                  onChange={(e) => setEditingBlock({
+                    ...block,
+                    content: { ...block.content, title: e.target.value }
+                  })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Address Line 1</label>
+                <input
+                  type="text"
+                  value={block.content.addressLine1 || ''}
+                  onChange={(e) => setEditingBlock({
+                    ...block,
+                    content: { ...block.content, addressLine1: e.target.value }
+                  })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                  placeholder="e.g. Indian Institute of Information Technology Kottayam"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Address Line 2</label>
+                <input
+                  type="text"
+                  value={block.content.addressLine2 || ''}
+                  onChange={(e) => setEditingBlock({
+                    ...block,
+                    content: { ...block.content, addressLine2: e.target.value }
+                  })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                  placeholder="e.g. Valavoor PO"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Address Line 3</label>
+                <input
+                  type="text"
+                  value={block.content.addressLine3 || ''}
+                  onChange={(e) => setEditingBlock({
+                    ...block,
+                    content: { ...block.content, addressLine3: e.target.value }
+                  })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                  placeholder="e.g. Kottayam, Kerala"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Address Line 4</label>
+                <input
+                  type="text"
+                  value={block.content.addressLine4 || ''}
+                  onChange={(e) => setEditingBlock({
+                    ...block,
+                    content: { ...block.content, addressLine4: e.target.value }
+                  })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                  placeholder="e.g. Kerala, India"
+                />
+              </div>
+              <div className="border-t pt-4 mt-4 space-y-4">
+                <h4 className="text-sm font-bold text-gray-900">Social Media Links</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Facebook URL</label>
+                    <input
+                      type="text"
+                      value={block.content.facebook || ''}
+                      onChange={(e) => setEditingBlock({
+                        ...block,
+                        content: { ...block.content, facebook: e.target.value }
+                      })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Twitter URL</label>
+                    <input
+                      type="text"
+                      value={block.content.twitter || ''}
+                      onChange={(e) => setEditingBlock({
+                        ...block,
+                        content: { ...block.content, twitter: e.target.value }
+                      })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">LinkedIn URL</label>
+                    <input
+                      type="text"
+                      value={block.content.linkedin || ''}
+                      onChange={(e) => setEditingBlock({
+                        ...block,
+                        content: { ...block.content, linkedin: e.target.value }
+                      })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">YouTube URL</label>
+                    <input
+                      type="text"
+                      value={block.content.youtube || ''}
+                      onChange={(e) => setEditingBlock({
+                        ...block,
+                        content: { ...block.content, youtube: e.target.value }
+                      })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
         return (
           <div className="space-y-4">
             <div>
@@ -558,6 +892,7 @@ export default function UnifiedContentManager() {
                 <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.insertLink(); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">Link</button>
                 <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType('ul'); setPendingListItemCount(0); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">UL</button>
                 <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType('ol'); setPendingListItemCount(0); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">OL</button>
+                <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.exec('removeFormat'); }} className="px-3 py-1 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 rounded text-sm font-medium cursor-pointer transition">Clear</button>
               </div>
             </div>
             <div>
@@ -757,6 +1092,20 @@ export default function UnifiedContentManager() {
               />
             </div>
             <div>
+              <label className="block text-sm font-semibold mb-2 text-gray-700">Display Layout</label>
+              <select
+                value={block.content.layout || 'chart'}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, layout: e.target.value }
+                })}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+              >
+                <option value="chart">📊 Bar Chart (Homepage Style)</option>
+                <option value="cards">🎴 Card Grid</option>
+              </select>
+            </div>
+            <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-semibold text-gray-700">Statistics</label>
                 <button
@@ -793,41 +1142,41 @@ export default function UnifiedContentManager() {
                       </button>
                     </div>
                     <div className="space-y-3">
-                      <div>
-                        <label className="block text-sm font-semibold mb-2 text-gray-700">Value</label>
-                        <input
-                          type="text"
-                          value={stat.value || ''}
-                          onChange={(e) => {
-                            const newStats = [...block.content.stats];
-                            newStats[index] = { ...stat, value: e.target.value };
-                            setEditingBlock({
-                              ...block,
-                              content: { ...block.content, stats: newStats }
-                            });
-                          }}
-                          className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-semibold"
-                          placeholder="100+"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">e.g., 100+, 500K, 1000</p>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold mb-2 text-gray-700">Label</label>
-                        <input
-                          type="text"
-                          value={stat.label || ''}
-                          onChange={(e) => {
-                            const newStats = [...block.content.stats];
-                            newStats[index] = { ...stat, label: e.target.value };
-                            setEditingBlock({
-                              ...block,
-                              content: { ...block.content, stats: newStats }
-                            });
-                          }}
-                          className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="Students"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">e.g., Students, Faculty, Courses</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-sm font-semibold mb-2 text-gray-700">Value</label>
+                          <input
+                            type="text"
+                            value={stat.value || ''}
+                            onChange={(e) => {
+                              const newStats = [...block.content.stats];
+                              newStats[index] = { ...stat, value: e.target.value };
+                              setEditingBlock({
+                                ...block,
+                                content: { ...block.content, stats: newStats }
+                              });
+                            }}
+                            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-semibold"
+                            placeholder="100+"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold mb-2 text-gray-700">Label</label>
+                          <input
+                            type="text"
+                            value={stat.label || ''}
+                            onChange={(e) => {
+                              const newStats = [...block.content.stats];
+                              newStats[index] = { ...stat, label: e.target.value };
+                              setEditingBlock({
+                                ...block,
+                                content: { ...block.content, stats: newStats }
+                              });
+                            }}
+                            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Students"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -840,6 +1189,21 @@ export default function UnifiedContentManager() {
       case 'table':
         return (
           <div className="space-y-6">
+            {block.blockId === 'contact-phones' && (
+              <div className="p-4 bg-gray-50 rounded-lg border">
+                <label className="block text-sm font-bold text-slate-900 mb-2">Reach Us Email</label>
+                <input
+                  type="email"
+                  value={block.content.email || ''}
+                  onChange={(e) => setEditingBlock({
+                    ...block,
+                    content: { ...block.content, email: e.target.value }
+                  })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 bg-white text-sm"
+                  placeholder="office@iiitkottayam.ac.in"
+                />
+              </div>
+            )}
             {/* Table Title */}
             <div>
               <label className="block text-sm font-semibold mb-2 text-gray-700">1️⃣ Table Title</label>
@@ -882,9 +1246,10 @@ export default function UnifiedContentManager() {
                       if ((block.content.headers || []).length > 0) {
                         const headers = block.content.headers.slice(0, -1);
                         const rows = (block.content.rows || []).map(row => row.slice(0, -1));
+                        const widths = (block.content.widths || []).slice(0, -1);
                         setEditingBlock({
                           ...block,
-                          content: { ...block.content, headers, rows }
+                          content: { ...block.content, headers, rows, widths }
                         });
                       }
                     }}
@@ -903,23 +1268,47 @@ export default function UnifiedContentManager() {
                 <div className="space-y-2">
                   {(block.content.headers || []).map((header, index) => (
                     <div key={index} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-green-200">
-                      <span className="inline-block w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                      <span className="inline-block w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">
                         {index + 1}
                       </span>
-                      <input
-                        type="text"
-                        value={header}
-                        onChange={(e) => {
-                          const headers = [...block.content.headers];
-                          headers[index] = e.target.value;
-                          setEditingBlock({
-                            ...block,
-                            content: { ...block.content, headers }
-                          });
-                        }}
-                        className="flex-1 px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-                        placeholder={`Column ${index + 1} name`}
-                      />
+                      <div className="flex-1 flex gap-2">
+                        <input
+                          type="text"
+                          value={header}
+                          onChange={(e) => {
+                            const headers = [...block.content.headers];
+                            headers[index] = e.target.value;
+                            setEditingBlock({
+                              ...block,
+                              content: { ...block.content, headers }
+                            });
+                          }}
+                          className="flex-1 px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                          placeholder={`Column ${index + 1} name`}
+                        />
+                        <div className="flex items-center gap-1 shrink-0">
+                          <input
+                            type="number"
+                            min="1"
+                            max="100"
+                            value={(block.content.widths || [])[index] || ''}
+                            onChange={(e) => {
+                              const widths = [...(block.content.widths || [])];
+                              while (widths.length < index) {
+                                widths.push('');
+                              }
+                              widths[index] = e.target.value;
+                              setEditingBlock({
+                                ...block,
+                                content: { ...block.content, widths }
+                              });
+                            }}
+                            className="w-20 px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm text-center"
+                            placeholder="Width"
+                          />
+                          <span className="text-sm font-semibold text-gray-500">%</span>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1050,6 +1439,342 @@ export default function UnifiedContentManager() {
           </div>
         );
 
+      case 'logo':
+        const logosList = Array.isArray(block.content.logos) ? block.content.logos : [];
+        return (
+          <div className="space-y-6">
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-amber-700 font-medium">
+                This is the Company Logo block. Add multiple company logos and descriptions.
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-gray-700">Section Title</label>
+              <input
+                type="text"
+                value={block.content.title || ''}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, title: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="e.g., Recruitment Partners"
+              />
+            </div>
+
+            <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50/50 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-bold text-blue-900">Company Logos ({logosList.length})</h4>
+                  <p className="text-xs text-blue-700">Add logos of placement partners with descriptions</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditingBlock({
+                    ...block,
+                    content: {
+                      ...block.content,
+                      logos: [...logosList, { url: '', alt: '', description: '' }]
+                    }
+                  })}
+                  className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs font-semibold flex items-center gap-1 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Add Logo
+                </button>
+              </div>
+
+              {logosList.length === 0 ? (
+                <div className="text-center py-6 bg-white border border-dashed rounded-lg text-gray-400 text-sm">
+                  No logos added yet. Click "+ Add Logo" to start.
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-1">
+                  {logosList.map((logoItem, idx) => (
+                    <div key={idx} className="bg-white p-4 rounded-lg border border-blue-100 shadow-sm space-y-3 relative">
+                      <div className="flex justify-between items-center border-b pb-2">
+                        <span className="text-xs font-bold text-gray-600">Logo #{idx + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newLogos = logosList.filter((_, i) => i !== idx);
+                            setEditingBlock({
+                              ...block,
+                              content: { ...block.content, logos: newLogos }
+                            });
+                          }}
+                          className="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-1">Company / Alt Name</label>
+                          <input
+                            type="text"
+                            value={logoItem.alt || ''}
+                            onChange={(e) => {
+                              const newLogos = [...logosList];
+                              newLogos[idx] = { ...logoItem, alt: e.target.value };
+                              setEditingBlock({
+                                ...block,
+                                content: { ...block.content, logos: newLogos }
+                              });
+                            }}
+                            className="w-full px-3 py-1.5 border rounded-lg text-sm font-semibold"
+                            placeholder="e.g., Google"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-1">Description</label>
+                          <textarea
+                            value={logoItem.description || ''}
+                            onChange={(e) => {
+                              const newLogos = [...logosList];
+                              newLogos[idx] = { ...logoItem, description: e.target.value };
+                              setEditingBlock({
+                                ...block,
+                                content: { ...block.content, logos: newLogos }
+                              });
+                            }}
+                            className="w-full px-3 py-1.5 border rounded-lg text-sm"
+                            rows={2}
+                            placeholder="Optional short description"
+                          />
+                        </div>
+                        <div className="space-y-2 pt-2 border-t border-gray-100">
+                          <label className="block text-xs font-bold text-gray-700">Logo Image</label>
+                          <ImageUploader
+                            value={logoItem.url || ''}
+                            onChange={(url) => {
+                              const newLogos = [...logosList];
+                              newLogos[idx] = { ...logoItem, url };
+                              setEditingBlock({
+                                ...block,
+                                content: { ...block.content, logos: newLogos }
+                              });
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 'map':
+        const mapsList = Array.isArray(block.content.maps) ? block.content.maps : [];
+        return (
+          <div className="space-y-6">
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-amber-700 font-medium">
+                This is the Map Embeds block. It cannot be deleted — only hidden or shown. You can add or modify multiple embedded map routes here.
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-gray-700">Section Title</label>
+              <input
+                type="text"
+                value={block.content.title || ''}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, title: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="e.g., How to Reach Us / Maps"
+              />
+            </div>
+
+            <div className="border-2 border-rose-200 rounded-lg p-4 bg-rose-50/20 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-bold text-rose-900">Map Locations ({mapsList.length})</h4>
+                  <p className="text-xs text-rose-700">Add Google Maps embed URLs and titles</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditingBlock({
+                    ...block,
+                    content: {
+                      ...block.content,
+                      maps: [...mapsList, { heading: '', iframeSrc: '', description: '' }]
+                    }
+                  })}
+                  className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-semibold shadow transition-colors"
+                >
+                  Add Map
+                </button>
+              </div>
+
+              {mapsList.length === 0 ? (
+                <div className="text-center py-6 text-xs text-gray-400 border border-dashed rounded-lg">
+                  No map routes added yet. Click "+ Add Map" to start.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {mapsList.map((mapItem, idx) => (
+                    <div key={idx} className="p-4 bg-white border rounded-lg space-y-3 relative shadow-sm">
+                      <div className="flex justify-between items-center pb-2 border-b">
+                        <span className="text-xs font-bold text-gray-600">Map #{idx + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newMaps = mapsList.filter((_, i) => i !== idx);
+                            setEditingBlock({
+                              ...block,
+                              content: { ...block.content, maps: newMaps }
+                            });
+                          }}
+                          className="text-red-500 hover:text-red-700 text-xs font-semibold"
+                        >
+                          Remove
+                        </button>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Heading / Title</label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 border rounded-lg text-xs"
+                          placeholder="e.g., Railway Station to IIIT Kottayam"
+                          value={mapItem.heading || ''}
+                          onChange={(e) => {
+                            const newMaps = [...mapsList];
+                            newMaps[idx] = { ...mapItem, heading: e.target.value };
+                            setEditingBlock({
+                              ...block,
+                              content: { ...block.content, maps: newMaps }
+                            });
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Google Maps Embed URL (iframe src)</label>
+                        <textarea
+                          className="w-full px-3 py-2 border rounded-lg text-xs font-mono"
+                          rows={3}
+                          placeholder="Paste the embed iframe source link (starts with https://www.google.com/maps/embed...)"
+                          value={mapItem.iframeSrc || ''}
+                          onChange={(e) => {
+                            const newMaps = [...mapsList];
+                            let value = e.target.value.trim();
+                            if (value.toLowerCase().includes('<iframe') || value.toLowerCase().includes('src=')) {
+                              const match = value.match(/src=["']([^"']+)["']/i);
+                              if (match && match[1]) {
+                                value = match[1];
+                              }
+                            }
+                            newMaps[idx] = { ...mapItem, iframeSrc: value };
+                            setEditingBlock({
+                              ...block,
+                              content: { ...block.content, maps: newMaps }
+                            });
+                          }}
+                        />
+                        {mapItem.iframeSrc && !mapItem.iframeSrc.startsWith('https://www.google.com/maps/embed') && (
+                          <p className="text-red-500 text-[10px] mt-1 font-semibold">
+                            ⚠️ Warning: This URL does not look like a Google Maps Embed URL. Please use the "Embed a map" share option from Google Maps.
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Description / Instructions</label>
+                        <textarea
+                          className="w-full px-3 py-2 border rounded-lg text-xs"
+                          rows={3}
+                          placeholder="e.g., From the Bus Station... Distance 18 km"
+                          value={mapItem.description || ''}
+                          onChange={(e) => {
+                            const newMaps = [...mapsList];
+                            newMaps[idx] = { ...mapItem, description: e.target.value };
+                            setEditingBlock({
+                              ...block,
+                              content: { ...block.content, maps: newMaps }
+                            });
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 'button':
+        return (
+          <div className="space-y-4">
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-amber-700 font-medium">
+                This is the Button block. It cannot be deleted — only hidden or shown.
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Title</label>
+              <input
+                type="text"
+                value={block.content.title || ''}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, title: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                placeholder="e.g. Hotels Nearby IIIT Kottayam"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+              <textarea
+                value={block.content.description || ''}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, description: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                rows={2}
+                placeholder="Brief description (optional)"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Button Text</label>
+              <input
+                type="text"
+                value={block.content.buttonText || ''}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, buttonText: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                placeholder="e.g. Download List of Hotels"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Link URL</label>
+              <input
+                type="text"
+                value={block.content.link || ''}
+                onChange={(e) => setEditingBlock({
+                  ...block,
+                  content: { ...block.content, link: e.target.value }
+                })}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+                placeholder="https://..."
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-center text-gray-500 py-8">
@@ -1063,7 +1788,15 @@ export default function UnifiedContentManager() {
   // Pages List View
   if (view === 'pages') {
     return (
-      <div className="p-6">
+      <div className="p-6 relative min-h-[500px]">
+        {loading && (
+          <div className="absolute inset-0 bg-gray-50/70 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-transparent border-t-green-600 border-r-green-600 mx-auto mb-3" style={{ borderTopColor: color1, borderRightColor: color1 }}></div>
+              <p className="text-sm font-semibold text-gray-600">Loading pages...</p>
+            </div>
+          </div>
+        )}
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2" style={{ color: color1 }}>
@@ -1159,7 +1892,15 @@ export default function UnifiedContentManager() {
 
   // Content Editor View - Two Column Block Editor Layout
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col h-screen bg-white relative">
+      {loading && (
+        <div className="absolute inset-0 bg-white/70 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-transparent border-t-green-600 border-r-green-600 mx-auto mb-3" style={{ borderTopColor: color1, borderRightColor: color1 }}></div>
+            <p className="text-sm font-semibold text-gray-600">Loading block content...</p>
+          </div>
+        </div>
+      )}
       {/* Top Bar */}
       <div className="border-b px-6 py-4 bg-white shadow-sm">
         <div className="flex items-center justify-between max-w-full">
@@ -1180,7 +1921,27 @@ export default function UnifiedContentManager() {
             </div>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex items-center gap-3">
+            {selectedPage?.pageName === 'placements' && (
+              <div className="flex items-center gap-2">
+                {/* 
+                <button
+                  onClick={() => navigate('/admin/placements')}
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg border text-sm font-semibold hover:bg-gray-50 transition-colors text-slate-700 bg-white"
+                >
+                  <Briefcase className="w-4 h-4 text-slate-500" />
+                  Placement Records
+                </button>
+                */}
+                <button
+                  onClick={() => navigate('/admin/company-logos')}
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg border text-sm font-semibold hover:bg-gray-50 transition-colors text-slate-700 bg-white"
+                >
+                  <Building2 className="w-4 h-4 text-slate-500" />
+                  Company Logos
+                </button>
+              </div>
+            )}
             <button
               onClick={handleSavePageMetadata}
               className="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-gray-50 transition-colors font-medium"
@@ -1217,13 +1978,13 @@ export default function UnifiedContentManager() {
                         description: '',
                         badge: '',
                         backgroundImage: '',
-                        cta: '',
-                        ctaLink: ''
+                        buttonText: '',
+                        buttonLink: ''
                       }; 
                       break;
                     case 'heading': 
                       newContent = { 
-                        text: 'Your heading text',
+                        text: '',
                         level: 'h2'
                       }; 
                       break;
@@ -1260,6 +2021,26 @@ export default function UnifiedContentManager() {
                         stats: [{label: 'Stat 1', value: '100+'}, {label: 'Stat 2', value: '50+'}]
                       }; 
                       break;
+                    case 'logo':
+                      newContent = {
+                        title: 'Recruitment Partners',
+                        logos: []
+                      };
+                      break;
+                    case 'map':
+                      newContent = {
+                        title: 'Maps & Directions',
+                        maps: []
+                      };
+                      break;
+                    case 'button':
+                      newContent = {
+                        title: '',
+                        description: '',
+                        buttonText: 'Click Here',
+                        link: '#'
+                      };
+                      break;
                     default: 
                       newContent = { text: '' };
                   }
@@ -1273,7 +2054,15 @@ export default function UnifiedContentManager() {
                 }} 
                 className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-500"
               >
-                {BLOCK_TYPES.map((type) => (
+                {BLOCK_TYPES.filter(t => {
+                  if (t.value === 'logo') {
+                    return selectedPage?.pageName === 'placements';
+                  }
+                  if (t.value === 'map') {
+                    return selectedPage?.pageName === 'contact';
+                  }
+                  return true;
+                }).map((type) => (
                   <option key={type.value} value={type.value}>{type.label}</option>
                 ))}
               </select>
@@ -1304,6 +2093,8 @@ export default function UnifiedContentManager() {
               </label>
             </div>
 
+
+
             {/* Added Blocks List */}
             <div className="bg-white rounded-lg border p-4 shadow-sm flex-1 min-h-0 flex flex-col overflow-hidden">
               <h4 className="text-sm font-bold text-slate-900 mb-3">Blocks ({blocks.length})</h4>
@@ -1315,21 +2106,75 @@ export default function UnifiedContentManager() {
                     const blockType = BLOCK_TYPES.find(t => t.value === block.blockType);
                     const isSelected = editingBlock?.id === block.id;
                     return (
-                      <button
+                      <div
                         key={block.id}
-                        onClick={() => handleEditBlock(block)}
-                        className={`w-full flex items-center gap-2 p-2 rounded-lg text-left text-xs transition-colors ${
+                        className={`w-full flex items-center justify-between gap-1 p-1 rounded-lg text-xs transition-colors ${
                           isSelected 
                             ? 'bg-green-500 text-white' 
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
-                        <span className={`flex-shrink-0 h-5 w-5 flex items-center justify-center rounded text-xs font-bold ${isSelected ? 'bg-white text-green-500' : 'bg-gray-300 text-gray-700'}`}>
-                          {index + 1}
-                        </span>
-                        <span className="flex-1 truncate">{blockType?.label || block.blockType}</span>
-                        {block.isVisible === false && <EyeOff size={12} />}
-                      </button>
+                        <button
+                          onClick={() => handleEditBlock(block)}
+                          className="flex-1 flex items-center gap-2 p-1 text-left min-w-0"
+                        >
+                          <span className={`flex-shrink-0 h-5 w-5 flex items-center justify-center rounded text-xs font-bold ${isSelected ? 'bg-white text-green-500' : 'bg-gray-300 text-gray-700'}`}>
+                            {index + 1}
+                          </span>
+                          <span className="flex-1 truncate">{blockType?.label || block.blockType}</span>
+                          {block.isVisible === false && <EyeOff size={12} />}
+                        </button>
+                        
+                        {/* Up / Down Reordering Buttons */}
+                        <div className="flex gap-0.5 shrink-0 pr-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleVisibility(block);
+                            }}
+                            className={`p-1 rounded hover:bg-black/10 transition-colors ${
+                              isSelected ? 'text-white' : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                            title={block.isVisible !== false ? 'Hide Block' : 'Show Block'}
+                          >
+                            {block.isVisible !== false ? (
+                              <Eye className="w-3.5 h-3.5" />
+                            ) : (
+                              <EyeOff className={`w-3.5 h-3.5 ${isSelected ? 'text-red-200' : 'text-red-500'}`} />
+                            )}
+                          </button>
+                          <button
+                            disabled={index === 0}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSwapBlocks(index, 'up');
+                            }}
+                            className={`p-1 rounded hover:bg-black/10 transition-colors disabled:opacity-30 ${
+                              isSelected ? 'text-white' : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                            title="Move Up"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" />
+                            </svg>
+                          </button>
+                          <button
+                            disabled={index === blocks.length - 1}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSwapBlocks(index, 'down');
+                            }}
+                            className={`p-1 rounded hover:bg-black/10 transition-colors disabled:opacity-30 ${
+                              isSelected ? 'text-white' : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                            title="Move Down"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
                     );
                   })
                 )}
@@ -1421,7 +2266,7 @@ export default function UnifiedContentManager() {
                 >
                   Cancel
                 </button>
-                {editingBlock.id && (
+                {editingBlock.id && editingBlock.blockType !== 'map' && editingBlock.blockType !== 'button' && (
                   <button
                     onClick={() => {
                       handleDeleteBlock(editingBlock.id);

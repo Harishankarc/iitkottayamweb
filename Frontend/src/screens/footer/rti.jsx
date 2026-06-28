@@ -2,10 +2,14 @@ import React from 'react';
 import { FileText, ExternalLink, ChevronRight } from 'lucide-react';
 import { useTheme } from '../../context/createContext.jsx';
 import API from '../../api/api.jsx';
+import { usePageContent, renderContentBlock } from '../../hooks/usePageContent.jsx';
 
 export default function RTI() {
   const { darkMode } = useTheme();
-    const color1 = API.color1;
+  const color1 = API.color1;
+
+  // Fetch dynamic content from database
+  const { blocks: contentBlocks, loading: contentLoading } = usePageContent('rti');
 
   const rtiLinks = [
     {
@@ -52,6 +56,31 @@ export default function RTI() {
       link: 'https://iiitkottayam.ac.in/data/pdf/6.%20Information%20Disclosed%20on%20own%20Initiative.pdf'
     }
   ];
+
+  if (contentLoading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: color1 }}></div>
+      </div>
+    );
+  }
+
+  if (contentBlocks && contentBlocks.length > 0) {
+    const visibleBlocks = contentBlocks.filter(block => block.isVisible !== false);
+    return (
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>
+        <div className="mx-auto py-8 px-6 max-w-full">
+          <div className="space-y-6 max-w-full mx-auto">
+            {visibleBlocks.map((block, index) => (
+              <div key={block.blockId || index}>
+                {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'}`}>

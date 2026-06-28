@@ -129,7 +129,6 @@ export default function ManagePages() {
     { name: 'technical-club', title: 'Technical Club', slug: '/iic-clubs/technical-club' },
     { name: 'sports-club', title: 'Sports Club', slug: '/iic-clubs/sports-club' },
     { name: 'fdp-webinar', title: 'FDP & Webinars', slug: '/iic-clubs/fdp-webinars' },
-    { name: 'fdp', title: 'FDP Programs List', slug: '/fdp' },
     { name: 'trendles-club', title: 'Trendles Club', slug: '/iic-clubs/trendles-club' },
     { name: 'cyber-security-club', title: 'Cyber Security Club', slug: '/iic-clubs/cyber-security-club' },
     { name: 'mind-quest', title: 'Mind Quest', slug: '/iic-clubs/mind-quest' },
@@ -270,7 +269,7 @@ export default function ManagePages() {
                   <span className="text-sm font-medium">Edit Info</span>
                 </button>
                 <Link
-                  to={`/admin/content-blocks?page=${page.pageName}`}
+                  to={`/admin/content?page=${page.pageName}`}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-opacity"
                   style={{ backgroundColor: API.color1 }}
                 >

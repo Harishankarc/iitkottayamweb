@@ -69,12 +69,6 @@ export default function FdpWebinar() {
 
   // Filter blocks by type
   const heroBlock = contentBlocks.find(block => block.blockType === 'hero');
-  const paragraphBlocks = contentBlocks.filter(block => block.blockType === 'paragraph');
-  const listBlocks = contentBlocks.filter(block => block.blockType === 'list');
-  const buttonBlocks = contentBlocks.filter(block => block.blockType === 'button');
-  const tableBlocks = contentBlocks.filter(block => block.blockType === 'table');
-  const statisticsBlocks = contentBlocks.filter(block => block.blockType === 'statistics');
-  const galleryBlocks = contentBlocks.filter(block => block.blockType === 'gallery');
 
   const resolveButtonLink = (block) => {
     const rawLink = String(block?.content?.buttonLink || block?.content?.link || '').trim();
@@ -106,119 +100,127 @@ export default function FdpWebinar() {
             {heroBlock?.content.title || 'Faculty Development Programmes'}
           </h1>
           <p className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            {heroBlock?.content.description || 'Workshops, webinars, and professional development initiatives for faculty enhancement.'}
+            {heroBlock?.content.description || heroBlock?.content.subtitle || 'Workshops, webinars, and professional development initiatives for faculty enhancement.'}
           </p>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="mx-auto py-8 px-6 max-w-full">
-        {/* Dynamic Paragraph Blocks */}
-        {paragraphBlocks.map((block, index) => (
-          <div key={index} className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`} 
-               style={{ borderColor: `${color1}20` }} 
-               onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
-               onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}>
-            <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
-              {block.content.title}
-            </h2>
-            <div 
-              className={`text-lg leading-relaxed mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-              dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.text) }}
-              style={{ wordBreak: 'break-word' }}
-            />
-            {block.content.title === 'Access FDP Details' && (
-              <div className="text-center mt-6">
-                <button
-                  onClick={() => navigate('/fdp')}
-                  className="inline-flex items-center gap-3 px-6 py-3 rounded-lg text-white font-semibold transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-                  style={{ backgroundColor: color1 }}
-                >
-                  <span>View FDP Details</span>
-                  <ExternalLink className="w-5 h-5" />
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
+      <div className="mx-auto py-8 px-6 max-w-full space-y-12">
+        {contentBlocks
+          .filter((block) => block.blockType !== 'hero')
+          .map((block, index) => {
+            const blockType = block.blockType || block.type;
+            const blockKey = block.blockId || block.id || index;
 
-        {/* Dynamic List Blocks */}
-        {listBlocks.map((block, index) => (
-          <div key={index} className="mb-12">
-            <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
-              {block.content.title}
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              {block.content.items.map((item, itemIndex) => (
-                <div
-                  key={itemIndex}
-                  className={`p-6 rounded-xl transition-all duration-300 hover:shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md border-2`}
-                  style={{ borderColor: `${color1}33` }}
-                >
-                  <div className="text-center">
+            switch (blockType) {
+              case 'paragraph':
+                return (
+                  <div 
+                    key={blockKey} 
+                    className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`} 
+                    style={{ borderColor: `${color1}20` }} 
+                    onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
+                    onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}
+                  >
+                    <h2 className="text-3xl font-bold mb-6" style={{ color: color1 }}>
+                      {block.content.title}
+                    </h2>
                     <div 
-                      className="w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center"
-                      style={{ backgroundColor: `${color1}20` }}
-                    >
-                      <BookOpen className="w-8 h-8" style={{ color: color1 }} />
-                    </div>
-                    <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      {item}
-                    </p>
+                      className={`text-lg leading-relaxed mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                      dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.text) }}
+                      style={{ wordBreak: 'break-word' }}
+                    />
+                    {block.content.title === 'Access FDP Details' && (
+                      <div className="text-center mt-6">
+                        <button
+                          onClick={() => window.open(targetUrl, '_blank', 'noopener,noreferrer')}
+                          className="inline-flex items-center gap-3 px-6 py-3 rounded-lg text-white font-semibold transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+                          style={{ backgroundColor: color1 }}
+                        >
+                          <span>View FDP Details</span>
+                          <ExternalLink className="w-5 h-5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+                );
 
-        {/* Dynamic Button Blocks */}
-        {buttonBlocks.map((block, index) => (
-          <div key={index} className={`mb-12 p-8 rounded-2xl border-2 shadow-xl ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} style={{ borderColor: `${color1}20` }}>
-            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-              <div className="space-y-3">
-                <h2 className="text-2xl md:text-3xl font-bold" style={{ color: color1 }}>
-                  {block.content.title || 'Access FDP Details'}
-                </h2>
-                {block.content.description && (
-                  <p className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    {block.content.description}
-                  </p>
-                )}
-              </div>
+              case 'list':
+                return (
+                  <div key={blockKey} className="mb-12">
+                    <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: color1 }}>
+                      {block.content.title}
+                    </h2>
+                    <div className="grid md:grid-cols-3 gap-6">
+                      {(() => {
+                        const listItems = Array.isArray(block.content?.items) 
+                          ? block.content.items 
+                          : (typeof block.content?.items === 'string' 
+                              ? block.content.items.split(',').map(s => s.trim()) 
+                              : []);
+                        return listItems.map((item, itemIndex) => (
+                          <div
+                            key={itemIndex}
+                            className={`p-6 rounded-xl transition-all duration-300 hover:shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md border-2`}
+                            style={{ borderColor: `${color1}33` }}
+                          >
+                            <div className="text-center">
+                              <div 
+                                className="w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center"
+                                style={{ backgroundColor: `${color1}20` }}
+                              >
+                                <BookOpen className="w-8 h-8" style={{ color: color1 }} />
+                              </div>
+                              <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                {item}
+                              </p>
+                            </div>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                );
 
-              {(block.content.buttonText || block.content.text) && (
-                <button
-                  type="button"
-                  onClick={() => handleButtonClick(resolveButtonLink(block))}
-                  className="inline-flex items-center justify-center gap-3 px-6 py-3 rounded-lg text-white font-semibold transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-                  style={{ backgroundColor: color1 }}
-                >
-                  <span>{block.content.buttonText || block.content.text || 'Learn More'}</span>
-                  <ExternalLink className="w-5 h-5" />
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
+              case 'button':
+                return (
+                  <div key={blockKey} className={`mb-12 p-8 rounded-2xl border-2 shadow-xl ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`} style={{ borderColor: `${color1}20` }}>
+                    <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                      <div className="space-y-3">
+                        <h2 className="text-2xl md:text-3xl font-bold" style={{ color: color1 }}>
+                          {block.content.title || 'Access FDP Details'}
+                        </h2>
+                        {block.content.description && (
+                          <p className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {block.content.description}
+                          </p>
+                        )}
+                      </div>
 
-        <div className="space-y-12">
-          {tableBlocks.map((block, index) => (
-            <div key={block.blockId || index}>
-              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
-            </div>
-          ))}
-          {statisticsBlocks.map((block, index) => (
-            <div key={block.blockId || index}>
-              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
-            </div>
-          ))}
-          {galleryBlocks.map((block, index) => (
-            <div key={block.blockId || index}>
-              {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
-            </div>
-          ))}
-        </div>
+                      {(block.content.buttonText || block.content.text) && (
+                        <button
+                          type="button"
+                          onClick={() => handleButtonClick(resolveButtonLink(block))}
+                          className="inline-flex items-center justify-center gap-3 px-6 py-3 rounded-lg text-white font-semibold transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+                          style={{ backgroundColor: color1 }}
+                        >
+                          <span>{block.content.buttonText || block.content.text || 'Learn More'}</span>
+                          <ExternalLink className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+
+              default:
+                return (
+                  <div key={blockKey} className="mb-12">
+                    {renderContentBlock(block, { darkMode, color1, color2: API.color2 })}
+                  </div>
+                );
+            }
+          })}
       </div>
     </div>
   );

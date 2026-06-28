@@ -137,37 +137,60 @@ export default function ManageHeroSliders() {
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: API.color1 }}></div>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 justify-center">
           {sliders.map((slider) => (
-            <div key={slider.id} className="bg-white rounded-lg shadow p-4 flex gap-4">
-              <img src={API.getImageUrl(slider.image)} alt={slider.title} className="w-32 h-20 object-cover rounded" />
-              <div className="flex-1">
-                <h3 className="font-bold text-lg">{slider.title}</h3>
-                <p className="text-sm text-gray-600">{slider.subtitle}</p>
-                <div className="flex gap-2 mt-2">
-                  <span className="text-xs bg-gray-200 px-2 py-1 rounded">Order: {slider.displayOrder}</span>
-                  <span className={`text-xs px-2 py-1 rounded ${slider.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+            <div key={slider.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-300 flex flex-col h-full max-w-[260px] mx-auto w-full group">
+              {/* Compact aspect-video image container */}
+              <div className="relative aspect-video w-full bg-gray-50 border-b border-gray-100 overflow-hidden">
+                <img 
+                  src={API.getImageUrl(slider.image)} 
+                  alt={slider.title} 
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-2 right-2 flex flex-col gap-1 z-10 items-end">
+                  <span className="bg-black/60 backdrop-blur-sm text-white text-[9px] px-2 py-0.5 rounded-full font-medium shadow-sm">
+                    Order: {slider.displayOrder}
+                  </span>
+                  <span className={`text-[9px] px-2 py-0.5 rounded-full font-medium shadow-sm ${
+                    slider.isActive 
+                      ? 'bg-emerald-500 text-white' 
+                      : 'bg-rose-500 text-white'
+                  }`}>
                     {slider.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => openEditModal(slider)} 
-                  className="flex-1 sm:flex-none px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center gap-2"
-                  title="Edit this slider"
-                >
-                  <Edit className="h-5 w-5" />
-                  <span className="hidden sm:inline">Edit</span>
-                </button>
-                <button 
-                  onClick={() => handleDelete(slider.id)} 
-                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors flex items-center gap-2"
-                  title="Delete this slider"
-                >
-                  <Trash2 className="h-5 w-5" />
-                  <span className="hidden sm:inline">Delete</span>
-                </button>
+              
+              {/* Content area */}
+              <div className="p-3 flex-1 flex flex-col justify-between">
+                <div className="mb-2">
+                  <h3 className="font-bold text-xs text-gray-900 line-clamp-1 mb-0.5" title={slider.title}>
+                    {slider.title}
+                  </h3>
+                  <p className="text-[11px] text-gray-500 line-clamp-2 leading-relaxed">
+                    {slider.subtitle || slider.description}
+                  </p>
+                </div>
+                
+                {/* Modern design buttons */}
+                <div className="flex gap-2 pt-2 border-t border-gray-50">
+                  <button 
+                    onClick={() => openEditModal(slider)} 
+                    className="flex-1 px-2.5 py-1.5 bg-blue-50/50 hover:bg-blue-100 text-blue-600 border border-blue-100 hover:border-blue-200 rounded-lg transition-all flex items-center justify-center gap-1 text-[11px] font-bold"
+                    title="Edit this slider"
+                  >
+                    <Edit className="h-3 w-3" />
+                    Edit
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(slider.id)} 
+                    className="flex-1 px-2.5 py-1.5 bg-rose-50/50 hover:bg-rose-100 text-rose-600 border border-rose-100 hover:border-rose-200 rounded-lg transition-all flex items-center justify-center gap-1 text-[11px] font-bold"
+                    title="Delete this slider"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -225,6 +248,9 @@ export default function ManageHeroSliders() {
                     aspectRatio="21/9"
                     required
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    💡 Recommended size: <strong>1920x820 pixels</strong> (Aspect Ratio <strong>21:9</strong>) for crisp desktop layouts.
+                  </p>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Button Text</label>

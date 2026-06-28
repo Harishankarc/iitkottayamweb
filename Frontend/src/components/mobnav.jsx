@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ChevronDown } from 'lucide-react';
 import { navigationConfig } from '../config/navigationConfig';
 import API from '../api/api';
@@ -44,10 +44,14 @@ const MobileMenuItem = ({ item, onClose, darkMode, fontSize }) => {
     );
   }
 
+  const isExternal = item.link && (item.link.startsWith('http') || item.link.endsWith('.pdf') || item.link.includes('/uploads/'));
+
   return (
     <a
       href={item.link || '#'}
       onClick={onClose}
+      target={isExternal ? '_blank' : '_self'}
+      rel={isExternal ? 'noopener noreferrer' : ''}
       className={`block px-5 py-4 border-b border-green-900/30 transition-colors ${getFontSizeClass()} text-white hover:bg-green-900/30`}
     >
       {item.label}
@@ -56,6 +60,28 @@ const MobileMenuItem = ({ item, onClose, darkMode, fontSize }) => {
 };
 
 export default function MobileNavigation({ isOpen, onClose, darkMode, fontSize }) {
+  const [navItems, setNavItems] = useState(navigationConfig);
+
+  useEffect(() => {
+    const fetchRecruitersCornerPdf = async () => {
+      try {
+        const response = await API.get('/api/site-settings/recruiters_corner_pdf');
+        if (response.success && response.data?.settingValue) {
+          const pdfUrl = response.data.settingValue;
+          const fullUrl = pdfUrl.startsWith('http') ? pdfUrl : `${API.baseURL}${pdfUrl}`;
+          setNavItems(prev => prev.map(item => 
+            item.id === 'recruters-corner' 
+              ? { ...item, link: fullUrl } 
+              : item
+          ));
+        }
+      } catch (err) {
+        console.warn('Failed to load recruiters corner PDF setting:', err);
+      }
+    };
+    fetchRecruitersCornerPdf();
+  }, []);
+
   if (!isOpen) return null;
 
   return (
@@ -94,7 +120,7 @@ export default function MobileNavigation({ isOpen, onClose, darkMode, fontSize }
         </div>
 
         <nav className="py-2">
-          {navigationConfig.map((item) => (
+          {navItems.map((item) => (
             <MobileMenuItem
               key={item.id}
               item={item}

@@ -354,7 +354,7 @@ export function renderContentBlock(block, options = {}) {
       return (
         <div className="py-4 max-w-3xl mx-auto">
           {content.title && (
-            <h3 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`} style={{ color: color1 }}>
+            <h3 className={`text-2xl md:text-3xl font-bold mb-4 text-center ${darkMode ? 'text-gray-100' : 'text-gray-900'}`} style={{ color: color1 }}>
               {content.title}
             </h3>
           )}
@@ -371,6 +371,114 @@ export function renderContentBlock(block, options = {}) {
             <p className={`text-sm mt-2 text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               {content.caption}
             </p>
+          )}
+        </div>
+      );
+
+    case 'logo':
+      const logosList = Array.isArray(content.logos) ? content.logos : [];
+      return (
+        <div className="w-full py-8">
+          {content.title && (
+            <h3 className={`text-2xl font-bold mb-6 text-center ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+              {content.title}
+            </h3>
+          )}
+          {logosList.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 max-w-7xl mx-auto">
+              {logosList.map((logoItem, idx) => {
+                const imgSrc = getImageUrl(logoItem.url);
+                return (
+                  <div
+                    key={idx}
+                    className={`p-5 rounded-lg flex flex-col items-center gap-3 text-center transition-all duration-300 hover:scale-105 hover:shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}
+                    style={{ border: `1px solid ${darkMode ? '#374151' : `${color1}22`}` }}
+                  >
+                    {logoItem.alt && (
+                      <div className="text-sm font-semibold leading-tight line-clamp-2" style={{ color: darkMode ? '#E5E7EB' : '#111827' }}>
+                        {logoItem.alt}
+                      </div>
+                    )}
+                    {logoItem.description && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400 leading-normal line-clamp-3">
+                        {logoItem.description}
+                      </div>
+                    )}
+                    <div className="h-28 w-28 flex items-center justify-center p-3 rounded-lg bg-white shadow-sm border border-gray-100 mt-2">
+                      {imgSrc ? (
+                        <img
+                          src={imgSrc}
+                          alt={logoItem.alt || `Logo ${idx + 1}`}
+                          className="max-h-24 max-w-24 object-contain"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <span className="text-gray-400 text-xs">No Image</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center text-gray-400 py-6 animate-pulse">No logos added yet.</div>
+          )}
+        </div>
+      );
+
+    case 'map':
+      const mapsList = Array.isArray(content.maps) ? content.maps : [];
+      return (
+        <div className="w-full py-6">
+          {content.title && (
+            <h2 className="text-2xl font-bold mb-6 text-center" style={{ color: color1 }}>
+              {t(content.title)}
+            </h2>
+          )}
+          {mapsList.length > 0 ? (
+            <div className="grid md:grid-cols-2 gap-6 mb-8 max-w-7xl mx-auto">
+              {mapsList.map((mapItem, idx) => (
+                <div
+                  key={idx}
+                  className={`rounded-xl overflow-hidden shadow-lg border-2 transition-all duration-300 hover:shadow-2xl ${
+                    darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                  }`}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = color1}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : '#e5e7eb'}
+                >
+                  <div className="p-4 border-b" style={{ borderColor: darkMode ? '#374151' : `${color1}30` }}>
+                    <h3 className="font-bold text-lg" style={{ color: color1 }}>
+                      {t(mapItem.heading || 'Route Map')}
+                    </h3>
+                  </div>
+                  {mapItem.iframeSrc && (
+                    <div className="aspect-video w-full h-64 md:h-80">
+                      <iframe
+                        src={mapItem.iframeSrc}
+                        width="100%"
+                        height="100%"
+                        style={{ border: 0 }}
+                        allowFullScreen=""
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        className={darkMode ? 'invert-90' : ''}
+                      ></iframe>
+                    </div>
+                  )}
+                  {mapItem.description && (
+                    <div className={`p-4 text-sm leading-relaxed border-t ${
+                      darkMode ? 'border-gray-700 text-gray-300 bg-gray-900/40' : 'border-gray-100 text-gray-700 bg-gray-50'
+                    }`}>
+                      <p dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(mapItem.description) }} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-400 py-6">No maps configured.</div>
           )}
         </div>
       );
@@ -661,6 +769,18 @@ export function renderContentBlock(block, options = {}) {
       const tableRows = Array.isArray(content.rows) ? content.rows : (Array.isArray(content.data) ? content.data : []);
       const tableNotes = Array.isArray(content.notes) ? content.notes : [];
 
+      const parseCell = (cellText) => {
+        if (typeof cellText !== 'string') return { text: cellText || '', colspan: 1, rowspan: 1 };
+        const colMatch = cellText.match(/\[col=(\d+)\]/);
+        const rowMatch = cellText.match(/\[row=(\d+)\]/);
+        const text = cellText.replace(/\[col=\d+\]|\[row=\d+\]/g, '').trim();
+        return {
+          text,
+          colspan: colMatch ? parseInt(colMatch[1], 10) : 1,
+          rowspan: rowMatch ? parseInt(rowMatch[1], 10) : 1
+        };
+      };
+
       return (
         <div className={`w-full rounded-lg p-8 md:p-12 shadow-xl overflow-hidden relative border-2 transition-all duration-500 ${darkMode ? 'bg-gray-800' : ''}`}
           style={{ borderColor: darkMode ? '#374151' : `${color1}33`, backgroundColor: darkMode ? '' : '' }}
@@ -686,25 +806,89 @@ export function renderContentBlock(block, options = {}) {
                 </h4>
                 <div className="overflow-x-auto rounded-lg border" style={{ borderColor: `${color1}33`, backgroundColor: darkMode ? '#374151' : 'white' }}>
                   <table className="w-full text-center">
+                    {content.widths && content.widths.length > 0 && (
+                      <colgroup>
+                        {tableHeaders.map((_, idx) => {
+                          const w = content.widths[idx];
+                          return <col key={idx} style={{ width: w ? `${w}%` : 'auto' }} />;
+                        })}
+                      </colgroup>
+                    )}
                     <thead style={{ backgroundColor: color2 }}>
                       <tr style={{ backgroundColor: darkMode ? '#374151' : color2 }}>
-                        {tableHeaders.map((header, idx) => (
-                          <th key={idx} className="p-3 text-base font-bold text-center" style={{ color: color1, borderBottom: `2px solid ${color1}66` }}>
-                            {header}
-                          </th>
-                        ))}
+                        {(() => {
+                          let skip = 0;
+                          return tableHeaders.map((header, idx) => {
+                            if (skip > 0) {
+                              skip--;
+                              return null;
+                            }
+                            const parsed = parseCell(header);
+                            if (parsed.colspan > 1) {
+                              skip = parsed.colspan - 1;
+                            }
+                            return (
+                              <th key={idx} colSpan={parsed.colspan} className={`p-3 text-base font-normal text-center ${darkMode ? 'text-gray-300' : 'text-gray-900'}`} style={{ borderBottom: `2px solid ${color1}66` }}>
+                                {parsed.text}
+                              </th>
+                            );
+                          }).filter(Boolean);
+                        })()}
                       </tr>
                     </thead>
                     <tbody>
-                      {tableRows.map((row, rowIdx) => (
-                        <tr key={rowIdx} className={`border-b ${darkMode ? 'text-gray-300' : ''}`} style={{ borderColor: `${color1}33` }}>
-                          {row.map((cell, cellIdx) => (
-                            <td key={cellIdx} className={`p-3 text-center ${cellIdx === 0 ? 'font-medium' : ''} ${darkMode ? (cellIdx === 0 ? 'text-gray-200' : 'text-gray-300') : (cellIdx === 0 ? 'text-gray-800' : 'text-gray-700')}`}>
-                              {cell}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
+                      {(() => {
+                        const colCount = tableHeaders.length;
+                        const rowspanSpans = Array(colCount).fill(0);
+                        
+                        return tableRows.map((row, rowIdx) => {
+                          const cellsToRender = [];
+                          
+                          for (let colIdx = 0; colIdx < colCount; colIdx++) {
+                            if (rowspanSpans[colIdx] > 0) {
+                              rowspanSpans[colIdx]--;
+                              continue;
+                            }
+                            
+                            const cell = row[colIdx];
+                            if (cell === undefined) continue;
+                            
+                            const parsed = parseCell(cell);
+                            
+                            if (parsed.rowspan > 1) {
+                              rowspanSpans[colIdx] = parsed.rowspan - 1;
+                            }
+                            
+                            if (parsed.colspan > 1) {
+                              for (let c = 1; c < parsed.colspan; c++) {
+                                if (colIdx + c < colCount) {
+                                  if (parsed.rowspan > 1) {
+                                    rowspanSpans[colIdx + c] = parsed.rowspan - 1;
+                                  }
+                                  colIdx++;
+                                }
+                              }
+                            }
+                            
+                            cellsToRender.push({
+                              colIdx,
+                              colspan: parsed.colspan,
+                              rowspan: parsed.rowspan,
+                              text: parsed.text
+                            });
+                          }
+                          
+                          return (
+                            <tr key={rowIdx} className={`border-b ${darkMode ? 'text-gray-300' : ''}`} style={{ borderColor: `${color1}33` }}>
+                              {cellsToRender.map((cellObj, idx) => (
+                                <td key={idx} colSpan={cellObj.colspan} rowSpan={cellObj.rowspan} className={`p-3 text-center ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                  {cellObj.text}
+                                </td>
+                              ))}
+                            </tr>
+                          );
+                        });
+                      })()}
                     </tbody>
                   </table>
                 </div>
@@ -714,27 +898,91 @@ export function renderContentBlock(block, options = {}) {
             {!content.subtitle && tableHeaders.length > 0 && (
               <div className={`overflow-x-auto rounded-2xl shadow-md border-2 ${darkMode ? 'bg-gray-700' : 'bg-white'}`} style={{ borderColor: `${color1}66` }}>
                 <table className="w-full min-w-[600px] md:min-w-[800px] lg:min-w-[1200px] text-center text-sm">
+                  {content.widths && content.widths.length > 0 && (
+                    <colgroup>
+                      {tableHeaders.map((_, idx) => {
+                        const w = content.widths[idx];
+                        return <col key={idx} style={{ width: w ? `${w}%` : 'auto' }} />;
+                      })}
+                    </colgroup>
+                  )}
                   <thead className="border-b" style={{ backgroundColor: darkMode ? '#1f2937' : color2, borderColor: `${color1}66` }}>
                     <tr>
-                      {tableHeaders.map((header, idx) => (
-                        <th key={idx} className={`p-3 font-semibold text-center ${idx === 0 ? 'text-base font-bold align-middle' : ''} ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-                          style={idx === 0 ? { color: color1, borderRight: `2px solid ${color1}66` } : (idx === tableHeaders.length - 1 ? {} : { borderRight: idx % 2 === 0 ? `2px solid ${color1}66` : `1px solid ${color1}33` })}>
-                          {header}
-                        </th>
-                      ))}
+                      {(() => {
+                        let skip = 0;
+                        return tableHeaders.map((header, idx) => {
+                          if (skip > 0) {
+                            skip--;
+                            return null;
+                          }
+                          const parsed = parseCell(header);
+                          if (parsed.colspan > 1) {
+                            skip = parsed.colspan - 1;
+                          }
+                          return (
+                            <th key={idx} colSpan={parsed.colspan} className={`p-3 font-normal text-center ${idx === 0 ? 'text-base align-middle' : ''} ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                              style={idx === 0 ? { borderRight: `2px solid ${color1}66` } : (idx === tableHeaders.length - 1 ? {} : { borderRight: idx % 2 === 0 ? `2px solid ${color1}66` : `1px solid ${color1}33` })}>
+                              {parsed.text}
+                            </th>
+                          );
+                        }).filter(Boolean);
+                      })()}
                     </tr>
                   </thead>
                   <tbody>
-                    {tableRows.map((row, rowIdx) => (
-                      <tr key={rowIdx} className="border-b" style={{ borderColor: `${color1}33` }}>
-                        {row.map((cell, cellIdx) => (
-                          <td key={cellIdx} className={`p-3 text-center ${cellIdx === 0 ? 'font-semibold' : ''} ${darkMode ? (cellIdx === 0 ? 'text-gray-200' : 'text-gray-300') : (cellIdx === 0 ? 'text-gray-800' : 'text-gray-700')}`}
-                            style={cellIdx === 0 ? { borderRight: `2px solid ${color1}66` } : (cellIdx === row.length - 1 ? {} : { borderRight: cellIdx % 2 === 0 ? `2px solid ${color1}66` : `1px solid ${color1}33` })}>
-                            {cell}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
+                    {(() => {
+                      const colCount = tableHeaders.length;
+                      const rowspanSpans = Array(colCount).fill(0);
+                      
+                      return tableRows.map((row, rowIdx) => {
+                        const cellsToRender = [];
+                        
+                        for (let colIdx = 0; colIdx < colCount; colIdx++) {
+                          if (rowspanSpans[colIdx] > 0) {
+                            rowspanSpans[colIdx]--;
+                            continue;
+                          }
+                          
+                          const cell = row[colIdx];
+                          if (cell === undefined) continue;
+                          
+                          const parsed = parseCell(cell);
+                          
+                          if (parsed.rowspan > 1) {
+                            rowspanSpans[colIdx] = parsed.rowspan - 1;
+                          }
+                          
+                          if (parsed.colspan > 1) {
+                            for (let c = 1; c < parsed.colspan; c++) {
+                              if (colIdx + c < colCount) {
+                                if (parsed.rowspan > 1) {
+                                  rowspanSpans[colIdx + c] = parsed.rowspan - 1;
+                                }
+                                colIdx++;
+                              }
+                            }
+                          }
+                          
+                          cellsToRender.push({
+                            colIdx,
+                            colspan: parsed.colspan,
+                            rowspan: parsed.rowspan,
+                            text: parsed.text
+                          });
+                        }
+                        
+                        return (
+                          <tr key={rowIdx} className="border-b" style={{ borderColor: `${color1}33` }}>
+                            {cellsToRender.map((cellObj, idx) => (
+                              <td key={idx} colSpan={cellObj.colspan} rowSpan={cellObj.rowspan} className={`p-3 text-center ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                                style={cellObj.colIdx === 0 ? { borderRight: `2px solid ${color1}66` } : (cellObj.colIdx === colCount - 1 ? {} : { borderRight: cellObj.colIdx % 2 === 0 ? `2px solid ${color1}66` : `1px solid ${color1}33` })}>
+                                {cellObj.text}
+                              </td>
+                            ))}
+                          </tr>
+                        );
+                      });
+                    })()}
                   </tbody>
                 </table>
               </div>
@@ -780,65 +1028,155 @@ export function renderContentBlock(block, options = {}) {
       );
 
     case 'statistics':
-      const statsItems = Array.isArray(content.stats)
+      const stats = Array.isArray(content.stats)
         ? content.stats
-        : (Array.isArray(content.items) ? content.items : []);
+        : (Array.isArray(content.statistics)
+          ? content.statistics
+          : (Array.isArray(content.items) ? content.items : []));
+
+      const statsLayout = content.layout || 'chart'; // 'chart' (Bar Chart) or 'cards' (Card Grid)
+      const basicColors = ['#3b82f6', '#10b981', '#8b5cf6', '#f97316', '#6366f1'];
+
+      if (statsLayout === 'cards') {
+        return (
+          <div className={`w-full rounded-lg p-8 md:p-12 shadow-xl overflow-hidden relative border-2 transition-all duration-500 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+            style={{ borderColor: darkMode ? '#374151' : `${color1}33` }}
+          >
+            <div className="absolute inset-0 opacity-20">
+              <div className="absolute top-10 right-10 w-72 h-72 rounded-full blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
+              <div className="absolute bottom-10 left-10 w-72 h-72 rounded-full blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
+            </div>
+
+            <div className="relative">
+              {content.title && (
+                <h3 className={`text-2xl md:text-3xl font-bold mb-8 text-center ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                  {content.title}
+                </h3>
+              )}
+
+              {stats.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                   {stats.map((stat, idx) => {
+                    const normalizedStat = typeof stat === 'string'
+                      ? { value: '', label: stat }
+                      : stat;
+                    
+                    const statColor = basicColors[idx % basicColors.length];
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`relative p-6 rounded-xl border-2 overflow-hidden ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gradient-to-br from-white to-blue-50 border-gray-200'}`}
+                        style={{
+                          borderColor: darkMode ? '#4b5563' : '#e5e7eb',
+                        }}
+                      >
+                        <div className="relative text-center flex flex-col items-center justify-center">
+                          <div
+                            className="text-4xl md:text-5xl font-bold mb-2"
+                            style={{ color: statColor }}
+                          >
+                            {normalizedStat.value}
+                          </div>
+                          <div className={`text-sm md:text-base font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {normalizedStat.label}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className={`p-8 text-center rounded-lg border-2 border-dashed ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`} style={{ borderColor: `${color1}66` }}>
+                  <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>📈 No statistics to display</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      // Default: Bar Chart Layout ('chart')
+      const getBarValue = (val) => {
+        if (typeof val === 'string') {
+          const num = parseFloat(val.replace(/[^\d.]/g, ''));
+          return isNaN(num) ? 0 : num;
+        }
+        return typeof val === 'number' ? val : 0;
+      };
+
+      const maxVal = stats.length > 0 ? Math.max(...stats.map(s => getBarValue(s.value || s.label))) : 0;
+      const yMax = Math.max(100, Math.ceil(maxVal / 10) * 10);
+      const yTicks = [];
+      for (let i = 0; i <= yMax; i += 20) {
+        yTicks.push(i);
+      }
 
       return (
         <div className={`w-full rounded-lg p-8 md:p-12 shadow-xl overflow-hidden relative border-2 transition-all duration-500 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
           style={{ borderColor: darkMode ? '#374151' : `${color1}33` }}
-          onMouseEnter={(e) => e.currentTarget.style.borderColor = `${color1}66`}
-          onMouseLeave={(e) => e.currentTarget.style.borderColor = darkMode ? '#374151' : `${color1}33`}
         >
           <div className="absolute inset-0 opacity-20">
             <div className="absolute top-10 right-10 w-72 h-72 rounded-full blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
             <div className="absolute bottom-10 left-10 w-72 h-72 rounded-full blur-3xl" style={{ backgroundColor: `${color1}33` }}></div>
           </div>
 
-          <div className="relative">
+          <div className="relative w-full">
             {content.title && (
               <h3 className={`text-2xl md:text-3xl font-bold mb-8 text-center ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
                 {content.title}
               </h3>
             )}
 
-            {statsItems.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {statsItems.map((stat, idx) => {
-                  const normalizedStat = typeof stat === 'string'
-                    ? { value: '', label: stat }
-                    : stat;
-
-                  return (
-                    <div
-                      key={idx}
-                      className={`relative p-6 rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden group ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gradient-to-br from-white to-blue-50 border-gray-200'
-                        }`}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = color1;
-                        e.currentTarget.style.boxShadow = `0 0 20px ${color1}30`;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = darkMode ? '#4b5563' : '#e5e7eb';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
-                    >
-                      <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300" style={{ backgroundColor: color1 }}></div>
-
-                      <div className="relative text-center">
-                        <div
-                          className="text-4xl md:text-5xl font-bold mb-3 transition-all duration-300"
-                          style={{ color: color1 }}
-                        >
-                          {normalizedStat.value}
-                        </div>
-                        <div className={`text-sm md:text-base font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                          {normalizedStat.label}
-                        </div>
-                      </div>
+            {stats.length > 0 ? (
+              <div className="w-full overflow-x-auto pt-6 pb-8">
+                <div className="h-64 flex flex-col justify-end w-full min-w-[500px] max-w-4xl mx-auto px-4">
+                  <div className="flex w-full items-end h-full relative pl-12 pb-2">
+                    {/* Y-axis ticks */}
+                    <div className="flex flex-col justify-between h-full mr-2 text-xs text-gray-400 absolute left-0 top-0 pb-2" style={{ height: '100%', width: '2.5rem' }}>
+                      {yTicks.slice().reverse().map((tick, i) => (
+                        <div key={i} className="flex items-center justify-end pr-1">{tick}</div>
+                      ))}
                     </div>
-                  );
-                })}
+
+                    {/* Bars Container */}
+                    <div className="flex-1 flex justify-around items-end h-full border-b border-l border-gray-300 dark:border-gray-600 relative">
+                      {stats.map((stat, i) => {
+                        const val = getBarValue(stat.value);
+                        const percent = stat.label?.toLowerCase().includes('rate')
+                          ? parseFloat(stat.value) || 0
+                          : yMax > 0 ? (val / yMax) * 100 : 0;
+
+                        const barColor = basicColors[i % basicColors.length];
+
+                        return (
+                          <div key={i} className="flex flex-col items-center w-24 h-full justify-end relative">
+                            {/* Value labels */}
+                            <span className="mb-1 text-sm font-bold block" style={{ color: barColor }}>
+                              {stat.value}
+                            </span>
+
+                            {/* Bar element */}
+                            <div
+                              className="w-12 rounded-t-md rounded-b-sm flex items-end justify-center transition-all duration-700 shadow-md"
+                              style={{
+                                height: `calc(${percent}% - 1.5rem)`,
+                                background: barColor,
+                                minHeight: '10px',
+                                maxHeight: '100%'
+                              }}
+                            />
+
+                            {/* X-axis labels */}
+                            <span className="absolute -bottom-6 text-[10px] md:text-xs text-center font-semibold truncate w-24" style={{ color: darkMode ? '#E5E7EB' : '#475569' }}>
+                              {stat.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className={`p-8 text-center rounded-lg border-2 border-dashed ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`} style={{ borderColor: `${color1}66` }}>

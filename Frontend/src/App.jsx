@@ -29,7 +29,6 @@ import Hostel from './screens/facilities/hostel';
 import Internet from './screens/facilities/internet';
 import InnovationCell from './screens/IIC&Clubs/innovationCell';
 import FDPWebinar from './screens/IIC&Clubs/fdpWebinar';
-import Fdp from './screens/IIC&Clubs/fdp';
 import ResearchGroup from './screens/research/researchGroup';
 import Security from './screens/facilities/security';
 import Gym from './screens/facilities/gym';
@@ -71,6 +70,7 @@ import ManageCourses from './admin/pages/ManageCourses';
 import ManageResearchPublications from './admin/pages/ManageResearchPublications';
 import ManageHeroSliders from './admin/pages/ManageHeroSliders';
 import ManageCompanyLogos from './admin/pages/ManageCompanyLogos';
+import ManageRecruitersCorner from './admin/pages/ManageRecruitersCorner';
 import ManageNIRF from './admin/pages/ManageNIRF';
 import ManageNavigation from './admin/pages/ManageNavigation';
 import ManageSiteSettings from './admin/pages/ManageSiteSettings';
@@ -90,7 +90,6 @@ import ManageBTechStudents from './admin/pages/ManageBTechStudents';
 import ManageMTechStudents from './admin/pages/ManageMTechStudents';
 import ManageGenderIndex from './admin/pages/ManageGenderIndex';
 import ManageFacilities from './admin/pages/ManageFacilities';
-import ManageFdpPrograms from './admin/pages/ManageFdpPrograms';
 import ManageContentSections from './admin/pages/ManageContentSections';
 import ManageLatestNewsUpdates from './admin/pages/ManageLatestNewsUpdates';
 import ManageClubs from './screens/admin/ManageClubs';
@@ -174,6 +173,7 @@ function App() {
             <Route path="research-publications" element={<ManageResearchPublications />} />
             <Route path="hero-sliders" element={<ManageHeroSliders />} />
             <Route path="company-logos" element={<ManageCompanyLogos />} />
+            <Route path="recruiters-corner" element={<ManageRecruitersCorner />} />
             <Route path="nirf" element={<ManageNIRF />} />
             <Route path="footer" element={<FooterLinksManager />} />
             <Route path="navigation" element={<ManageNavigation />} />
@@ -192,7 +192,6 @@ function App() {
             <Route path="gender-index" element={<ManageGenderIndex />} />
             <Route path="facilities" element={<ManageFacilities />} />
             <Route path="clubs" element={<ManageClubs />} />
-            <Route path="fdp-programs" element={<ManageFdpPrograms />} />
             <Route path="latest-news-updates" element={<ManageLatestNewsUpdates />} />
             <Route path="latest-news-updates/:subsection" element={<ManageLatestNewsUpdates />} />
             <Route path="content-sections" element={<ManageContentSections />} />
@@ -252,7 +251,6 @@ function App() {
                 <Route path="/facilities/bank-atm" element={<BankATM />} />
                 <Route path="/iic-clubs/innovation-cell" element={<InnovationCell />} />
                 <Route path="/iic-clubs/fdp-webinars" element={<FDPWebinar />} />
-                <Route path="/fdp" element={<Fdp />} />
                 <Route path="/iic-clubs/gallery" element={<Gallery />} />
                 <Route path="/iic-clubs/cultural-club" element={<ClubCarnival />} />
                 <Route path="/iic-clubs/technical-club" element={<TechnicalClub />} />

@@ -20,9 +20,7 @@ export default function AnnouncementBanner() {
         console.log('AnnouncementBanner API response:', response);
         
         if (response.success && Array.isArray(response.data) && response.data.length > 0) {
-          const activeAnnouncements = response.data
-            .map(item => item.title);
-          setAnnouncements(activeAnnouncements);
+          setAnnouncements(response.data);
         } else {
           setError('No announcements available');
           setAnnouncements([]);
@@ -150,11 +148,27 @@ export default function AnnouncementBanner() {
         {/* Horizontal Announcement Container */}
         <div className="ml-20 sm:ml-32 md:ml-40 lg:ml-48 flex-1 overflow-hidden flex items-center px-2">
           <div className={`fade-announcement${fade ? ' fade' : ''} announcement-horizontal w-full`}>
-            {currentAnnouncements.slice(0, 3).map((announcement, index) => (
-              <span key={index} className="font-medium text-xs sm:text-sm announcement-item">
-                • {announcement}
-              </span>
-            ))}
+            {currentAnnouncements.slice(0, 3).map((announcement, index) => {
+              const text = `• ${announcement.title}`;
+              if (announcement.link) {
+                return (
+                  <a
+                    key={announcement.id || index}
+                    href={announcement.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-xs sm:text-sm announcement-item hover:underline hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors"
+                  >
+                    {text}
+                  </a>
+                );
+              }
+              return (
+                <span key={announcement.id || index} className="font-medium text-xs sm:text-sm announcement-item">
+                  {text}
+                </span>
+              );
+            })}
           </div>
         </div>
       </div>

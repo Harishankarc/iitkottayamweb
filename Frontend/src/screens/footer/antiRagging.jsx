@@ -5,7 +5,7 @@ import API from '../../api/api.jsx';
 
 export default function AntiRagging() {
   const { darkMode } = useTheme();
-    const color1 = API.color1;
+  const color1 = API.color1;
 
   const antiRaggingLinks = [
     {
@@ -57,8 +57,8 @@ export default function AntiRagging() {
       {/* Hero Section */}
       <div className={`py-1 px-6 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="max-w-full mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-2 border" 
-               style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-2 border"
+            style={{ backgroundColor: `${color1}1A`, color: color1, borderColor: `${color1}66` }}>
             <Shield className="w-3 h-3" style={{ color: color1 }} />
             Campus Safety
           </div>
@@ -72,7 +72,7 @@ export default function AntiRagging() {
       <div className={`py-8 px-6 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <div className="max-w-full mx-auto">
           <div className={`rounded-xl p-6 md:p-8 shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-            
+
             {/* Important Notice */}
             <div className={`mb-8 p-6 rounded-lg border-l-4 ${darkMode ? 'bg-red-900/20 border-red-500' : 'bg-red-50 border-red-500'}`}>
               <div className="flex items-start gap-3">
@@ -80,7 +80,7 @@ export default function AntiRagging() {
                 <div>
                   <h3 className="font-bold text-lg mb-2 text-red-600">Zero Tolerance Policy</h3>
                   <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    IIIT Kottayam has a strict zero-tolerance policy towards ragging. Any act of ragging is a punishable offense and will be dealt with severely as per UGC regulations and Supreme Court directives. 
+                    IIIT Kottayam has a strict zero-tolerance policy towards ragging. Any act of ragging is a punishable offense and will be dealt with severely as per UGC regulations and Supreme Court directives.
                     Students are required to submit affidavits and undertakings as part of the admission process.
                   </p>
                 </div>
@@ -95,13 +95,12 @@ export default function AntiRagging() {
                   href={item.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`flex items-center gap-3 p-5 rounded-lg border-2 transition-all hover:shadow-lg hover:scale-105 ${
-                    darkMode 
-                      ? 'bg-gray-700 border-gray-600 hover:border-gray-500' 
-                      : 'bg-gray-50 border-gray-200 hover:border-gray-300'
-                  }`}
+                  className={`flex items-center gap-3 p-5 rounded-lg border-2 transition-all hover:shadow-lg hover:scale-105 ${darkMode
+                    ? 'bg-gray-700 border-gray-600 hover:border-gray-500'
+                    : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                    }`}
                 >
-                  <div 
+                  <div
                     className="p-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: `${color1}20`, color: color1 }}
                   >
@@ -122,10 +121,10 @@ export default function AntiRagging() {
                 What is Ragging?
               </h3>
               <p className={`text-sm leading-relaxed mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                Ragging constitutes any act that causes or is likely to cause physical or psychological harm or apprehension or fear to a student, 
+                Ragging constitutes any act that causes or is likely to cause physical or psychological harm or apprehension or fear to a student,
                 or subjects them to ridicule, intimidation, wrongful confinement, or indecent conduct, whether written, verbal, or through electronic means.
               </p>
-              
+
               <h3 className="font-bold text-lg mb-4" style={{ color: color1 }}>
                 How to Report?
               </h3>
@@ -163,9 +162,8 @@ export default function AntiRagging() {
                   href="https://www.antiragging.in"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                    darkMode ? 'bg-gray-600 text-white hover:bg-gray-500' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                  }`}
+                  className={`px-6 py-3 rounded-lg font-semibold transition-all ${darkMode ? 'bg-gray-600 text-white hover:bg-gray-500' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                    }`}
                 >
                   Visit Anti-Ragging Portal
                 </a>

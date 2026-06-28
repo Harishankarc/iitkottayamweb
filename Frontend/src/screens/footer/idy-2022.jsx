@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import API from '../../api/api';
 import { useTheme } from '../../context/createContext';
+import { usePageContent, getVisibleBlocks, renderContentBlock } from '../../hooks/usePageContent.jsx';
 
 export default function IDY2022() {
   const { darkMode } = useTheme();
-    const color1 = API.color1;
+  const color1 = API.color1;
+  const color2 = API.color2;
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  const { content: pageContent, blocks: contentBlocks, loading: contentLoading } = usePageContent('idy-2022');
+  const visibleBlocks = contentBlocks ? getVisibleBlocks(contentBlocks) : [];
 
   const images = [
     {
@@ -37,6 +42,30 @@ export default function IDY2022() {
   const goToSlide = (index) => {
     setCurrentSlide(index);
   };
+
+  if (contentLoading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-300" style={{ borderTopColor: color1 }}></div>
+      </div>
+    );
+  }
+
+  if (visibleBlocks.length > 0) {
+    return (
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
+        <main className="mx-auto py-8 max-w-full" style={{ paddingLeft: '1cm', paddingRight: '1cm' }}>
+          <div className="space-y-6 max-w-full mx-auto">
+            {visibleBlocks.map((block, index) => (
+              <div key={block.blockId || index}>
+                {renderContentBlock(block, { darkMode, color1, color2 })}
+              </div>
+            ))}
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>

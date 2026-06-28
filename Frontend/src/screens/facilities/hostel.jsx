@@ -10,12 +10,11 @@ import { Home, Mail, Phone, MapPin, Users, Shield, Wifi, Utensils, Bed, FileText
 // Warden Card Component
 const WardenCard = ({ warden, color1, darkMode }) => {
   const [isHovered, setIsHovered] = React.useState(false);
-  
+
   return (
     <div
-      className={`p-4 sm:p-5 md:p-6 lg:p-8 rounded-xl transition-all duration-300 ${
-        isHovered ? 'shadow-xl' : 'shadow-md'
-      } ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+      className={`p-4 sm:p-5 md:p-6 lg:p-8 rounded-xl transition-all duration-300 ${isHovered ? 'shadow-xl' : 'shadow-md'
+        } ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
@@ -24,7 +23,7 @@ const WardenCard = ({ warden, color1, darkMode }) => {
     >
       <div className="flex items-start gap-3 sm:gap-4">
         {/* Profile Image */}
-        <div 
+        <div
           className="flex-shrink-0 w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-lg overflow-hidden"
           style={{
             border: `3px solid ${color1}`
@@ -43,13 +42,13 @@ const WardenCard = ({ warden, color1, darkMode }) => {
           <h3 className={`text-base sm:text-lg md:text-xl lg:text-2xl font-bold mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             {warden.name}
           </h3>
-          <p 
+          <p
             className="text-sm sm:text-base md:text-lg font-semibold mb-2"
             style={{ color: color1 }}
           >
             {warden.role}
           </p>
-          
+
           {warden.designation && (
             <p className={`text-xs sm:text-sm md:text-base mb-3 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               {warden.designation}
@@ -60,7 +59,7 @@ const WardenCard = ({ warden, color1, darkMode }) => {
             {warden.phone && (
               <div className="flex items-center gap-2">
                 <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 flex-shrink-0" style={{ color: color1 }} />
-                <a 
+                <a
                   href={`tel:${warden.phone}`}
                   className={`text-xs sm:text-sm md:text-base hover:underline ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
                 >
@@ -68,11 +67,11 @@ const WardenCard = ({ warden, color1, darkMode }) => {
                 </a>
               </div>
             )}
-            
+
             {warden.email && (
               <div className="flex items-center gap-2">
                 <Mail className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 flex-shrink-0" style={{ color: color1 }} />
-                <a 
+                <a
                   href={`mailto:${warden.email}`}
                   className={`text-xs hover:underline truncate ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
                 >
@@ -90,12 +89,11 @@ const WardenCard = ({ warden, color1, darkMode }) => {
 // Hostel Hall Card Component
 const HallCard = ({ hall, color1, darkMode }) => {
   const [isHovered, setIsHovered] = React.useState(false);
-  
+
   return (
     <div
-      className={`rounded-xl overflow-hidden transition-all duration-300 ${
-        isHovered ? 'shadow-xl' : 'shadow-md'
-      } ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+      className={`rounded-xl overflow-hidden transition-all duration-300 ${isHovered ? 'shadow-xl' : 'shadow-md'
+        } ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
@@ -103,7 +101,7 @@ const HallCard = ({ hall, color1, darkMode }) => {
       }}
     >
       {/* Hall Name Header */}
-      <div 
+      <div
         className="p-3 sm:p-4 md:p-5 text-center"
         style={{
           background: `linear-gradient(135deg, ${color1}, ${color1}dd)`
@@ -116,7 +114,7 @@ const HallCard = ({ hall, color1, darkMode }) => {
       <div className="p-4 sm:p-5 md:p-6">
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 mb-3 sm:mb-4">
           <div className="text-center">
-            <div 
+            <div
               className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 mx-auto rounded-lg flex items-center justify-center mb-2"
               style={{ backgroundColor: `${color1}20` }}
             >
@@ -127,9 +125,9 @@ const HallCard = ({ hall, color1, darkMode }) => {
               {hall.gender}
             </p>
           </div>
-          
+
           <div className="text-center">
-            <div 
+            <div
               className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 mx-auto rounded-lg flex items-center justify-center mb-2"
               style={{ backgroundColor: `${color1}20` }}
             >
@@ -149,7 +147,7 @@ const HallCard = ({ hall, color1, darkMode }) => {
               {hall.contact}
             </span>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" style={{ color: color1 }} />
             <span className={`text-xs sm:text-sm md:text-base truncate ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -164,7 +162,7 @@ const HallCard = ({ hall, color1, darkMode }) => {
 
 export default function Hostel() {
   const { darkMode } = useTheme();
-    const color1 = API.color1;
+  const color1 = API.color1;
   const color2 = API.color2;
   const [contentBlocks, setContentBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -280,7 +278,7 @@ export default function Hostel() {
         </div>
       );
     }
-    
+
     if (block.content.title) {
       return (
         <h2 className="text-2xl font-bold mb-4" style={{ color: color1 }}>
@@ -309,7 +307,7 @@ export default function Hostel() {
               </p>
             )}
             {block.content.description && (
-              <div 
+              <div
                 className={`text-xs md:text-sm max-w-2xl mx-auto ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}
                 dangerouslySetInnerHTML={{ __html: cleanHtmlFormatting(block.content.description) }}
               />
@@ -321,11 +319,11 @@ export default function Hostel() {
 
     if (block.blockType === 'paragraph') {
       return (
-        <div 
+        <div
           key={block.id || index}
-          className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`} 
-          style={{ borderColor: `${color1}20` }} 
-          onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
+          className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`}
+          style={{ borderColor: `${color1}20` }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = color1}
           onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}
         >
           {getParagraphHeader(block)}
@@ -336,11 +334,11 @@ export default function Hostel() {
 
     if (block.blockType === 'list') {
       return (
-        <div 
+        <div
           key={block.id || index}
-          className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`} 
-          style={{ borderColor: `${color1}20` }} 
-          onMouseEnter={(e) => e.currentTarget.style.borderColor = color1} 
+          className={`mb-12 p-8 rounded-2xl transition-all duration-300 hover:shadow-2xl ${darkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} shadow-xl border-2 hover:border-opacity-100`}
+          style={{ borderColor: `${color1}20` }}
+          onMouseEnter={(e) => e.currentTarget.style.borderColor = color1}
           onMouseLeave={(e) => e.currentTarget.style.borderColor = `${color1}20`}
         >
           <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Calendar as CalendarIcon, Search } from 'lucide-react';
 import API from '../../api/api';
-import ImageUploader from '../components/ImageUploader';
+import MultiImageUploader from '../components/MultiImageUploader';
 
 export default function ManageEvents() {
   const [events, setEvents] = useState([]);
@@ -13,7 +13,7 @@ export default function ManageEvents() {
     title: '',
     description: '',
     category: 'technical',
-    image: '',
+    image: [],
     venue: '',
     startDate: '',
     endDate: '',
@@ -48,13 +48,18 @@ export default function ManageEvents() {
         ? `${API.baseURL}/api/events/${editingItem.id}`
         : `${API.baseURL}/api/events`;
       
+      const payload = {
+        ...formData,
+        image: Array.isArray(formData.image) ? formData.image.join(',') : formData.image
+      };
+      
       const response = await fetch(url, {
         method: editingItem ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       if (response.ok) {
@@ -87,6 +92,7 @@ export default function ManageEvents() {
       title: '',
       description: '',
       category: 'technical',
+      image: [],
       venue: '',
       startDate: '',
       endDate: '',
@@ -102,6 +108,7 @@ export default function ManageEvents() {
       title: item.title,
       description: item.description,
       category: item.category,
+      image: item.image ? (item.image.includes(',') ? item.image.split(',').map(x => x.trim()) : [item.image]) : [],
       venue: item.venue,
       startDate: item.startDate?.split('T')[0] || '',
       endDate: item.endDate?.split('T')[0] || '',
@@ -212,11 +219,12 @@ export default function ManageEvents() {
                   className="w-full px-3 py-2 border rounded-lg"
                 />
               </div>
-              <ImageUploader
-                value={formData.image || ''}
-                onChange={(url) => setFormData({...formData, image: url})}
-                label="Event Banner"
+              <MultiImageUploader
+                value={formData.image || []}
+                onChange={(urls) => setFormData({...formData, image: urls})}
+                label="Event Images"
                 folder="events"
+                maxImages={10}
                 aspectRatio="16/9"
               />
               <div className="grid grid-cols-2 gap-4">

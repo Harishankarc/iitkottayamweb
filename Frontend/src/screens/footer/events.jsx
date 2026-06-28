@@ -14,6 +14,14 @@ const ImageCarousel = ({ images, eventTitle }) => {
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
+  useEffect(() => {
+    if (!images || images.length <= 1) return;
+    const timer = setTimeout(() => {
+      nextImage();
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [currentIndex, images]);
+
   if (!images || images.length === 0) {
     return (
       <div className="w-full h-48 sm:h-56 md:h-64 bg-gray-200 flex items-center justify-center rounded-t-lg">
@@ -24,32 +32,37 @@ const ImageCarousel = ({ images, eventTitle }) => {
 
   return (
     <div className="relative w-full h-48 sm:h-56 md:h-64 overflow-hidden rounded-t-lg group">
-      <img
-        src={images[currentIndex]}
-        alt={`${eventTitle} - ${currentIndex + 1}`}
-        className="w-full h-full object-cover transition-transform duration-300"
-      />
+      {images.map((img, idx) => (
+        <img
+          key={idx}
+          src={img}
+          alt={`${eventTitle} - ${idx + 1}`}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${
+            idx === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+          }`}
+        />
+      ))}
       
       {images.length > 1 && (
         <>
           {/* Navigation Buttons */}
           <button
             onClick={prevImage}
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20"
             aria-label="Previous image"
           >
             <ChevronLeft size={20} />
           </button>
           <button
             onClick={nextImage}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20"
             aria-label="Next image"
           >
             <ChevronRight size={20} />
           </button>
 
           {/* Image Indicators */}
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
             {images.map((_, idx) => (
               <button
                 key={idx}
@@ -73,14 +86,21 @@ const EventCard = ({ event, darkMode, color1 }) => {
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   };
 
-  // Parse images - could be a single image or multiple images (comma-separated or array)
+  // Parse and resolve images - could be a single image or multiple images (comma-separated or array)
   const getImages = () => {
     if (!event.image) return [];
-    if (Array.isArray(event.image)) return event.image;
-    if (typeof event.image === 'string') {
-      return event.image.includes(',') ? event.image.split(',').map(img => img.trim()) : [event.image];
-    }
-    return [];
+    const rawImages = Array.isArray(event.image)
+      ? event.image
+      : (typeof event.image === 'string'
+          ? (event.image.includes(',') ? event.image.split(',').map(img => img.trim()) : [event.image])
+          : []);
+
+    return rawImages.map(img => {
+      if (!img) return '';
+      if (img.startsWith('http')) return img;
+      if (img.startsWith('/uploads/')) return `${API.baseURL}${img}`;
+      return img;
+    }).filter(Boolean);
   };
 
   const images = getImages();
@@ -231,10 +251,11 @@ export default function Events() {
         return;
       }
       
-      const data = await response.json();
+      const res = await response.json();
+      const eventsList = Array.isArray(res) ? res : (Array.isArray(res.data) ? res.data : []);
       
       // Filter only published events and sort by date (newest first)
-      const publishedEvents = data
+      const publishedEvents = eventsList
         .filter(event => event.isPublished)
         .sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
       

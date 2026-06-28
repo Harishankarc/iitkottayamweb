@@ -52,7 +52,7 @@ export default function WhyIIIT() {
               </p>
               {isAdmin && (
                 <a 
-                  href="/admin/content-blocks?page=why-iiitk" 
+                  href="/admin/content?page=why-iiitk" 
                   className="inline-block mt-4 px-6 py-3 rounded-lg text-white font-semibold"
                   style={{ backgroundColor: color1 }}
                 >

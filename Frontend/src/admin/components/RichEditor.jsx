@@ -377,7 +377,7 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
         onKeyUp={saveSelection}
         onFocus={saveSelection}
         onPaste={handlePaste}
-        className="min-h-[120px] border rounded p-2 bg-white text-sm content-html"
+        className="min-h-[120px] border rounded p-2 bg-white text-sm"
         style={{ whiteSpace: 'pre-wrap', direction: 'ltr', unicodeBidi: 'isolate' }}
         data-testid="re-editor"
       />

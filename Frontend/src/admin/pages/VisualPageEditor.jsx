@@ -68,7 +68,8 @@ export default function VisualPageEditor() {
     { category: 'Others', pages: [
       { pageName: 'gallery', pageTitle: 'Gallery' },
       { pageName: 'campus-life', pageTitle: 'Campus Life' },
-      { pageName: 'contact', pageTitle: 'Contact' }
+      { pageName: 'contact', pageTitle: 'Contact' },
+      { pageName: 'rti', pageTitle: 'RTI' }
     ]}
   ];
 
@@ -269,13 +270,15 @@ export default function VisualPageEditor() {
         >
           <Edit2 className="w-4 h-4 group-hover:rotate-12 transition-transform" />
         </button>
-        <button
-          onClick={() => onDelete(block.id)}
-          className="group p-2.5 bg-gradient-to-br from-rose-500 to-pink-600 text-white rounded-full hover:from-rose-600 hover:to-pink-700 shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-110"
-          title="Delete"
-        >
-          <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
-        </button>
+        {block.blockType !== 'map' && block.blockType !== 'button' && (
+          <button
+            onClick={() => onDelete(block.id)}
+            className="group p-2.5 bg-gradient-to-br from-rose-500 to-pink-600 text-white rounded-full hover:from-rose-600 hover:to-pink-700 shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-110"
+            title="Delete"
+          >
+            <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -622,7 +625,7 @@ export default function VisualPageEditor() {
                     Start building your page by adding content blocks. Click the button below to get started.
                   </p>
                   <a
-                    href={`/admin/content-blocks?page=${selectedPage}`}
+                    href={`/admin/content?page=${selectedPage}`}
                     className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-xl font-semibold hover:from-green-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                   >
                     <Plus className="w-6 h-6" />

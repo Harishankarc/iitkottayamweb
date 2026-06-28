@@ -9,7 +9,8 @@ export default function ManageAnnouncements() {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({
-    title: ''
+    title: '',
+    link: ''
   });
 
   useEffect(() => {
@@ -42,10 +43,20 @@ export default function ManageAnnouncements() {
       console.log('📝 Saving announcement:', formData);
       let response;
       
+      const payload = {
+        title: formData.title,
+        message: formData.title, // map message to title to satisfy backend validation
+        link: formData.link,
+        type: editingItem?.type || 'info',
+        priority: editingItem?.priority || 'medium',
+        startDate: editingItem?.startDate || new Date().toISOString(),
+        isActive: editingItem?.isActive !== undefined ? editingItem.isActive : true
+      };
+
       if (editingItem) {
-        response = await API.put(`/api/announcements/${editingItem.id}`, formData);
+        response = await API.put(`/api/announcements/${editingItem.id}`, payload);
       } else {
-        response = await API.post('/api/announcements', formData);
+        response = await API.post('/api/announcements', payload);
       }
       
       console.log('📤 Save Response:', response);
@@ -90,7 +101,8 @@ export default function ManageAnnouncements() {
 
   const resetForm = () => {
     setFormData({
-      title: ''
+      title: '',
+      link: ''
     });
     setEditingItem(null);
   };
@@ -98,7 +110,8 @@ export default function ManageAnnouncements() {
   const openEditModal = (item) => {
     setEditingItem(item);
     setFormData({
-      title: item.title
+      title: item.title,
+      link: item.link || ''
     });
     setShowModal(true);
   };
@@ -178,7 +191,20 @@ export default function ManageAnnouncements() {
                   </span>
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">{announcement.title}</h3>
-                <p className="text-gray-600 mb-3">{announcement.message}</p>
+                <p className="text-gray-600 mb-2">{announcement.message}</p>
+                {announcement.link && (
+                  <div className="mb-3">
+                    <span className="text-xs font-semibold text-gray-500 mr-2">Link:</span>
+                    <a
+                      href={announcement.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline font-mono bg-blue-50/50 px-2 py-1 rounded border border-blue-100 inline-block"
+                    >
+                      🔗 {announcement.link}
+                    </a>
+                  </div>
+                )}
                 <div className="flex gap-4 text-sm text-gray-500">
                   <span>Start: {new Date(announcement.startDate).toLocaleDateString()}</span>
                   <span>End: {new Date(announcement.endDate).toLocaleDateString()}</span>
@@ -210,14 +236,29 @@ export default function ManageAnnouncements() {
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Announcement *</label>
                 <input
                   type="text"
                   required
+                  placeholder="Enter announcement text..."
                   value={formData.title}
                   onChange={(e) => setFormData({...formData, title: e.target.value})}
                   className="w-full px-3 py-2 border rounded-lg"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Redirection Link</label>
+                <input
+                  type="url"
+                  placeholder="https://example.com/page"
+                  value={formData.link}
+                  onChange={(e) => setFormData({...formData, link: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+                <p className="text-[10px] text-gray-500 mt-0.5">
+                  💡 If set, clicking this announcement on the home page banner will open this link in a new tab.
+                </p>
               </div>
               <div className="flex justify-end gap-3 pt-4">
                 <button
