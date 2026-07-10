@@ -61,6 +61,8 @@ import ProtectedRoute from './utils/ProtectedRoute';
 import ManageNews from './admin/pages/ManageNews';
 import ManageEvents from './admin/pages/ManageEvents';
 import ManageFaculty from './admin/pages/ManageFaculty';
+import ManageDistinguishedFaculty from './admin/pages/ManageDistinguishedFaculty';
+import ManageRecruitmentPartners from './admin/pages/ManageRecruitmentPartners';
 import ManageStudents from './admin/pages/ManageStudents';
 import ManagePlacements from './admin/pages/ManagePlacements';
 import ManageAnnouncements from './admin/pages/ManageAnnouncements';
@@ -88,6 +90,7 @@ import ManageSupportStaff from './admin/pages/ManageSupportStaff';
 import ManageResearchScholars from './admin/pages/ManageResearchScholars';
 import ManageBTechStudents from './admin/pages/ManageBTechStudents';
 import ManageMTechStudents from './admin/pages/ManageMTechStudents';
+import ManageUpcomingEvents from './admin/pages/ManageUpcomingEvents';
 import ManageGenderIndex from './admin/pages/ManageGenderIndex';
 import ManageFacilities from './admin/pages/ManageFacilities';
 import ManageContentSections from './admin/pages/ManageContentSections';
@@ -164,6 +167,8 @@ function App() {
             <Route path="news" element={<ManageNews />} />
             <Route path="events" element={<ManageEvents />} />
             <Route path="faculty" element={<ManageFaculty />} />
+            <Route path="distinguished-faculty" element={<ManageDistinguishedFaculty />} />
+            <Route path="recruitment-partners" element={<ManageRecruitmentPartners />} />
             <Route path="students" element={<ManageStudents />} />
             <Route path="placements" element={<ManagePlacements />} />
             <Route path="announcements" element={<ManageAnnouncements />} />
@@ -179,6 +184,7 @@ function App() {
             <Route path="navigation" element={<ManageNavigation />} />
             <Route path="navbar" element={<NavbarManager />} />
             <Route path="content" element={<UnifiedContentManager />} />
+            <Route path="upcoming-events" element={<ManageUpcomingEvents />} />
             <Route path="hostel" element={<HostelManagement />} />
             <Route path="administration" element={<ManageAdministration />} />
             <Route path="deans" element={<ManageDeans />} />

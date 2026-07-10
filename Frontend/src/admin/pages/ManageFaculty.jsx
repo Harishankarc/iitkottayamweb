@@ -437,6 +437,44 @@ export default function ManageFaculty() {
   const [pendingListItemCount, setPendingListItemCount] = useState(0);
   const paragraphEditorRef = React.useRef(null);
 
+  const [activeFormats, setActiveFormats] = useState({ bold: false, italic: false, underline: false });
+
+  useEffect(() => {
+    const checkActiveFormats = () => {
+      try {
+        const hasParentTag = (tagName) => {
+          try {
+            const sel = window.getSelection();
+            if (!sel || !sel.rangeCount) return false;
+            let node = sel.getRangeAt(0).startContainer;
+            while (node && node !== document.body) {
+              if (node && node.nodeName && node.nodeName.toLowerCase() === tagName.toLowerCase()) {
+                return true;
+              }
+              node = node.parentNode;
+            }
+          } catch (e) {}
+          return false;
+        };
+
+        const boldActive = document.queryCommandState('bold') || hasParentTag('strong') || hasParentTag('b');
+        const italicActive = document.queryCommandState('italic') || hasParentTag('em') || hasParentTag('i');
+        const underlineActive = document.queryCommandState('underline') || hasParentTag('u');
+        
+        setActiveFormats({
+          bold: boldActive,
+          italic: italicActive,
+          underline: underlineActive
+        });
+      } catch (e) {}
+    };
+
+    document.addEventListener('selectionchange', checkActiveFormats);
+    return () => {
+      document.removeEventListener('selectionchange', checkActiveFormats);
+    };
+  }, []);
+
   const editorSteps = [
     { step: 1, label: 'Profile Details', description: 'Identity and image' },
     { step: 2, label: 'Main Details', description: 'Summary and links' },
@@ -974,6 +1012,16 @@ export default function ManageFaculty() {
             {/* Paragraph Formatting Toolbar (Left column only) */}
             {detailBuilder.blockType === 'paragraph' && (
               <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
+                <style>{`
+                  @keyframes format-pop {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.15); }
+                    100% { transform: scale(1); }
+                  }
+                  .format-btn-active {
+                    animation: format-pop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+                  }
+                `}</style>
                 <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Text Formatting</p>
                 <div className="flex flex-wrap gap-2 items-center">
                   {/* Inline Formats */}
@@ -986,10 +1034,15 @@ export default function ManageFaculty() {
                           paragraphEditorRef.current.applyInlineFormat('strong');
                         }
                       }} 
-                      className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 hover:text-slate-900 text-slate-600 transition-all duration-200 hover:scale-105 active:scale-95" 
+                      className={`w-10 h-10 flex items-center justify-center rounded-lg hover:scale-105 active:scale-95 transition-all duration-200 ${
+                        activeFormats.bold 
+                          ? 'text-white font-bold format-btn-active' 
+                          : 'hover:bg-slate-100 hover:text-slate-900 text-slate-600'
+                      }`}
+                      style={activeFormats.bold ? { backgroundColor: API.color1 || '#239244' } : {}}
                       title="Bold"
                     >
-                      <Bold className="h-4.5 w-4.5 font-bold" />
+                      <Bold className="h-4.5 w-4.5" />
                     </button>
                     <button 
                       type="button" 
@@ -999,7 +1052,12 @@ export default function ManageFaculty() {
                           paragraphEditorRef.current.applyInlineFormat('em');
                         }
                       }} 
-                      className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 hover:text-slate-900 text-slate-600 transition-all duration-200 hover:scale-105 active:scale-95" 
+                      className={`w-10 h-10 flex items-center justify-center rounded-lg hover:scale-105 active:scale-95 transition-all duration-200 ${
+                        activeFormats.italic 
+                          ? 'text-white format-btn-active' 
+                          : 'hover:bg-slate-100 hover:text-slate-900 text-slate-600'
+                      }`}
+                      style={activeFormats.italic ? { backgroundColor: API.color1 || '#239244' } : {}}
                       title="Italic"
                     >
                       <Italic className="h-4.5 w-4.5" />
@@ -1012,7 +1070,12 @@ export default function ManageFaculty() {
                           paragraphEditorRef.current.applyInlineFormat('u');
                         }
                       }} 
-                      className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 hover:text-slate-900 text-slate-600 transition-all duration-200 hover:scale-105 active:scale-95" 
+                      className={`w-10 h-10 flex items-center justify-center rounded-lg hover:scale-105 active:scale-95 transition-all duration-200 ${
+                        activeFormats.underline 
+                          ? 'text-white format-btn-active' 
+                          : 'hover:bg-slate-100 hover:text-slate-900 text-slate-600'
+                      }`}
+                      style={activeFormats.underline ? { backgroundColor: API.color1 || '#239244' } : {}}
                       title="Underline"
                     >
                       <Underline className="h-4.5 w-4.5" />
@@ -1044,7 +1107,12 @@ export default function ManageFaculty() {
                           appendPendingListItem();
                         }, 50);
                       }}
-                      className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 hover:text-slate-900 text-slate-600 transition-all duration-200 hover:scale-105 active:scale-95"
+                      className={`w-10 h-10 flex items-center justify-center rounded-lg hover:scale-105 active:scale-95 transition-all duration-200 ${
+                        pendingListType === 'ul' 
+                          ? 'text-white format-btn-active' 
+                          : 'hover:bg-slate-100 hover:text-slate-900 text-slate-600'
+                      }`}
+                      style={pendingListType === 'ul' ? { backgroundColor: API.color1 || '#239244' } : {}}
                       title="Bullet List"
                     >
                       <List className="h-4.5 w-4.5" />
@@ -1059,7 +1127,12 @@ export default function ManageFaculty() {
                           appendPendingListItem();
                         }, 50);
                       }}
-                      className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 hover:text-slate-900 text-slate-600 transition-all duration-200 hover:scale-105 active:scale-95"
+                       className={`w-10 h-10 flex items-center justify-center rounded-lg hover:scale-105 active:scale-95 transition-all duration-200 ${
+                        pendingListType === 'ol' 
+                          ? 'text-white format-btn-active' 
+                          : 'hover:bg-slate-100 hover:text-slate-900 text-slate-600'
+                      }`}
+                      style={pendingListType === 'ol' ? { backgroundColor: API.color1 || '#239244' } : {}}
                       title="Numbered List"
                     >
                       <ListOrdered className="h-4.5 w-4.5" />

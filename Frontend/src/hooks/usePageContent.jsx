@@ -225,6 +225,119 @@ export function renderContentBlock(block, options = {}) {
         </div>
       );
 
+    case 'pdf':
+      const pdfsList = Array.isArray(content.pdfs) ? content.pdfs : [];
+      
+      // Fallback to single pdf mode if content.pdfs is empty but content.pdfUrl exists
+      if (pdfsList.length === 0 && (content.pdfUrl || content.url)) {
+        const pdfUrl = content.pdfUrl || content.url;
+        const pdfTitle = content.title || content.caption || 'PDF Document';
+        const pdfDesc = content.description || '';
+        const fullPdfUrl = getImageUrl(pdfUrl);
+        
+        return (
+          <div className="py-4 max-w-3xl mx-auto">
+            <a
+              href={fullPdfUrl || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex items-center gap-6 p-6 rounded-2xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group ${
+                darkMode ? 'bg-gray-800 border-gray-700 hover:border-red-500/50' : 'bg-white border-gray-200 hover:border-red-500/40'
+              }`}
+              style={{
+                transition: 'all 0.3s ease'
+              }}
+            >
+              {/* PDF Icon container */}
+              <div className="flex-shrink-0 w-16 h-16 rounded-xl flex items-center justify-center p-1.5 bg-red-50 border border-red-100 group-hover:scale-110 transition-transform duration-300">
+                <img
+                  src="/images/pdf-icon.png"
+                  alt="PDF Icon"
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <h3 className={`text-lg font-bold truncate group-hover:text-red-500 transition-colors ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {pdfTitle}
+                </h3>
+                {pdfDesc && (
+                  <p className={`text-sm mt-1 line-clamp-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {pdfDesc}
+                  </p>
+                )}
+                <div className="flex items-center gap-1.5 mt-2.5 text-xs font-bold text-red-500 uppercase tracking-wider">
+                  <span>View Document</span>
+                  <svg className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </div>
+              </div>
+            </a>
+          </div>
+        );
+      }
+
+      return (
+        <div className="w-full py-6">
+          {content.title && (
+            <h3 className={`text-2xl font-bold mb-8 text-center ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+              {content.title}
+            </h3>
+          )}
+          {pdfsList.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-7xl mx-auto px-4">
+              {pdfsList.map((pdfItem, idx) => {
+                const pdfSrc = getImageUrl(pdfItem.pdfUrl || pdfItem.url);
+                return (
+                  <a
+                    key={idx}
+                    href={pdfSrc || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`p-5 rounded-2xl flex flex-col items-center gap-4 text-center border-2 transition-all duration-300 hover:scale-105 hover:shadow-xl group ${
+                      darkMode ? 'bg-gray-800 border-gray-700 hover:border-red-500/50' : 'bg-gray-50 border-gray-200 hover:border-red-500/40'
+                    }`}
+                  >
+                    {/* PDF Icon container */}
+                    <div className="flex-shrink-0 w-16 h-16 rounded-xl flex items-center justify-center p-1.5 bg-red-50 border border-red-100 group-hover:scale-110 transition-transform duration-300">
+                      <img
+                        src="/images/pdf-icon.png"
+                        alt="PDF Icon"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    {/* PDF Title */}
+                    <div className="flex-1 flex flex-col justify-between min-w-0 w-full">
+                      <h4 className={`text-sm font-bold line-clamp-2 leading-tight group-hover:text-red-500 transition-colors ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                        {pdfItem.title || 'PDF Document'}
+                      </h4>
+                      {pdfItem.description && (
+                        <p className={`text-xs mt-1.5 line-clamp-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {pdfItem.description}
+                        </p>
+                      )}
+                      <div className="flex items-center justify-center gap-1 mt-3 text-[10px] font-bold text-red-500 uppercase tracking-wider">
+                        <span>View</span>
+                        <svg className="w-3 h-3 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center text-gray-400 py-6 animate-pulse">No PDFs added yet.</div>
+          )}
+        </div>
+      );
+
     case 'paragraph':
       return (
         <div
@@ -770,14 +883,24 @@ export function renderContentBlock(block, options = {}) {
       const tableNotes = Array.isArray(content.notes) ? content.notes : [];
 
       const parseCell = (cellText) => {
-        if (typeof cellText !== 'string') return { text: cellText || '', colspan: 1, rowspan: 1 };
+        if (typeof cellText !== 'string') return { text: cellText || '', colspan: 1, rowspan: 1, isImage: false, imageUrl: '' };
         const colMatch = cellText.match(/\[col=(\d+)\]/);
         const rowMatch = cellText.match(/\[row=(\d+)\]/);
-        const text = cellText.replace(/\[col=\d+\]|\[row=\d+\]/g, '').trim();
+        let text = cellText.replace(/\[col=\d+\]|\[row=\d+\]/g, '');
+        const isImage = text.includes('[img]');
+        let imageUrl = '';
+        if (isImage) {
+          imageUrl = text.replace('[img]', '').trim();
+          text = '';
+        } else {
+          text = text.trim();
+        }
         return {
           text,
           colspan: colMatch ? parseInt(colMatch[1], 10) : 1,
-          rowspan: rowMatch ? parseInt(rowMatch[1], 10) : 1
+          rowspan: rowMatch ? parseInt(rowMatch[1], 10) : 1,
+          isImage,
+          imageUrl
         };
       };
 
@@ -805,7 +928,7 @@ export function renderContentBlock(block, options = {}) {
                   {content.subtitle}
                 </h4>
                 <div className="overflow-x-auto rounded-lg border" style={{ borderColor: `${color1}33`, backgroundColor: darkMode ? '#374151' : 'white' }}>
-                  <table className="w-full text-center">
+                  <table className="w-full text-center border-collapse">
                     {content.widths && content.widths.length > 0 && (
                       <colgroup>
                         {tableHeaders.map((_, idx) => {
@@ -828,7 +951,7 @@ export function renderContentBlock(block, options = {}) {
                               skip = parsed.colspan - 1;
                             }
                             return (
-                              <th key={idx} colSpan={parsed.colspan} className={`p-3 text-base font-normal text-center ${darkMode ? 'text-gray-300' : 'text-gray-900'}`} style={{ borderBottom: `2px solid ${color1}66` }}>
+                              <th key={idx} colSpan={parsed.colspan} className={`p-3 text-base font-normal text-center border-2 font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-900'}`} style={{ borderColor: `${color1}99` }}>
                                 {parsed.text}
                               </th>
                             );
@@ -874,15 +997,26 @@ export function renderContentBlock(block, options = {}) {
                               colIdx,
                               colspan: parsed.colspan,
                               rowspan: parsed.rowspan,
-                              text: parsed.text
+                              text: parsed.text,
+                              isImage: parsed.isImage,
+                              imageUrl: parsed.imageUrl
                             });
                           }
                           
                           return (
                             <tr key={rowIdx} className={`border-b ${darkMode ? 'text-gray-300' : ''}`} style={{ borderColor: `${color1}33` }}>
                               {cellsToRender.map((cellObj, idx) => (
-                                <td key={idx} colSpan={cellObj.colspan} rowSpan={cellObj.rowspan} className={`p-3 text-center ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                  {cellObj.text}
+                                <td key={idx} colSpan={cellObj.colspan} rowSpan={cellObj.rowspan} className={`p-3 text-center border-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} style={{ borderColor: `${color1}55` }}>
+                                  {cellObj.isImage ? (
+                                    <img
+                                      src={getImageUrl(cellObj.imageUrl)}
+                                      alt="Cell Content"
+                                      className="max-h-24 max-w-full mx-auto object-contain"
+                                      onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
+                                  ) : (
+                                    cellObj.text
+                                  )}
                                 </td>
                               ))}
                             </tr>
@@ -897,7 +1031,7 @@ export function renderContentBlock(block, options = {}) {
 
             {!content.subtitle && tableHeaders.length > 0 && (
               <div className={`overflow-x-auto rounded-2xl shadow-md border-2 ${darkMode ? 'bg-gray-700' : 'bg-white'}`} style={{ borderColor: `${color1}66` }}>
-                <table className="w-full min-w-[600px] md:min-w-[800px] lg:min-w-[1200px] text-center text-sm">
+                <table className="w-full min-w-[600px] md:min-w-[800px] lg:min-w-[1200px] text-center text-sm border-collapse">
                   {content.widths && content.widths.length > 0 && (
                     <colgroup>
                       {tableHeaders.map((_, idx) => {
@@ -920,8 +1054,8 @@ export function renderContentBlock(block, options = {}) {
                             skip = parsed.colspan - 1;
                           }
                           return (
-                            <th key={idx} colSpan={parsed.colspan} className={`p-3 font-normal text-center ${idx === 0 ? 'text-base align-middle' : ''} ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-                              style={idx === 0 ? { borderRight: `2px solid ${color1}66` } : (idx === tableHeaders.length - 1 ? {} : { borderRight: idx % 2 === 0 ? `2px solid ${color1}66` : `1px solid ${color1}33` })}>
+                            <th key={idx} colSpan={parsed.colspan} className={`p-3 font-semibold text-center border-2 ${idx === 0 ? 'text-base align-middle' : ''} ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                              style={{ borderColor: `${color1}66` }}>
                               {parsed.text}
                             </th>
                           );
@@ -967,16 +1101,27 @@ export function renderContentBlock(block, options = {}) {
                             colIdx,
                             colspan: parsed.colspan,
                             rowspan: parsed.rowspan,
-                            text: parsed.text
+                            text: parsed.text,
+                            isImage: parsed.isImage,
+                            imageUrl: parsed.imageUrl
                           });
                         }
                         
                         return (
                           <tr key={rowIdx} className="border-b" style={{ borderColor: `${color1}33` }}>
                             {cellsToRender.map((cellObj, idx) => (
-                              <td key={idx} colSpan={cellObj.colspan} rowSpan={cellObj.rowspan} className={`p-3 text-center ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-                                style={cellObj.colIdx === 0 ? { borderRight: `2px solid ${color1}66` } : (cellObj.colIdx === colCount - 1 ? {} : { borderRight: cellObj.colIdx % 2 === 0 ? `2px solid ${color1}66` : `1px solid ${color1}33` })}>
-                                {cellObj.text}
+                              <td key={idx} colSpan={cellObj.colspan} rowSpan={cellObj.rowspan} className={`p-3 text-center border-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                                style={{ borderColor: `${color1}55` }}>
+                                {cellObj.isImage ? (
+                                  <img
+                                    src={getImageUrl(cellObj.imageUrl)}
+                                    alt="Cell Content"
+                                    className="max-h-24 max-w-full mx-auto object-contain"
+                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                  />
+                                ) : (
+                                  cellObj.text
+                                )}
                               </td>
                             ))}
                           </tr>

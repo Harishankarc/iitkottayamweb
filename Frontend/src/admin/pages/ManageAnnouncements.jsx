@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, Megaphone } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Megaphone, FileUp, Link2, FileText } from 'lucide-react';
 import API from '../../api/api';
 
 export default function ManageAnnouncements() {
@@ -10,8 +10,12 @@ export default function ManageAnnouncements() {
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
-    link: ''
+    link: '',
+    linkType: 'redirect',
+    pdfLink: ''
   });
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     fetchAnnouncements();
@@ -37,6 +41,44 @@ export default function ManageAnnouncements() {
     }
   };
 
+  const handlePdfUpload = async (file) => {
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      alert('Please upload a PDF file');
+      return;
+    }
+    if (file.size > 25 * 1024 * 1024) {
+      alert('File too large. Maximum size is 25MB');
+      return;
+    }
+    setUploading(true);
+    setUploadProgress(0);
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      fd.append('folder', 'announcements');
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 10, 90));
+      }, 200);
+      const response = await API.post('/api/upload', fd);
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      if (response.success) {
+        setFormData(prev => ({ ...prev, pdfLink: response.data.url }));
+        console.log('✅ PDF uploaded:', response.data.url);
+      } else {
+        alert('Failed to upload PDF: ' + (response.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error uploading PDF:', error);
+      alert('Error uploading PDF: ' + error.message);
+    } finally {
+      setUploading(false);
+      setTimeout(() => setUploadProgress(0), 1000);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -46,7 +88,9 @@ export default function ManageAnnouncements() {
       const payload = {
         title: formData.title,
         message: formData.title, // map message to title to satisfy backend validation
-        link: formData.link,
+        link: formData.linkType === 'redirect' ? formData.link : '',
+        pdfLink: formData.linkType === 'pdf' ? formData.pdfLink : '',
+        linkType: formData.linkType,
         type: editingItem?.type || 'info',
         priority: editingItem?.priority || 'medium',
         startDate: editingItem?.startDate || new Date().toISOString(),
@@ -102,7 +146,9 @@ export default function ManageAnnouncements() {
   const resetForm = () => {
     setFormData({
       title: '',
-      link: ''
+      link: '',
+      linkType: 'redirect',
+      pdfLink: ''
     });
     setEditingItem(null);
   };
@@ -111,7 +157,9 @@ export default function ManageAnnouncements() {
     setEditingItem(item);
     setFormData({
       title: item.title,
-      link: item.link || ''
+      link: item.link || '',
+      linkType: item.linkType || (item.pdfLink ? 'pdf' : 'redirect'),
+      pdfLink: item.pdfLink || ''
     });
     setShowModal(true);
   };
@@ -205,6 +253,20 @@ export default function ManageAnnouncements() {
                     </a>
                   </div>
                 )}
+                {announcement.pdfLink && (
+                  <div className="mb-3">
+                    <span className="text-xs font-semibold text-gray-500 mr-2">PDF:</span>
+                    <a
+                      href={API.getImageUrl(announcement.pdfLink)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-red-600 hover:underline font-mono bg-red-50/50 px-2 py-1 rounded border border-red-100 inline-flex items-center gap-1"
+                    >
+                      <FileText className="h-3 w-3" />
+                      View PDF
+                    </a>
+                  </div>
+                )}
                 <div className="flex gap-4 text-sm text-gray-500">
                   <span>Start: {new Date(announcement.startDate).toLocaleDateString()}</span>
                   <span>End: {new Date(announcement.endDate).toLocaleDateString()}</span>
@@ -247,19 +309,133 @@ export default function ManageAnnouncements() {
                 />
               </div>
 
+              {/* Link Type Toggle */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Redirection Link</label>
-                <input
-                  type="url"
-                  placeholder="https://example.com/page"
-                  value={formData.link}
-                  onChange={(e) => setFormData({...formData, link: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg"
-                />
-                <p className="text-[10px] text-gray-500 mt-0.5">
-                  💡 If set, clicking this announcement on the home page banner will open this link in a new tab.
-                </p>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Link Type</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, linkType: 'redirect'})}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border-2 transition-all font-medium text-sm ${
+                      formData.linkType === 'redirect'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                    }`}
+                  >
+                    <Link2 className="h-4 w-4" />
+                    Redirect Link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, linkType: 'pdf'})}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border-2 transition-all font-medium text-sm ${
+                      formData.linkType === 'pdf'
+                        ? 'border-red-500 bg-red-50 text-red-700'
+                        : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
+                    }`}
+                  >
+                    <FileText className="h-4 w-4" />
+                    Upload PDF
+                  </button>
+                </div>
               </div>
+
+              {/* Conditional: Redirect Link Input */}
+              {formData.linkType === 'redirect' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Redirection Link</label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/page"
+                    value={formData.link}
+                    onChange={(e) => setFormData({...formData, link: e.target.value})}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                  <p className="text-[10px] text-gray-500 mt-0.5">
+                    💡 If set, clicking this announcement on the home page banner will open this link in a new tab.
+                  </p>
+                </div>
+              )}
+
+              {/* Conditional: PDF Upload */}
+              {formData.linkType === 'pdf' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Upload PDF</label>
+                  {formData.pdfLink ? (
+                    <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <FileText className="h-5 w-5 text-green-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-green-800 truncate">
+                          PDF uploaded successfully
+                        </p>
+                        <a
+                          href={API.getImageUrl(formData.pdfLink)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-green-600 hover:underline"
+                        >
+                          {formData.pdfLink}
+                        </a>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({...formData, pdfLink: ''})}
+                        className="text-red-500 hover:text-red-700 text-xs font-medium"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                        uploading ? 'border-blue-300 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const file = e.dataTransfer.files[0];
+                        if (file) handlePdfUpload(file);
+                      }}
+                    >
+                      {uploading ? (
+                        <div className="space-y-2">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderColor: API.color1 }}></div>
+                          <p className="text-sm text-gray-600">Uploading PDF...</p>
+                          <div className="w-full bg-gray-200 rounded-full h-2 max-w-xs mx-auto">
+                            <div
+                              className="h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${uploadProgress}%`, backgroundColor: API.color1 }}
+                            ></div>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <FileUp className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-600 mb-1">Drag & drop a PDF here, or</p>
+                          <label className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-white text-sm font-medium cursor-pointer hover:opacity-90 transition-opacity" style={{ backgroundColor: API.color1 }}>
+                            <FileUp className="h-4 w-4" />
+                            Choose PDF
+                            <input
+                              type="file"
+                              accept=".pdf,application/pdf"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (file) handlePdfUpload(file);
+                              }}
+                            />
+                          </label>
+                          <p className="text-[10px] text-gray-400 mt-2">Max file size: 25MB</p>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  <p className="text-[10px] text-gray-500 mt-0.5">
+                    📎 Clicking this announcement on the home page will open the PDF in a new tab.
+                  </p>
+                </div>
+              )}
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   type="button"

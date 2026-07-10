@@ -24,6 +24,7 @@ import {
   Wrench,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   UserCog,
   UserCheck,
   UsersRound,
@@ -38,9 +39,20 @@ import API from '../api/api';
 export default function AdminLayout() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(() => {
+    return localStorage.getItem('adminSidebarCollapsed') === 'true';
+  });
   const [user, setUser] = React.useState(null);
   const [expandedSections, setExpandedSections] = React.useState(['home-page', 'main-pages', 'institute', 'course', 'people', 'facilities', 'iic-clubs', 'research', 'placement', 'media-others']);
   const [contentSections, setContentSections] = React.useState([]);
+
+  const toggleSidebarCollapsed = () => {
+    setSidebarCollapsed(prev => {
+      const nextVal = !prev;
+      localStorage.setItem('adminSidebarCollapsed', String(nextVal));
+      return nextVal;
+    });
+  };
 
   React.useEffect(() => {
     // Get user from localStorage
@@ -257,7 +269,10 @@ export default function AdminLayout() {
         { icon: Megaphone, label: 'Announcements', path: '/admin/announcements' },
         { icon: Newspaper, label: 'Announcements (News)', path: '/admin/latest-news-updates/announcement' },
         { icon: Newspaper, label: 'Campus Updates', path: '/admin/latest-news-updates/campus-update' },
-        { icon: Newspaper, label: 'Quick Updates', path: '/admin/latest-news-updates/quick-update' }
+        { icon: Newspaper, label: 'Quick Updates', path: '/admin/latest-news-updates/quick-update' },
+        { icon: Calendar, label: 'Upcoming Events', path: '/admin/upcoming-events' },
+        { icon: Award, label: 'Distinguished Faculty', path: '/admin/distinguished-faculty' },
+        { icon: Building2, label: 'Recruitment Partners', path: '/admin/recruitment-partners' }
       ]
     },
     {
@@ -447,9 +462,9 @@ export default function AdminLayout() {
 
       {/* Sidebar */}
       <aside className={`
-        fixed top-0 left-0 z-50 h-full w-72 bg-gradient-to-b from-white to-gray-50 shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0
+        fixed top-0 left-0 z-50 h-full bg-gradient-to-b from-white to-gray-50 shadow-2xl transition-all duration-300 ease-in-out flex flex-col
+        ${sidebarOpen ? 'translate-x-0 w-72' : '-translate-x-full w-72'}
+        ${sidebarCollapsed ? 'lg:-translate-x-full lg:w-0 overflow-hidden' : 'lg:translate-x-0 lg:w-72'}
       `}>
 
         {/* Logo */}
@@ -460,12 +475,24 @@ export default function AdminLayout() {
             </h1>
             <p className="text-xs text-gray-600 font-medium">Admin Dashboard</p>
           </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <X className="h-5 w-5 text-gray-600" />
-          </button>
+          <div className="flex items-center gap-1">
+            {/* Desktop Collapse Button */}
+            <button
+              onClick={toggleSidebarCollapsed}
+              className="hidden lg:flex p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/60 shadow-sm transition-all cursor-pointer hover:scale-105 active:scale-95"
+              title="Hide Menu"
+            >
+              <ChevronLeft className="h-5.5 w-5.5" />
+            </button>
+
+            {/* Mobile Close Button */}
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <X className="h-5 w-5 text-gray-600" />
+            </button>
+          </div>
         </div>
 
         {/* User Info */}
@@ -594,22 +621,36 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main Content */}
-      <div className="lg:ml-72 transition-all duration-300">
+      <div className={`transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'lg:ml-0' : 'lg:ml-72'}`}>
 
         {/* Top Header */}
         <header className="h-20 bg-white shadow-md sticky top-0 z-30 border-b-2" style={{ borderColor: `${API.color1}20` }}>
           <div className="h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2.5 rounded-xl hover:bg-gray-100 transition-colors shadow-sm border border-gray-200"
-            >
-              <Menu className="h-6 w-6 text-gray-700" />
-            </button>
+            {/* Menu Toggle Buttons */}
+            <div className="flex items-center gap-3 mr-3 lg:mr-4">
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden p-2.5 rounded-xl hover:bg-gray-100 transition-colors shadow-sm border border-gray-200 cursor-pointer"
+              >
+                <Menu className="h-6 w-6 text-gray-700" />
+              </button>
+
+              {/* Desktop Sidebar Toggle Button (Only visible when sidebar is collapsed) */}
+              {sidebarCollapsed && (
+                <button
+                  onClick={toggleSidebarCollapsed}
+                  className="hidden lg:flex p-2.5 rounded-xl bg-green-50 hover:bg-green-100 text-green-700 shadow-sm border border-green-200/60 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-pulse-subtle"
+                  title="Expand Menu"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              )}
+            </div>
 
             {/* Page Title */}
-            <div className="flex-1 lg:flex-initial">
+            <div className="flex-1">
               <h2 className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                 Admin Dashboard
               </h2>

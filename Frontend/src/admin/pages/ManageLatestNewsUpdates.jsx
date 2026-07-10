@@ -384,22 +384,26 @@ export default function ManageLatestNewsUpdates() {
             )}
           </div>
 
-          <div className="mt-5 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-wrap items-center gap-3.5">
             <button
               type="button"
               onClick={() => addItem(activeSubsection.id)}
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
+              className="inline-flex items-center gap-2.5 rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-900 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] transition-all duration-200"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 stroke-[2.5]" />
               Add Item
             </button>
             <button
               type="button"
               onClick={saveSection}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+              className="inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-emerald-600/15 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none"
             >
-              <Save className="h-4 w-4" />
+              {saving ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              ) : (
+                <Save className="h-4 w-4 stroke-[2.5]" />
+              )}
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>

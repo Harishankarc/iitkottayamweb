@@ -150,15 +150,19 @@ export default function AnnouncementBanner() {
           <div className={`fade-announcement${fade ? ' fade' : ''} announcement-horizontal w-full`}>
             {currentAnnouncements.slice(0, 3).map((announcement, index) => {
               const text = `• ${announcement.title}`;
-              if (announcement.link) {
+              const targetUrl = announcement.pdfLink
+                ? (announcement.pdfLink.startsWith('http') ? announcement.pdfLink : `${API.baseURL}${announcement.pdfLink}`)
+                : announcement.link;
+              if (targetUrl) {
                 return (
                   <a
                     key={announcement.id || index}
-                    href={announcement.link}
+                    href={targetUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-medium text-xs sm:text-sm announcement-item hover:underline hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors"
                   >
+                    {announcement.pdfLink && <span className="mr-1">📄</span>}
                     {text}
                   </a>
                 );

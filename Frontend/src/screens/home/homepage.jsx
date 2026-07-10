@@ -60,7 +60,7 @@ const HomePage = () => {
         }
 
         // Fetch Events
-        const eventsRes = await API.get('/api/events');
+        const eventsRes = await API.get('/api/events?category=upcoming');
         const eventsData = eventsRes;
         console.log('Events Raw Response:', eventsData);
         if (eventsData.success) {
@@ -81,12 +81,36 @@ const HomePage = () => {
           setEventsList(formattedEvents);
         }
 
-        // Fetch Company Logos
-        const companiesRes = await API.get('/api/company-logos');
-        const companiesData = companiesRes;
-        if (companiesData.success) {
-          const companiesArray = Array.isArray(companiesData.data) ? companiesData.data : [];
-          setCompanyList(companiesArray.filter(item => item.isActive));
+        // Fetch Recruitment Partners from placements page content blocks
+        const placementsBlocksRes = await API.get('/api/content-blocks/page/placements');
+        if (placementsBlocksRes.success) {
+          const blocks = Array.isArray(placementsBlocksRes.data)
+            ? placementsBlocksRes.data
+            : (placementsBlocksRes.data.data || placementsBlocksRes.data || []);
+          const logoBlock = blocks.find(b => b.blockType === 'logo' || b.blockId === 'company-logos');
+          if (logoBlock) {
+            let parsedContent = logoBlock.content;
+            if (typeof parsedContent === 'string') {
+              try {
+                parsedContent = JSON.parse(parsedContent);
+              } catch (e) {
+                parsedContent = {};
+              }
+            }
+            const logos = Array.isArray(parsedContent.logos) ? parsedContent.logos : [];
+            // Map to the format needed by homepage rendering: { name, logo, link }
+            const formattedCompanies = logos.map(item => ({
+              name: item.alt || '',
+              logo: item.url || '',
+              link: item.link || '',
+              showOnHomepage: !!item.showOnHomepage
+            }));
+            setCompanyList(formattedCompanies);
+          } else {
+            setCompanyList([]);
+          }
+        } else {
+          setCompanyList([]);
         }
 
         // Fetch Faculty
@@ -95,17 +119,21 @@ const HomePage = () => {
         if (facultyData.success) {
           const facultyArray = Array.isArray(facultyData.data) ? facultyData.data : [];
           console.log(facultyArray)
-          const formattedFaculty = facultyArray
-            .filter(item => item.isActive)
-            .slice(0, 8)
-            .map(item => ({
-              image: API.getImageUrl(item.photo) || `https://placehold.co/200x200/e8f5f0/239244?text=${item.name.charAt(0)}`,
-              name: item.name,
-              designation: item.designation,
-              department: item.department,
-              specialization: item.specialization || '',
-              link: `/people/faculty/${item.id}`
-            }));
+          
+          let selectedFaculty = facultyArray.filter(item => item.isActive && item.isDistinguished);
+          // Fallback to first 8 active faculty members if no distinguished ones are chosen yet
+          if (selectedFaculty.length === 0) {
+            selectedFaculty = facultyArray.filter(item => item.isActive).slice(0, 8);
+          }
+
+          const formattedFaculty = selectedFaculty.map(item => ({
+            image: API.getImageUrl(item.photo) || `https://placehold.co/200x200/e8f5f0/239244?text=${item.name.charAt(0)}`,
+            name: item.name,
+            designation: item.designation,
+            department: item.department,
+            specialization: item.specialization || '',
+            link: `/people/faculty/${item.id}`
+          }));
           setFacultyList(formattedFaculty);
         }
 
@@ -366,28 +394,43 @@ const HomePage = () => {
           <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Our Core Values</h3>
           <div className={`grid grid-cols-1 md:grid-cols-2 shadow-xl overflow-hidden rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
             <div className={`p-6 md:p-8 border-r-0 md:border-r-2`} style={{ borderColor: color1 + '30' }}>
-              <h4 className="text-2xl font-bold mb-3">🎯 Vision</h4>
-              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-relaxed text-base`}>
-                {contentBlocks.find(b => b.blockId === 'homepage-vision')?.content?.description ||
-                  contentBlocks.find(b => b.blockId === 'homepage-vision')?.content?.text ||
-                  '"Generating knowledge for the future" — aspiring to be a top-tier, research-driven organization in IT and allied fields.'}
-              </p>
+              <h4 className="text-2xl font-bold mb-3">Vision</h4>
+              <div 
+                className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-relaxed text-base`}
+                dangerouslySetInnerHTML={{
+                  __html: contentBlocks.find(b => b.blockId === 'homepage-vision')?.content?.text ||
+                          contentBlocks.find(b => b.blockId === 'homepage-vision')?.content?.description ||
+                          '"Generating knowledge for the future" — aspiring to be a top-tier, research-driven organization in IT and allied fields.'
+                }}
+              />
             </div>
             <div className="p-6 md:p-8">
-              <h4 className="text-2xl font-bold mb-3">🎯 Mission</h4>
-              <ul className={`list-disc pl-5 ${darkMode ? 'text-gray-300' : 'text-gray-600'} space-y-2 text-base`}>
-                {(() => {
-                  const missionItems = contentBlocks.find(b => b.blockId === 'homepage-mission')?.content?.items ||
-                    pageContent?.sections?.find(s => s.id === 'mission')?.items || [
-                      'Produce competent and ethical graduates.',
-                      'Solve local & global problems through technology.',
-                      'Promote significance of ethics and integrity.'
-                    ];
-                  return missionItems.map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ));
-                })()}
-              </ul>
+              <h4 className="text-2xl font-bold mb-3">Mission</h4>
+              {(() => {
+                const missionBlock = contentBlocks.find(b => b.blockId === 'homepage-mission');
+                if (missionBlock?.content?.text) {
+                  return (
+                    <div 
+                      className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} leading-relaxed text-base`}
+                      dangerouslySetInnerHTML={{ __html: missionBlock.content.text }}
+                    />
+                  );
+                }
+                
+                const missionItems = missionBlock?.content?.items ||
+                  pageContent?.sections?.find(s => s.id === 'mission')?.items || [
+                    'Produce competent and ethical graduates.',
+                    'Solve local & global problems through technology.',
+                    'Promote significance of ethics and integrity.'
+                  ];
+                return (
+                  <ul className={`list-disc pl-5 ${darkMode ? 'text-gray-300' : 'text-gray-600'} space-y-2 text-base`}>
+                    {missionItems.map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
+                );
+              })()}
             </div>
           </div>
         </section>
@@ -495,15 +538,15 @@ const HomePage = () => {
         <section>
           <h3 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 px-1" style={{ color: color1 }}>Recruitment Partners</h3>
           <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 p-8 rounded-xl shadow-xl ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-            {companyList
-              .filter(c => {
-                const featuredCompanies = ['samsung', 'google', 'tcs', 'cognizant', 'amazon', 'lg', 'oracle', 'accenture', 'flipkart', 'uber', 'ibm', 'nvidia'];
-                return c.category === 'recruitment' && featuredCompanies.includes(c.name.toLowerCase());
-              })
-              .map((c, idx) => (
+            {(() => {
+              let featured = companyList.filter(c => c.showOnHomepage);
+              if (featured.length === 0) {
+                featured = companyList;
+              }
+              return featured.map((c, idx) => (
                 <a
                   key={idx}
-                  href={c.link}
+                  href={c.link || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`p-5 rounded-lg flex flex-col items-center gap-3 text-center transition-all hover:scale-110 hover:shadow-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}
@@ -514,11 +557,15 @@ const HomePage = () => {
                       src={API.getImageUrl(c.logo)}
                       alt={c.name}
                       className="max-h-24 max-w-24 object-contain"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
                     />
                   </div>
                   <div className="text-sm font-semibold leading-tight line-clamp-2" style={{ color: darkMode ? '#E5E7EB' : '#111827' }}>{c.name}</div>
                 </a>
-              ))}
+              ));
+            })()}
           </div>
         </section>
 
@@ -698,9 +745,21 @@ const EventSlider = ({ events, darkMode, color1 }) => {
   const [currentIndex, setCurrentIndex] = React.useState(0);
 
   React.useEffect(() => {
+    if (!events || events.length === 0) return;
     const timer = setInterval(() => setCurrentIndex((p) => (p + 1) % events.length), 5000);
     return () => clearInterval(timer);
-  }, [events.length]);
+  }, [events?.length]);
+
+  if (!events || events.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center text-gray-500 h-[280px] bg-gray-50 dark:bg-gray-800" style={{ minHeight: 280 }}>
+        <svg className="w-12 h-12 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <p className="text-sm font-semibold">No upcoming events scheduled</p>
+      </div>
+    );
+  }
 
   const goToSlide = (i) => setCurrentIndex(i);
   const nextSlide = () => setCurrentIndex((p) => (p + 1) % events.length);

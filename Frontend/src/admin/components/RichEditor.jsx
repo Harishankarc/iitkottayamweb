@@ -1,9 +1,50 @@
-import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import API from '../../api/api';
 
 const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showToolbar = true }, refProp) {
   const ref = useRef(null);
   const savedSelection = useRef(null);
+  const [activeFormats, setActiveFormats] = useState({ bold: false, italic: false, underline: false, ul: false, ol: false });
+
+  useEffect(() => {
+    const checkActiveFormats = () => {
+      try {
+        const hasParentTag = (tagName) => {
+          try {
+            const sel = window.getSelection();
+            if (!sel || !sel.rangeCount) return false;
+            let node = sel.getRangeAt(0).startContainer;
+            while (node && node !== ref.current) {
+              if (node && node.nodeName && node.nodeName.toLowerCase() === tagName.toLowerCase()) {
+                return true;
+              }
+              node = node.parentNode;
+            }
+          } catch (e) {}
+          return false;
+        };
+
+        const boldActive = document.queryCommandState('bold') || hasParentTag('strong') || hasParentTag('b');
+        const italicActive = document.queryCommandState('italic') || hasParentTag('em') || hasParentTag('i');
+        const underlineActive = document.queryCommandState('underline') || hasParentTag('u');
+        const ulActive = document.queryCommandState('insertUnorderedList') || hasParentTag('ul');
+        const olActive = document.queryCommandState('insertOrderedList') || hasParentTag('ol');
+
+        setActiveFormats({
+          bold: boldActive,
+          italic: italicActive,
+          underline: underlineActive,
+          ul: ulActive,
+          ol: olActive
+        });
+      } catch (e) {}
+    };
+
+    document.addEventListener('selectionchange', checkActiveFormats);
+    return () => {
+      document.removeEventListener('selectionchange', checkActiveFormats);
+    };
+  }, []);
 
   const restoreSelection = () => {
     const sel = window.getSelection();
@@ -90,26 +131,7 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
       }
     },
     exec(command, arg) {
-      if (ref.current) {
-        if (command === 'bold' || command === 'italic' || command === 'underline') {
-          applyInlineFormat(command === 'bold' ? 'strong' : command === 'italic' ? 'em' : 'u');
-          return;
-        }
-
-        // ensure editor retains focus but don't force a focus call that may alter selection
-        try { ref.current.focus && ref.current.focus(); } catch (e) { }
-        // If there's already a browser selection use it, otherwise restore a previously saved selection
-        const sel = window.getSelection();
-        if (!sel || !sel.rangeCount) restoreSelection();
-        // debug around execCommand
-        try {
-          const cs = ref.current && window.getComputedStyle(ref.current);
-          // eslint-disable-next-line no-console
-          console.debug('RichEditor.exec (imperative)', { command, arg, direction: cs && cs.direction, unicodeBidi: cs && cs.unicodeBidi });
-        } catch (e) { }
-        document.execCommand(command, false, arg);
-        onChange && onChange(ref.current.innerHTML);
-      }
+      executeCommand(command, arg);
     },
     insertLink(url) {
       if (!ref.current) return;
@@ -136,17 +158,75 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
     }
   }, [value]);
 
-  const exec = (command, arg) => {
-    if (ref.current) {
-      try { ref.current.focus && ref.current.focus(); } catch (e) { }
-      try {
-        const cs = ref.current && window.getComputedStyle(ref.current);
-        // eslint-disable-next-line no-console
-        console.debug('RichEditor.exec', { command, arg, direction: cs && cs.direction, unicodeBidi: cs && cs.unicodeBidi });
-      } catch (e) { }
-      document.execCommand(command, false, arg);
-      onChange && onChange(ref.current.innerHTML);
+  const executeCommand = (command, arg) => {
+    if (!ref.current) return;
+
+    if (command === 'bold' || command === 'italic' || command === 'underline') {
+      applyInlineFormat(command === 'bold' ? 'strong' : command === 'italic' ? 'em' : 'u');
+      return;
     }
+
+    try { ref.current.focus && ref.current.focus(); } catch (e) { }
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) restoreSelection();
+
+    if (command === 'removeFormat') {
+      try {
+        // Clear formats on selected text
+        document.execCommand('removeFormat', false, null);
+        
+        // Remove hyperlinks in selection
+        document.execCommand('unlink', false, null);
+        
+        // Toggle off bold/italic/underline if collapsed (so subsequent typing is normal)
+        if (document.queryCommandState('bold')) {
+          document.execCommand('bold', false, null);
+        }
+        if (document.queryCommandState('italic')) {
+          document.execCommand('italic', false, null);
+        }
+        if (document.queryCommandState('underline')) {
+          document.execCommand('underline', false, null);
+        }
+
+        // Toggle off list states
+        if (document.queryCommandState('insertUnorderedList')) {
+          document.execCommand('insertUnorderedList', false, null);
+        }
+        if (document.queryCommandState('insertOrderedList')) {
+          document.execCommand('insertOrderedList', false, null);
+        }
+
+        // Check if cursor is in an active list item to outdent/strip list tags
+        const s = window.getSelection();
+        if (s && s.rangeCount) {
+          let node = s.getRangeAt(0).startContainer;
+          while (node && node !== ref.current) {
+            if (node.nodeName === 'LI') {
+              document.execCommand('outdent', false, null);
+              break;
+            }
+            node = node.parentNode;
+          }
+        }
+        
+        setActiveFormats({ bold: false, italic: false, underline: false, ul: false, ol: false });
+      } catch (err) {
+        console.error('removeFormat execution error:', err);
+      }
+    } else {
+      try {
+        document.execCommand(command, false, arg);
+      } catch (e) {
+        console.error('execCommand error:', e);
+      }
+    }
+
+    onChange && onChange(ref.current.innerHTML);
+  };
+
+  const exec = (command, arg) => {
+    executeCommand(command, arg);
   };
 
   // Apply an inline formatting by wrapping the current selection with a tag (e.g. strong, em, u)
@@ -158,7 +238,16 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
     const s2 = window.getSelection();
     if (!s2 || !s2.rangeCount) return;
     const range = s2.getRangeAt(0);
-    if (range.collapsed) return; // nothing selected
+    if (range.collapsed) {
+      const command = tagName === 'strong' ? 'bold' : tagName === 'em' ? 'italic' : 'underline';
+      try {
+        ref.current.focus();
+        document.execCommand(command, false, null);
+      } catch (e) {
+        console.error('Failed execCommand for collapsed selection:', e);
+      }
+      return;
+    }
 
     try {
       // Extract contents and wrap
@@ -359,12 +448,59 @@ const RichEditor = forwardRef(function RichEditor({ value = '', onChange, showTo
     <div>
       {showToolbar && (
         <div className="mb-2 flex flex-wrap gap-2">
-          <button type="button" onMouseDown={(e) => { e.preventDefault(); applyInlineFormat('strong'); }} className="px-2 py-1 border rounded" data-testid="re-bold">B</button>
-          <button type="button" onMouseDown={(e) => { e.preventDefault(); applyInlineFormat('em'); }} className="px-2 py-1 border rounded" data-testid="re-italic">I</button>
-          <button type="button" onMouseDown={(e) => { e.preventDefault(); applyInlineFormat('u'); }} className="px-2 py-1 border rounded" data-testid="re-underline">U</button>
-          <button type="button" onMouseDown={(e) => { e.preventDefault(); insertLink(); }} className="px-2 py-1 border rounded" data-testid="re-link">Link</button>
-          <button type="button" onMouseDown={(e) => { e.preventDefault(); insertList(false); }} className="px-2 py-1 border rounded" data-testid="re-ul">UL</button>
-          <button type="button" onMouseDown={(e) => { e.preventDefault(); insertList(true); }} className="px-2 py-1 border rounded" data-testid="re-ol">OL</button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); applyInlineFormat('strong'); }}
+            className="px-2 py-1 border rounded transition-colors"
+            style={activeFormats.bold ? { backgroundColor: API.color1 || '#239244', color: '#fff', borderColor: API.color1 || '#239244' } : {}}
+            data-testid="re-bold"
+          >
+            B
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); applyInlineFormat('em'); }}
+            className="px-2 py-1 border rounded transition-colors"
+            style={activeFormats.italic ? { backgroundColor: API.color1 || '#239244', color: '#fff', borderColor: API.color1 || '#239244' } : {}}
+            data-testid="re-italic"
+          >
+            I
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); applyInlineFormat('u'); }}
+            className="px-2 py-1 border rounded transition-colors"
+            style={activeFormats.underline ? { backgroundColor: API.color1 || '#239244', color: '#fff', borderColor: API.color1 || '#239244' } : {}}
+            data-testid="re-underline"
+          >
+            U
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); insertLink(); }}
+            className="px-2 py-1 border rounded hover:bg-gray-100 transition-colors"
+            data-testid="re-link"
+          >
+            Link
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); insertList(false); }}
+            className="px-2 py-1 border rounded transition-colors"
+            style={activeFormats.ul ? { backgroundColor: API.color1 || '#239244', color: '#fff', borderColor: API.color1 || '#239244' } : {}}
+            data-testid="re-ul"
+          >
+            UL
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); insertList(true); }}
+            className="px-2 py-1 border rounded transition-colors"
+            style={activeFormats.ol ? { backgroundColor: API.color1 || '#239244', color: '#fff', borderColor: API.color1 || '#239244' } : {}}
+            data-testid="re-ol"
+          >
+            OL
+          </button>
         </div>
       )}
       <div

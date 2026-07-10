@@ -89,6 +89,44 @@ export default function UnifiedContentEditor() {
   // Refs
   const paragraphEditorRef = useRef(null);
 
+  const [activeFormats, setActiveFormats] = useState({ bold: false, italic: false, underline: false });
+
+  useEffect(() => {
+    const checkActiveFormats = () => {
+      try {
+        const hasParentTag = (tagName) => {
+          try {
+            const sel = window.getSelection();
+            if (!sel || !sel.rangeCount) return false;
+            let node = sel.getRangeAt(0).startContainer;
+            while (node && node !== document.body) {
+              if (node && node.nodeName && node.nodeName.toLowerCase() === tagName.toLowerCase()) {
+                return true;
+              }
+              node = node.parentNode;
+            }
+          } catch (e) {}
+          return false;
+        };
+
+        const boldActive = document.queryCommandState('bold') || hasParentTag('strong') || hasParentTag('b');
+        const italicActive = document.queryCommandState('italic') || hasParentTag('em') || hasParentTag('i');
+        const underlineActive = document.queryCommandState('underline') || hasParentTag('u');
+        
+        setActiveFormats({
+          bold: boldActive,
+          italic: italicActive,
+          underline: underlineActive
+        });
+      } catch (e) {}
+    };
+
+    document.addEventListener('selectionchange', checkActiveFormats);
+    return () => {
+      document.removeEventListener('selectionchange', checkActiveFormats);
+    };
+  }, []);
+
   const appendPendingListItem = () => {
     if (!pendingListType) return;
     const existingHtml = editingBlock.content?.text || '';
@@ -533,15 +571,73 @@ export default function UnifiedContentEditor() {
             )}
             {editingBlock.blockType === 'paragraph' && (
               <>
+                <style>{`
+                  @keyframes format-pop {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.15); }
+                    100% { transform: scale(1); }
+                  }
+                  .format-btn-active {
+                    animation: format-pop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+                  }
+                `}</style>
                 <div>
                   <label className="block text-sm font-semibold mb-2 text-gray-700">Text Formatting Options</label>
                   <div className="p-3 bg-gray-50 border-2 border-gray-300 rounded-lg flex flex-wrap gap-2">
-                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.applyInlineFormat('strong'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">B</button>
-                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.applyInlineFormat('em'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">I</button>
-                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.applyInlineFormat('u'); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">U</button>
-                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.insertLink(); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">Link</button>
-                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType('ul'); setPendingListItemCount(0); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">UL</button>
-                    <button type="button" onMouseDown={(e) => { e.preventDefault(); setPendingListType('ol'); setPendingListItemCount(0); }} className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition">OL</button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.applyInlineFormat('strong'); }}
+                      className={`px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition-all duration-200 ${activeFormats.bold ? 'format-btn-active font-semibold' : ''}`}
+                      style={activeFormats.bold ? { backgroundColor: color1, color: '#fff', borderColor: color1 } : {}}
+                    >
+                      B
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.applyInlineFormat('em'); }}
+                      className={`px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition-all duration-200 ${activeFormats.italic ? 'format-btn-active' : ''}`}
+                      style={activeFormats.italic ? { backgroundColor: color1, color: '#fff', borderColor: color1 } : {}}
+                    >
+                      I
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.applyInlineFormat('u'); }}
+                      className={`px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition-all duration-200 ${activeFormats.underline ? 'format-btn-active' : ''}`}
+                      style={activeFormats.underline ? { backgroundColor: color1, color: '#fff', borderColor: color1 } : {}}
+                    >
+                      U
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.insertLink(); }}
+                      className="px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition"
+                    >
+                      Link
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); setPendingListType('ul'); setPendingListItemCount(0); }}
+                      className={`px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition-all duration-200 ${pendingListType === 'ul' ? 'format-btn-active' : ''}`}
+                      style={pendingListType === 'ul' ? { backgroundColor: color1, color: '#fff', borderColor: color1 } : {}}
+                    >
+                      UL
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); setPendingListType('ol'); setPendingListItemCount(0); }}
+                      className={`px-3 py-1 bg-white border border-gray-300 hover:bg-gray-100 rounded text-sm font-medium cursor-pointer transition-all duration-200 ${pendingListType === 'ol' ? 'format-btn-active' : ''}`}
+                      style={pendingListType === 'ol' ? { backgroundColor: color1, color: '#fff', borderColor: color1 } : {}}
+                    >
+                      OL
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); setPendingListType(null); paragraphEditorRef.current?.exec('removeFormat'); }}
+                      className="px-3 py-1 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 rounded text-sm font-medium cursor-pointer transition"
+                    >
+                      Clear
+                    </button>
                   </div>
                 </div>
                 <div>
